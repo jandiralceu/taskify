@@ -1,0 +1,16 @@
+.env
+*.pem
+/api
+/atlas
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+vendor/
+.idea/
+.vscode/
+*.swp
+*.swo
+coverage*
