@@ -46,7 +46,7 @@ services:
   api:
     container_name: inventory-api
     build:
-      context: .
+      context: ../backend
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
