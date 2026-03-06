@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { resolve } from '$app/paths';
 </script>
 
 <div class="flex min-h-screen flex-col items-center justify-center space-y-4 px-4 text-center">
@@ -13,7 +14,7 @@
 
 	<div class="pt-6">
 		<a
-			href="/"
+			href={resolve('/')}
 			class="inline-flex h-12 items-center justify-center rounded-lg bg-indigo-600 px-8 font-semibold text-white transition-all hover:bg-indigo-700 hover:scale-105 active:scale-95 shadow-lg shadow-indigo-200 focus:outline-none focus:ring-4 focus:ring-indigo-300"
 		>
 			Voltar para o Início

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	let name = $state('');
 	let email = $state('');
 	let password = $state('');
@@ -70,7 +71,7 @@
 	<div class="flex items-center justify-between">
 		<div class="text-sm">
 			<a
-				href="/signin"
+				href={resolve('/signin')}
 				class="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400"
 			>
 				Já tem uma conta? Entre aqui
