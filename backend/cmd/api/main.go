@@ -93,9 +93,14 @@ func main() {
 	hasher := pkg.NewArgon2PasswordHasher()
 
 	userRepository := repository.NewUserRepository(db)
+	taskRepository := repository.NewTaskRepository(db)
+
 	userService := service.NewUserService(userRepository, hasher)
+	taskService := service.NewTaskService(taskRepository, cfg.UploadPath)
+
 	authHandler := handlers.NewAuthHandler(userService, jwtManager, cacheManager, hasher)
 	userHandler := handlers.NewUserHandler(userService)
+	taskHandler := handlers.NewTaskHandler(taskService)
 
 	// Initialize Casbin Enforcer for RBAC.
 	enforcer, err := casbin.NewEnforcer("model.conf", "policy.csv")
@@ -107,6 +112,7 @@ func main() {
 	routeConfig := &routes.RouteConfig{
 		AuthHandler: authHandler,
 		UserHandler: userHandler,
+		TaskHandler: taskHandler,
 	}
 
 	r := routes.Setup(routeConfig, cfg, jwtManager, enforcer, cacheManager)

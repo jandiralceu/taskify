@@ -20,6 +20,7 @@ import (
 type RouteConfig struct {
 	AuthHandler *handlers.AuthHandler
 	UserHandler *handlers.UserHandler
+	TaskHandler *handlers.TaskHandler
 }
 
 // Setup creates a configured [gin.Engine] with global middleware, public and
@@ -74,11 +75,32 @@ func Setup(routeConfig *RouteConfig, config *config.Config, jwtManager *pkg.JWTM
 				users.PATCH("/change-password", middleware.RateLimiter(cacheManager, "pass-change", config.RateLimitAuth), routeConfig.UserHandler.ChangePassword)
 				users.DELETE("/:id", routeConfig.UserHandler.DeleteUser)
 			}
+
+			tasks := protected.Group("/tasks")
+			{
+				tasks.POST("", routeConfig.TaskHandler.CreateTask)
+				tasks.GET("", routeConfig.TaskHandler.ListTasks)
+				tasks.GET("/:id", routeConfig.TaskHandler.GetTask)
+				tasks.PATCH("/:id", routeConfig.TaskHandler.UpdateTask)
+				tasks.DELETE("/:id", routeConfig.TaskHandler.DeleteTask)
+
+				tasks.POST("/:id/notes", routeConfig.TaskHandler.AddNote)
+				tasks.GET("/:id/notes", routeConfig.TaskHandler.GetNotes)
+				tasks.PATCH("/notes/:noteId", routeConfig.TaskHandler.UpdateNote)
+				tasks.DELETE("/notes/:noteId", routeConfig.TaskHandler.DeleteNote)
+
+				tasks.POST("/:id/attachments", routeConfig.TaskHandler.AddAttachment)
+				tasks.GET("/:id/attachments", routeConfig.TaskHandler.GetAttachments)
+				tasks.DELETE("/attachments/:attachmentId", routeConfig.TaskHandler.DeleteAttachment)
+			}
 		}
 	}
 
 	// Swagger UI route.
 	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	// Static files for attachments
+	router.Static("/uploads", config.UploadPath)
 
 	return router
 }

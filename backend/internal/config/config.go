@@ -33,6 +33,7 @@ type Config struct {
 	RedisPassword   string `env:"REDIS_PASSWORD" envDefault:""`
 	RateLimitGlobal string `env:"RATE_LIMIT_GLOBAL" envDefault:"100-M"`
 	RateLimitAuth   string `env:"RATE_LIMIT_AUTH" envDefault:"5-M"`
+	UploadPath      string `env:"UPLOAD_PATH" envDefault:"uploads"`
 }
 
 // Load reads a .env file (if present) and parses environment variables into a [Config].
