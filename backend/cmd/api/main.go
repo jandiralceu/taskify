@@ -5,7 +5,7 @@ package main
 // @description REST API for an Inventory Management System built with Go and Gin.
 
 // @contact.name Jandir A. Cutabiala
-// @contact.url https://github.com/jandiralceu/inventory_api_with_golang
+// @contact.url https://github.com/jandiralceu/taskify
 
 // @license.name MIT
 // @license.url https://opensource.org/licenses/MIT
@@ -29,13 +29,13 @@ import (
 
 	"github.com/casbin/casbin/v3"
 	"github.com/gin-gonic/gin"
-	"github.com/jandiralceu/inventory_api_with_golang/internal/config"
-	"github.com/jandiralceu/inventory_api_with_golang/internal/database"
-	"github.com/jandiralceu/inventory_api_with_golang/internal/handlers"
-	"github.com/jandiralceu/inventory_api_with_golang/internal/pkg"
-	"github.com/jandiralceu/inventory_api_with_golang/internal/repository"
-	"github.com/jandiralceu/inventory_api_with_golang/internal/routes"
-	"github.com/jandiralceu/inventory_api_with_golang/internal/service"
+	"github.com/jandiralceu/taskify/internal/config"
+	"github.com/jandiralceu/taskify/internal/database"
+	"github.com/jandiralceu/taskify/internal/handlers"
+	"github.com/jandiralceu/taskify/internal/pkg"
+	"github.com/jandiralceu/taskify/internal/repository"
+	"github.com/jandiralceu/taskify/internal/routes"
+	"github.com/jandiralceu/taskify/internal/service"
 )
 
 func main() {

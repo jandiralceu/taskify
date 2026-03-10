@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jandiralceu/inventory_api_with_golang/internal/apperrors"
-	"github.com/jandiralceu/inventory_api_with_golang/internal/dto"
-	"github.com/jandiralceu/inventory_api_with_golang/internal/models"
-	"github.com/jandiralceu/inventory_api_with_golang/internal/repository"
+	"github.com/jandiralceu/taskify/internal/apperrors"
+	"github.com/jandiralceu/taskify/internal/dto"
+	"github.com/jandiralceu/taskify/internal/models"
+	"github.com/jandiralceu/taskify/internal/repository"
 )
 
 type TaskService interface {

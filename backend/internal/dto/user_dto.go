@@ -1,7 +1,7 @@
 package dto
 
 import (
-	"github.com/jandiralceu/inventory_api_with_golang/internal/models"
+	"github.com/jandiralceu/taskify/internal/models"
 )
 
 type ChangePasswordRequest struct {

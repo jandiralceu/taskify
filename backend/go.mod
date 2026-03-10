@@ -1,4 +1,4 @@
-module github.com/jandiralceu/inventory_api_with_golang
+module github.com/jandiralceu/taskify
 
 go 1.24.2
 

@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/jandiralceu/inventory_api_with_golang/internal/config"
+	"github.com/jandiralceu/taskify/internal/config"
 	"github.com/redis/go-redis/extra/redisotel/v9"
 	"github.com/redis/go-redis/v9"
 )

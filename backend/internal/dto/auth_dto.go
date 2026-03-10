@@ -1,6 +1,6 @@
 package dto
 
-import "github.com/jandiralceu/inventory_api_with_golang/internal/models"
+import "github.com/jandiralceu/taskify/internal/models"
 
 type RegisterRequest struct {
 	CreateUserRequest

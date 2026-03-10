@@ -11,7 +11,7 @@ const docTemplate = `{
         "title": "{{.Title}}",
         "contact": {
             "name": "Jandir A. Cutabiala",
-            "url": "https://github.com/jandiralceu/inventory_api_with_golang"
+            "url": "https://github.com/jandiralceu/taskify"
         },
         "license": {
             "name": "MIT",

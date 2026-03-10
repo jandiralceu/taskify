@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jandiralceu/inventory_api_with_golang/internal/apperrors"
+	"github.com/jandiralceu/taskify/internal/apperrors"
 	"gorm.io/gorm"
 )
 

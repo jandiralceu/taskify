@@ -6,11 +6,11 @@ import (
 	"github.com/casbin/casbin/v3"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	_ "github.com/jandiralceu/inventory_api_with_golang/docs" // imported so swagger can read embedded docs
-	"github.com/jandiralceu/inventory_api_with_golang/internal/config"
-	"github.com/jandiralceu/inventory_api_with_golang/internal/handlers"
-	"github.com/jandiralceu/inventory_api_with_golang/internal/middleware"
-	"github.com/jandiralceu/inventory_api_with_golang/internal/pkg"
+	_ "github.com/jandiralceu/taskify/docs" // imported so swagger can read embedded docs
+	"github.com/jandiralceu/taskify/internal/config"
+	"github.com/jandiralceu/taskify/internal/handlers"
+	"github.com/jandiralceu/taskify/internal/middleware"
+	"github.com/jandiralceu/taskify/internal/pkg"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"

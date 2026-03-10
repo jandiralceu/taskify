@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/jandiralceu/inventory_api_with_golang/internal/apperrors"
+	"github.com/jandiralceu/taskify/internal/apperrors"
 )
 
 // ProblemDetails implements the RFC 7807 specification for HTTP API error responses.

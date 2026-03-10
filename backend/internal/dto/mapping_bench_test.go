@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jandiralceu/inventory_api_with_golang/internal/models"
+	"github.com/jandiralceu/taskify/internal/models"
 )
 
 // UserResponse is what we would typically return to the client

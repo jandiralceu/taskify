@@ -5,11 +5,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"github.com/jandiralceu/inventory_api_with_golang/internal/apperrors"
-	"github.com/jandiralceu/inventory_api_with_golang/internal/dto"
-	"github.com/jandiralceu/inventory_api_with_golang/internal/middleware"
-	"github.com/jandiralceu/inventory_api_with_golang/internal/models"
-	"github.com/jandiralceu/inventory_api_with_golang/internal/service"
+	"github.com/jandiralceu/taskify/internal/apperrors"
+	"github.com/jandiralceu/taskify/internal/dto"
+	"github.com/jandiralceu/taskify/internal/middleware"
+	"github.com/jandiralceu/taskify/internal/models"
+	"github.com/jandiralceu/taskify/internal/service"
 )
 
 // UserHandler provides endpoints for general user management tasks.

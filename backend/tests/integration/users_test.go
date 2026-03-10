@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/jandiralceu/inventory_api_with_golang/internal/dto"
-	"github.com/jandiralceu/inventory_api_with_golang/internal/models"
+	"github.com/jandiralceu/taskify/internal/dto"
+	"github.com/jandiralceu/taskify/internal/models"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )

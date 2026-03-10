@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jandiralceu/inventory_api_with_golang/internal/apperrors"
+	"github.com/jandiralceu/taskify/internal/apperrors"
 	"github.com/stretchr/testify/assert"
 )
 
