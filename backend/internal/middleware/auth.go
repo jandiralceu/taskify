@@ -58,7 +58,7 @@ func AuthMiddleware(jwtManager *pkg.JWTManager) gin.HandlerFunc {
 		}
 
 		claims, err := jwtManager.ValidateToken(parts[1])
-		if err != nil {
+		if err != nil || claims.Type != pkg.Access {
 			respondWithUnauthorized(c, "invalid or expired token")
 			return
 		}

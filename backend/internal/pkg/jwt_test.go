@@ -77,7 +77,7 @@ func TestJWTManager_GenerateAndValidateToken_Success(t *testing.T) {
 	expiration := time.Minute * 15
 
 	role := "admin"
-	token, err := manager.GenerateToken(userID, role, expiration)
+	token, err := manager.GenerateToken(userID, role, expiration, Access)
 
 	require.NoError(t, err)
 	assert.NotEmpty(t, token)
@@ -86,6 +86,7 @@ func TestJWTManager_GenerateAndValidateToken_Success(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, userID, claims.UserID)
 	assert.Equal(t, role, claims.Role)
+	assert.Equal(t, Access, claims.Type)
 }
 
 func TestJWTManager_ValidateToken_Expired(t *testing.T) {
@@ -96,7 +97,7 @@ func TestJWTManager_ValidateToken_Expired(t *testing.T) {
 	userID := uuid.New()
 	expiration := -time.Minute * 15 // Set an expiration in the past
 
-	token, err := manager.GenerateToken(userID, "admin", expiration)
+	token, err := manager.GenerateToken(userID, "admin", expiration, Access)
 	require.NoError(t, err)
 
 	claims, err := manager.ValidateToken(token)
@@ -115,7 +116,7 @@ func TestJWTManager_ValidateToken_InvalidSignature(t *testing.T) {
 	require.NoError(t, err)
 
 	userID := uuid.New()
-	tokenFrom1, err := manager1.GenerateToken(userID, "admin", time.Hour)
+	tokenFrom1, err := manager1.GenerateToken(userID, "admin", time.Hour, Access)
 	require.NoError(t, err)
 
 	// Validating token signed by Key 1 using Key 2, should fail signature validation
@@ -131,7 +132,7 @@ func BenchmarkGenerateToken(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, _ = manager.GenerateToken(userID, "admin", time.Hour)
+		_, _ = manager.GenerateToken(userID, "admin", time.Hour, Access)
 	}
 }
 
@@ -139,7 +140,7 @@ func BenchmarkValidateToken(b *testing.B) {
 	privPEM, pubPEM := generateMemRSAKeysBenchmark(b)
 	manager, _ := NewJWTManager(privPEM, pubPEM)
 	userID := uuid.New()
-	token, _ := manager.GenerateToken(userID, "admin", time.Hour)
+	token, _ := manager.GenerateToken(userID, "admin", time.Hour, Access)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

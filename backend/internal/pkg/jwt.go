@@ -25,10 +25,21 @@ type JWTManager struct {
 	publicKey  *rsa.PublicKey
 }
 
+// TokenType represents the purpose of a JWT.
+type TokenType string
+
+const (
+	// Access is used for hitting protected API endpoints.
+	Access TokenType = "access"
+	// Refresh is used only to obtain a new pair of tokens.
+	Refresh TokenType = "refresh"
+)
+
 // UserClaims represents the data stored in the JWT claims.
 type UserClaims struct {
 	UserID uuid.UUID
 	Role   string
+	Type   TokenType
 }
 
 // NewJWTManager creates a new JWTManager by parsing PEM-encoded RSA keys.
@@ -51,11 +62,12 @@ func NewJWTManager(privateKeyPEM, publicKeyPEM string) (*JWTManager, error) {
 }
 
 // GenerateToken creates a signed JWT containing the user ID in the 'sub' claim.
-// It also includes standard 'iat' (issued at), 'exp' (expiration), and 'jti' (token ID) claims.
-func (j *JWTManager) GenerateToken(userID uuid.UUID, role string, expiration time.Duration) (string, error) {
+// It also includes standard 'iat' (issued at), 'exp' (expiration), type, and 'jti' (token ID) claims.
+func (j *JWTManager) GenerateToken(userID uuid.UUID, role string, expiration time.Duration, tokenType TokenType) (string, error) {
 	claims := jwt.MapClaims{
 		"sub":  userID.String(),
 		"role": role,
+		"type": string(tokenType),
 		"iat":  time.Now().Unix(),
 		"exp":  time.Now().Add(expiration).Unix(),
 		"jti":  uuid.NewString(),
@@ -72,7 +84,7 @@ func (j *JWTManager) GenerateToken(userID uuid.UUID, role string, expiration tim
 }
 
 // ValidateToken verifies the token signature against the public key and expiration.
-// Returns the user ID extracted from the 'sub' claim if valid.
+// Returns the user ID, role and type extracted from the claims if valid.
 func (j *JWTManager) ValidateToken(tokenString string) (*UserClaims, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
@@ -104,9 +116,15 @@ func (j *JWTManager) ValidateToken(tokenString string) (*UserClaims, error) {
 		return nil, ErrInvalidClaims
 	}
 
+	tokenType, ok := claims["type"].(string)
+	if !ok {
+		return nil, ErrInvalidClaims
+	}
+
 	return &UserClaims{
 		UserID: userID,
 		Role:   role,
+		Type:   TokenType(tokenType),
 	}, nil
 }
 

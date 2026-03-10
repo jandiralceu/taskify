@@ -122,7 +122,7 @@ func TestAuthMiddleware(t *testing.T) {
 	t.Run("Valid Token", func(t *testing.T) {
 		userID := uuid.New()
 		role := "admin"
-		token, err := jwtManager.GenerateToken(userID, role, 15*time.Minute)
+		token, err := jwtManager.GenerateToken(userID, role, 15*time.Minute, pkg.Access)
 		require.NoError(t, err)
 
 		req, _ := http.NewRequest(http.MethodGet, "/protected", nil)
@@ -133,6 +133,26 @@ func TestAuthMiddleware(t *testing.T) {
 		assert.Equal(t, http.StatusOK, resp.Code)
 		assert.Contains(t, resp.Body.String(), userID.String())
 		assert.Contains(t, resp.Body.String(), role)
+	})
+
+	t.Run("Refresh Token as Access Token", func(t *testing.T) {
+		userID := uuid.New()
+		role := "admin"
+		token, err := jwtManager.GenerateToken(userID, role, 15*time.Minute, pkg.Refresh)
+		require.NoError(t, err)
+
+		req, _ := http.NewRequest(http.MethodGet, "/protected", nil)
+		req.Header.Set("Authorization", "Bearer "+token)
+		resp := httptest.NewRecorder()
+		router.ServeHTTP(resp, req)
+
+		assert.Equal(t, http.StatusUnauthorized, resp.Code)
+
+		var pd problemDetails
+		err = json.Unmarshal(resp.Body.Bytes(), &pd)
+		assert.NoError(t, err)
+		assert.Equal(t, "Unauthorized", pd.Title)
+		assert.Contains(t, pd.Detail, "invalid or expired token")
 	})
 }
 

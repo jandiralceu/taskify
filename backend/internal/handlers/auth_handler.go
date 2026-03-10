@@ -115,13 +115,13 @@ func (h *AuthHandler) SignIn(c *gin.Context) {
 	}
 
 	// Generate access and refresh tokens.
-	accessToken, err := h.jwtManager.GenerateToken(user.ID, string(user.Role), accessTokenExpiration)
+	accessToken, err := h.jwtManager.GenerateToken(user.ID, string(user.Role), accessTokenExpiration, pkg.Access)
 	if err != nil {
 		RespondWithError(c, fmt.Errorf("%w: failed to generate access token", apperrors.ErrInternal))
 		return
 	}
 
-	refreshToken, err := h.jwtManager.GenerateToken(user.ID, string(user.Role), refreshTokenExpiration)
+	refreshToken, err := h.jwtManager.GenerateToken(user.ID, string(user.Role), refreshTokenExpiration, pkg.Refresh)
 	if err != nil {
 		RespondWithError(c, fmt.Errorf("%w: failed to generate refresh token", apperrors.ErrInternal))
 		return
@@ -160,7 +160,7 @@ func (h *AuthHandler) SignOut(c *gin.Context) {
 	}
 
 	claims, err := h.jwtManager.ValidateToken(req.RefreshToken)
-	if err != nil {
+	if err != nil || claims.Type != pkg.Refresh {
 		RespondWithError(c, fmt.Errorf("%w: invalid or expired refresh token", apperrors.ErrUnauthorized))
 		return
 	}
@@ -192,7 +192,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	}
 
 	claims, err := h.jwtManager.ValidateToken(req.RefreshToken)
-	if err != nil {
+	if err != nil || claims.Type != pkg.Refresh {
 		RespondWithError(c, fmt.Errorf("%w: invalid or expired refresh token", apperrors.ErrUnauthorized))
 		return
 	}
@@ -212,13 +212,13 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	accessToken, err := h.jwtManager.GenerateToken(claims.UserID, string(user.Role), accessTokenExpiration)
+	accessToken, err := h.jwtManager.GenerateToken(claims.UserID, string(user.Role), accessTokenExpiration, pkg.Access)
 	if err != nil {
 		RespondWithError(c, fmt.Errorf("%w: failed to generate access token", apperrors.ErrInternal))
 		return
 	}
 
-	refreshToken, err := h.jwtManager.GenerateToken(claims.UserID, string(user.Role), refreshTokenExpiration)
+	refreshToken, err := h.jwtManager.GenerateToken(claims.UserID, string(user.Role), refreshTokenExpiration, pkg.Refresh)
 	if err != nil {
 		RespondWithError(c, fmt.Errorf("%w: failed to generate refresh token", apperrors.ErrInternal))
 		return
