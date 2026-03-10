@@ -61,11 +61,6 @@ func (m *MockUserService) ChangePassword(ctx context.Context, userID uuid.UUID, 
 	return args.Error(0)
 }
 
-func (m *MockUserService) ChangeRole(ctx context.Context, userID uuid.UUID, req dto.ChangeRoleRequest) error {
-	args := m.Called(ctx, userID, req)
-	return args.Error(0)
-}
-
 func (m *MockUserService) Delete(ctx context.Context, userID uuid.UUID) error {
 	args := m.Called(ctx, userID)
 	return args.Error(0)
@@ -188,7 +183,6 @@ func setupAuthHandlerWithMockHasher(t *testing.T) (*AuthHandler, *MockUserServic
 func TestRegister_Success(t *testing.T) {
 	handler, mockService, _, _, _ := setupAuthHandlerWithMockHasher(t)
 
-	roleID := uuid.New()
 	mockService.On("FindByEmail", mock.Anything, "john@example.com").Return(nil, apperrors.ErrNotFound)
 	mockService.On("Create", mock.Anything, mock.AnythingOfType("*models.User")).Return(nil)
 
@@ -196,10 +190,11 @@ func TestRegister_Success(t *testing.T) {
 	router.POST("/auth/register", handler.Register)
 
 	body := map[string]any{
-		"name":     "John Doe",
-		"email":    "john@example.com",
-		"password": "password123",
-		"roleId":   roleID.String(),
+		"first_name": "John",
+		"last_name":  "Doe",
+		"email":      "john@example.com",
+		"password":   "password123",
+		"role":       "admin",
 	}
 
 	w := performRequest(router, "POST", "/auth/register", body)
@@ -216,8 +211,9 @@ func TestRegister_BadRequest_MissingFields(t *testing.T) {
 
 	// Missing "password" and "roleId"
 	body := map[string]any{
-		"name":  "John Doe",
-		"email": "john@example.com",
+		"first_name": "John",
+		"last_name":  "Doe",
+		"email":      "john@example.com",
 	}
 
 	w := performRequest(router, "POST", "/auth/register", body)
@@ -233,10 +229,11 @@ func TestRegister_BadRequest_InvalidEmail(t *testing.T) {
 	router.POST("/auth/register", handler.Register)
 
 	body := map[string]any{
-		"name":     "John Doe",
-		"email":    "not-an-email",
-		"password": "password123",
-		"roleId":   uuid.New().String(),
+		"first_name": "John",
+		"last_name":  "Doe",
+		"email":      "not-an-email",
+		"password":   "password123",
+		"role":       "admin",
 	}
 
 	w := performRequest(router, "POST", "/auth/register", body)
@@ -252,10 +249,11 @@ func TestRegister_BadRequest_PasswordTooShort(t *testing.T) {
 	router.POST("/auth/register", handler.Register)
 
 	body := map[string]any{
-		"name":     "John Doe",
-		"email":    "john@example.com",
-		"password": "short",
-		"roleId":   uuid.New().String(),
+		"first_name": "John",
+		"last_name":  "Doe",
+		"email":      "john@example.com",
+		"password":   "short",
+		"role":       "admin",
 	}
 
 	w := performRequest(router, "POST", "/auth/register", body)
@@ -274,10 +272,11 @@ func TestRegister_Conflict_EmailExists(t *testing.T) {
 	router.POST("/auth/register", handler.Register)
 
 	body := map[string]any{
-		"name":     "John Doe",
-		"email":    "john@example.com",
-		"password": "password123",
-		"roleId":   uuid.New().String(),
+		"first_name": "John",
+		"last_name":  "Doe",
+		"email":      "john@example.com",
+		"password":   "password123",
+		"role":       "admin",
 	}
 
 	w := performRequest(router, "POST", "/auth/register", body)
@@ -303,10 +302,11 @@ func TestRegister_InternalServerError(t *testing.T) {
 	router.POST("/auth/register", handler.Register)
 
 	body := map[string]any{
-		"name":     "John Doe",
-		"email":    "john@example.com",
-		"password": "password123",
-		"roleId":   uuid.New().String(),
+		"first_name": "John",
+		"last_name":  "Doe",
+		"email":      "john@example.com",
+		"password":   "password123",
+		"role":       "admin",
 	}
 
 	w := performRequest(router, "POST", "/auth/register", body)
@@ -336,10 +336,11 @@ func TestSignIn_Success(t *testing.T) {
 	mockService.On("FindByEmail", mock.Anything, "john@example.com").
 		Return(&models.User{
 			ID:           userID,
-			Name:         "John Doe",
+			FirstName:    "John",
+			LastName:     "Doe",
 			Email:        "john@example.com",
 			PasswordHash: hashedPassword,
-			Role:         models.Role{Name: "admin"},
+			Role:         models.RoleAdmin,
 		}, nil)
 
 	mockCache.On("Set", mock.Anything, mock.Anything, "active", mock.Anything).Return(nil)
@@ -512,7 +513,7 @@ func TestRefreshToken_Success(t *testing.T) {
 	assert.NoError(t, err)
 
 	mockService.On("FindByID", mock.Anything, userID).
-		Return(&models.User{ID: userID, Name: "John Doe", Role: models.Role{Name: "admin"}}, nil)
+		Return(&models.User{ID: userID, FirstName: "John", LastName: "Doe", Role: models.RoleAdmin}, nil)
 
 	mockCache.On("Get", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	mockCache.On("Delete", mock.Anything, mock.Anything).Return(nil)
@@ -639,7 +640,7 @@ func TestRefreshToken_InternalServerError_FailedToSaveNewToken(t *testing.T) {
 	assert.NoError(t, err)
 
 	mockService.On("FindByID", mock.Anything, userID).
-		Return(&models.User{ID: userID, Name: "John Doe", Role: models.Role{Name: "admin"}}, nil)
+		Return(&models.User{ID: userID, FirstName: "John", LastName: "Doe", Role: models.RoleAdmin}, nil)
 
 	mockCache.On("Get", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	mockCache.On("Delete", mock.Anything, mock.Anything).Return(nil)

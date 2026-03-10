@@ -28,18 +28,18 @@ func TestUserRepositoryCreateSuccess(t *testing.T) {
 	repo := NewUserRepository(gormDB)
 
 	userID := uuid.New()
-	roleID := uuid.New()
 	user := &models.User{
-		Name:         "John Doe",
+		FirstName:    "John",
+		LastName:     "Doe",
 		Email:        "john@example.com",
 		PasswordHash: "hashed_password",
-		RoleID:       roleID,
+		Role:         models.RoleAdmin,
 	}
 
 	mock.ExpectBegin()
 	mock.ExpectQuery(regexp.QuoteMeta(
-		`INSERT INTO "users" ("name","email","password_hash","role_id") VALUES ($1,$2,$3,$4) RETURNING "id","created_at","updated_at"`)).
-		WithArgs(user.Name, user.Email, user.PasswordHash, user.RoleID).
+		`INSERT INTO "users" ("first_name","last_name","email","password_hash","role","is_active") VALUES ($1,$2,$3,$4,$5,$6) RETURNING "id","created_at","updated_at"`)).
+		WithArgs(user.FirstName, user.LastName, user.Email, user.PasswordHash, user.Role, sqlmock.AnyArg()).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "created_at", "updated_at"}).
 			AddRow(userID, time.Now(), time.Now()))
 	mock.ExpectCommit()
@@ -58,9 +58,11 @@ func TestUserRepositoryCreateError(t *testing.T) {
 	repo := NewUserRepository(gormDB)
 
 	user := &models.User{
-		Name:         "John Doe",
+		FirstName:    "John",
+		LastName:     "Doe",
 		Email:        "john@example.com",
 		PasswordHash: "hashed_password",
+		Role:         models.RoleAdmin,
 	}
 
 	mock.ExpectBegin()
@@ -86,27 +88,20 @@ func TestUserRepositoryFindByIDSuccess(t *testing.T) {
 	repo := NewUserRepository(gormDB)
 
 	userID := uuid.New()
-	roleID := uuid.New()
 	now := time.Now()
-
-	rows := sqlmock.NewRows([]string{"id", "name", "email", "password_hash", "role_id", "created_at", "updated_at"}).
-		AddRow(userID, "John Doe", "john@example.com", "hash", roleID, now, now)
+	rows := sqlmock.NewRows([]string{"id", "first_name", "last_name", "email", "password_hash", "role", "is_active", "created_at", "updated_at"}).
+		AddRow(userID, "John", "Doe", "john@example.com", "hash", "admin", true, now, now)
 
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE id = $1 ORDER BY "users"."id" LIMIT $2`)).
 		WithArgs(userID, 1).
 		WillReturnRows(rows)
-
-	// Role preloading
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "roles" WHERE "roles"."id" = $1`)).
-		WithArgs(roleID).
-		WillReturnRows(sqlmock.NewRows([]string{"id", "name"}).AddRow(roleID, "Admin"))
 
 	user, err := repo.FindByID(context.Background(), userID)
 
 	assert.NoError(t, err)
 	require.NotNil(t, user)
 	assert.Equal(t, userID, user.ID)
-	assert.Equal(t, "John Doe", user.Name)
+	assert.Equal(t, "John", user.FirstName)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
@@ -141,20 +136,13 @@ func TestUserRepositoryFindByEmailSuccess(t *testing.T) {
 	repo := NewUserRepository(gormDB)
 
 	userID := uuid.New()
-	roleID := uuid.New()
 	now := time.Now()
-
-	rows := sqlmock.NewRows([]string{"id", "name", "email", "password_hash", "role_id", "created_at", "updated_at"}).
-		AddRow(userID, "John Doe", "john@example.com", "hash", roleID, now, now)
+	rows := sqlmock.NewRows([]string{"id", "first_name", "last_name", "email", "password_hash", "role", "is_active", "created_at", "updated_at"}).
+		AddRow(userID, "John", "Doe", "john@example.com", "hash", "admin", true, now, now)
 
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE email = $1 ORDER BY "users"."id" LIMIT $2`)).
 		WithArgs("john@example.com", 1).
 		WillReturnRows(rows)
-
-	// Role preloading
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "roles" WHERE "roles"."id" = $1`)).
-		WithArgs(roleID).
-		WillReturnRows(sqlmock.NewRows([]string{"id", "name"}).AddRow(roleID, "Admin"))
 
 	user, err := repo.FindByEmail(context.Background(), "john@example.com")
 
@@ -239,7 +227,6 @@ func TestUserRepositoryFindAllSuccess(t *testing.T) {
 
 	userID1 := uuid.New()
 	userID2 := uuid.New()
-	roleID := uuid.New()
 	now := time.Now()
 
 	req := dto.GetUserListRequest{
@@ -254,17 +241,12 @@ func TestUserRepositoryFindAllSuccess(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(2))
 
 	// Find query
-	rows := sqlmock.NewRows([]string{"id", "name", "email", "password_hash", "role_id", "created_at", "updated_at"}).
-		AddRow(userID1, "User One", "user1@example.com", "hash1", roleID, now, now).
-		AddRow(userID2, "User Two", "user2@example.com", "hash2", roleID, now, now)
+	rows := sqlmock.NewRows([]string{"id", "first_name", "last_name", "email", "password_hash", "role", "is_active", "created_at", "updated_at"}).
+		AddRow(userID1, "User", "One", "user1@example.com", "hash1", "employee", true, now, now).
+		AddRow(userID2, "User", "Two", "user2@example.com", "hash2", "employee", true, now, now)
 
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users"`)).
 		WillReturnRows(rows)
-
-	// Role preloading
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "roles" WHERE "roles"."id" = $1`)).
-		WithArgs(roleID).
-		WillReturnRows(sqlmock.NewRows([]string{"id", "name"}).AddRow(roleID, "Admin"))
 
 	filter := UserListFilter{
 		Pagination: PaginationParams{
@@ -280,8 +262,8 @@ func TestUserRepositoryFindAllSuccess(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, int64(2), total)
 	assert.Len(t, users, 2)
-	assert.Equal(t, "User One", users[0].Name)
-	assert.Equal(t, "User Two", users[1].Name)
+	assert.Equal(t, "User", users[0].FirstName)
+	assert.Equal(t, "User", users[1].FirstName)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
@@ -303,7 +285,7 @@ func TestUserRepositoryFindAllEmpty(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
 
 	// Find query
-	rows := sqlmock.NewRows([]string{"id", "name", "email", "password_hash", "role_id", "created_at", "updated_at"})
+	rows := sqlmock.NewRows([]string{"id", "first_name", "last_name", "email", "password_hash", "role", "is_active", "created_at", "updated_at"})
 
 	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users"`)).
 		WillReturnRows(rows)
@@ -364,51 +346,6 @@ func TestUserRepositoryChangePasswordNotFound(t *testing.T) {
 	mock.ExpectCommit()
 
 	err := repo.ChangePassword(ctx, userID, "hash")
-	assert.Error(t, err)
-	assert.True(t, errors.Is(err, apperrors.ErrNotFound))
-	mock.ExpectationsWereMet()
-}
-
-// =====================
-// ChangeRole Tests
-// =====================
-
-func TestUserRepositoryChangeRoleSuccess(t *testing.T) {
-	db, mock, sqlDB := setupTestDB(t)
-	defer sqlDB.Close()
-
-	repo := NewUserRepository(db)
-	ctx := context.Background()
-	userID := uuid.New()
-	roleID := uuid.New()
-
-	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta(`UPDATE "users" SET "role_id"=$1,"updated_at"=$2 WHERE id = $3`)).
-		WithArgs(roleID, sqlmock.AnyArg(), userID).
-		WillReturnResult(sqlmock.NewResult(1, 1))
-	mock.ExpectCommit()
-
-	err := repo.ChangeRole(ctx, userID, roleID)
-	assert.NoError(t, err)
-	mock.ExpectationsWereMet()
-}
-
-func TestUserRepositoryChangeRoleNotFound(t *testing.T) {
-	db, mock, sqlDB := setupTestDB(t)
-	defer sqlDB.Close()
-
-	repo := NewUserRepository(db)
-	ctx := context.Background()
-	userID := uuid.New()
-	roleID := uuid.New()
-
-	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta(`UPDATE "users" SET "role_id"=$1,"updated_at"=$2 WHERE id = $3`)).
-		WithArgs(roleID, sqlmock.AnyArg(), userID).
-		WillReturnResult(sqlmock.NewResult(0, 0))
-	mock.ExpectCommit()
-
-	err := repo.ChangeRole(ctx, userID, roleID)
 	assert.Error(t, err)
 	assert.True(t, errors.Is(err, apperrors.ErrNotFound))
 	mock.ExpectationsWereMet()

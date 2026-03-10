@@ -65,10 +65,11 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 
 	user := &models.User{
-		Name:         req.Name,
+		FirstName:    req.FirstName,
+		LastName:     req.LastName,
 		Email:        req.Email,
 		PasswordHash: req.Password,
-		RoleID:       req.RoleID,
+		Role:         req.Role,
 	}
 
 	if err := h.userService.Create(c.Request.Context(), user); err != nil {
@@ -114,13 +115,13 @@ func (h *AuthHandler) SignIn(c *gin.Context) {
 	}
 
 	// Generate access and refresh tokens.
-	accessToken, err := h.jwtManager.GenerateToken(user.ID, user.Role.Name, accessTokenExpiration)
+	accessToken, err := h.jwtManager.GenerateToken(user.ID, string(user.Role), accessTokenExpiration)
 	if err != nil {
 		RespondWithError(c, fmt.Errorf("%w: failed to generate access token", apperrors.ErrInternal))
 		return
 	}
 
-	refreshToken, err := h.jwtManager.GenerateToken(user.ID, user.Role.Name, refreshTokenExpiration)
+	refreshToken, err := h.jwtManager.GenerateToken(user.ID, string(user.Role), refreshTokenExpiration)
 	if err != nil {
 		RespondWithError(c, fmt.Errorf("%w: failed to generate refresh token", apperrors.ErrInternal))
 		return
@@ -211,13 +212,13 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	accessToken, err := h.jwtManager.GenerateToken(claims.UserID, user.Role.Name, accessTokenExpiration)
+	accessToken, err := h.jwtManager.GenerateToken(claims.UserID, string(user.Role), accessTokenExpiration)
 	if err != nil {
 		RespondWithError(c, fmt.Errorf("%w: failed to generate access token", apperrors.ErrInternal))
 		return
 	}
 
-	refreshToken, err := h.jwtManager.GenerateToken(claims.UserID, user.Role.Name, refreshTokenExpiration)
+	refreshToken, err := h.jwtManager.GenerateToken(claims.UserID, string(user.Role), refreshTokenExpiration)
 	if err != nil {
 		RespondWithError(c, fmt.Errorf("%w: failed to generate refresh token", apperrors.ErrInternal))
 		return

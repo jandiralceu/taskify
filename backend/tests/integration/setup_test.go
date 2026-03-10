@@ -101,10 +101,6 @@ func setupAppCustom(t *testing.T, modifyConfig func(*config.Config)) (*httptest.
 	db, err := database.Init(ctx, cfg)
 	require.NoError(t, err, "Failed to initialize database")
 
-	// Seed roles for RBAC testing
-	err = database.SeedRoles(ctx, db)
-	require.NoError(t, err, "Failed to seed roles")
-
 	sqlDB, err := db.DB()
 	require.NoError(t, err)
 
@@ -120,11 +116,6 @@ func setupAppCustom(t *testing.T, modifyConfig func(*config.Config)) (*httptest.
 
 	hasher := pkg.NewArgon2PasswordHasher()
 
-	// Initializing repos, services and handlers
-	roleRepository := repository.NewRoleRepository(db)
-	roleService := service.NewRoleService(roleRepository, cacheManager)
-	roleHandler := handlers.NewRoleHandler(roleService)
-
 	userRepository := repository.NewUserRepository(db)
 	userService := service.NewUserService(userRepository, hasher)
 	authHandler := handlers.NewAuthHandler(userService, jwtManager, cacheManager, hasher)
@@ -137,7 +128,6 @@ func setupAppCustom(t *testing.T, modifyConfig func(*config.Config)) (*httptest.
 
 	routeConfig := &routes.RouteConfig{
 		AuthHandler: authHandler,
-		RoleHandler: roleHandler,
 		UserHandler: userHandler,
 	}
 
@@ -166,10 +156,10 @@ func setupAppCustom(t *testing.T, modifyConfig func(*config.Config)) (*httptest.
 }
 
 // signUpUser registers a user using the API.
-func signUpUser(t *testing.T, baseURL, name, email, password, roleID string) {
+func signUpUser(t *testing.T, baseURL, firstName, lastName, email, password, role string) {
 	t.Helper()
 
-	body := fmt.Sprintf(`{"name":"%s","email":"%s","password":"%s","roleId":"%s"}`, name, email, password, roleID)
+	body := fmt.Sprintf(`{"first_name":"%s","last_name":"%s","email":"%s","password":"%s","role":"%s"}`, firstName, lastName, email, password, role)
 	resp, err := http.Post(baseURL+"/api/v1/auth/register", "application/json", strings.NewReader(body))
 	require.NoError(t, err)
 	defer resp.Body.Close()

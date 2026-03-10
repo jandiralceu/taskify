@@ -92,10 +92,6 @@ func main() {
 
 	hasher := pkg.NewArgon2PasswordHasher()
 
-	roleRepository := repository.NewRoleRepository(db)
-	roleService := service.NewRoleService(roleRepository, cacheManager)
-	roleHandler := handlers.NewRoleHandler(roleService)
-
 	userRepository := repository.NewUserRepository(db)
 	userService := service.NewUserService(userRepository, hasher)
 	authHandler := handlers.NewAuthHandler(userService, jwtManager, cacheManager, hasher)
@@ -110,7 +106,6 @@ func main() {
 
 	routeConfig := &routes.RouteConfig{
 		AuthHandler: authHandler,
-		RoleHandler: roleHandler,
 		UserHandler: userHandler,
 	}
 

@@ -15,7 +15,6 @@ type UserRepository interface {
 	FindByID(ctx context.Context, userID uuid.UUID) (*models.User, error)
 	FindByEmail(ctx context.Context, email string) (*models.User, error)
 	ChangePassword(ctx context.Context, userID uuid.UUID, newHashedPassword string) error
-	ChangeRole(ctx context.Context, userID uuid.UUID, newRoleID uuid.UUID) error
 	Delete(ctx context.Context, userID uuid.UUID) error
 }
 
@@ -30,9 +29,10 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 }
 
 type UserListFilter struct {
-	Name       string
+	FirstName  string
+	LastName   string
 	Email      string
-	RoleID     uuid.UUID
+	Role       models.Role
 	Pagination PaginationParams
 }
 
@@ -60,7 +60,7 @@ func (r *userRepository) Delete(ctx context.Context, userID uuid.UUID) error {
 
 func (r *userRepository) FindByID(ctx context.Context, userID uuid.UUID) (*models.User, error) {
 	var user models.User
-	if err := r.db.WithContext(ctx).Preload("Role").First(&user, userIDQuery, userID).Error; err != nil {
+	if err := r.db.WithContext(ctx).First(&user, userIDQuery, userID).Error; err != nil {
 		return nil, mapDatabaseError(err)
 	}
 	return &user, nil
@@ -68,7 +68,7 @@ func (r *userRepository) FindByID(ctx context.Context, userID uuid.UUID) (*model
 
 func (r *userRepository) FindByEmail(ctx context.Context, email string) (*models.User, error) {
 	var user models.User
-	if err := r.db.WithContext(ctx).Preload("Role").Where("email = ?", email).First(&user).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where("email = ?", email).First(&user).Error; err != nil {
 		return nil, mapDatabaseError(err)
 	}
 	return &user, nil
@@ -80,21 +80,24 @@ func (r *userRepository) FindAll(ctx context.Context, filter UserListFilter) ([]
 
 	query := r.db.WithContext(ctx).Model(&models.User{})
 
-	if filter.Name != "" {
-		query = query.Where("name ILIKE ?", "%"+sanitizeLike(filter.Name)+"%")
+	if filter.FirstName != "" {
+		query = query.Where("first_name ILIKE ?", "%"+sanitizeLike(filter.FirstName)+"%")
+	}
+	if filter.LastName != "" {
+		query = query.Where("last_name ILIKE ?", "%"+sanitizeLike(filter.LastName)+"%")
 	}
 	if filter.Email != "" {
 		query = query.Where("email ILIKE ?", "%"+sanitizeLike(filter.Email)+"%")
 	}
-	if filter.RoleID != uuid.Nil {
-		query = query.Where("role_id = ?", filter.RoleID)
+	if filter.Role != "" {
+		query = query.Where("role = ?", filter.Role)
 	}
 
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, mapDatabaseError(err)
 	}
 
-	err := query.Preload("Role").
+	err := query.
 		Order(filter.Pagination.GetOrderBy()).
 		Offset(filter.Pagination.GetOffset()).
 		Limit(filter.Pagination.Limit).
@@ -112,23 +115,6 @@ func (r *userRepository) ChangePassword(ctx context.Context, userID uuid.UUID, n
 		Model(&models.User{}).
 		Where(userIDQuery, userID).
 		Update("password_hash", newHashedPassword)
-
-	if result.Error != nil {
-		return mapDatabaseError(result.Error)
-	}
-
-	if result.RowsAffected == 0 {
-		return apperrors.ErrNotFound
-	}
-
-	return nil
-}
-
-func (r *userRepository) ChangeRole(ctx context.Context, userID uuid.UUID, newRoleID uuid.UUID) error {
-	result := r.db.WithContext(ctx).
-		Model(&models.User{}).
-		Where(userIDQuery, userID).
-		Update("role_id", newRoleID)
 
 	if result.Error != nil {
 		return mapDatabaseError(result.Error)

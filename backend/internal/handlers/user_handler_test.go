@@ -26,8 +26,8 @@ func TestFindAllUsersSuccess(t *testing.T) {
 	handler := NewUserHandler(mockService)
 
 	users := []models.User{
-		{ID: uuid.New(), Name: "User 1", Email: "user1@example.com"},
-		{ID: uuid.New(), Name: "User 2", Email: "user2@example.com"},
+		{ID: uuid.New(), FirstName: "User", LastName: "1", Email: "user1@example.com", Role: models.RoleEmployee},
+		{ID: uuid.New(), FirstName: "User", LastName: "2", Email: "user2@example.com", Role: models.RoleEmployee},
 	}
 
 	response := dto.PaginatedResponse[models.User]{
@@ -53,7 +53,7 @@ func TestFindAllUsersSuccess(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, int64(2), actualResponse.Total)
 	assert.Len(t, actualResponse.Data, 2)
-	assert.Equal(t, "User 1", actualResponse.Data[0].Name)
+	assert.Equal(t, "User", actualResponse.Data[0].FirstName)
 	mockService.AssertExpectations(t)
 }
 
@@ -82,7 +82,7 @@ func TestFindUserByIDSuccess(t *testing.T) {
 	handler := NewUserHandler(mockService)
 
 	userID := uuid.New()
-	user := &models.User{ID: userID, Name: "John Doe", Email: "john@example.com"}
+	user := &models.User{ID: userID, FirstName: "John", LastName: "Doe", Email: "john@example.com", Role: models.RoleAdmin}
 
 	mockService.On("FindByID", mock.Anything, userID).Return(user, nil)
 
@@ -97,7 +97,7 @@ func TestFindUserByIDSuccess(t *testing.T) {
 	err := json.Unmarshal(w.Body.Bytes(), &actualUser)
 	assert.NoError(t, err)
 	assert.Equal(t, userID, actualUser.ID)
-	assert.Equal(t, "John Doe", actualUser.Name)
+	assert.Equal(t, "John", actualUser.FirstName)
 	mockService.AssertExpectations(t)
 }
 
@@ -224,51 +224,4 @@ func TestChangePasswordBadRequest(t *testing.T) {
 	w := performRequest(router, "PATCH", "/users/change-password", req)
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
-}
-
-// =====================
-// ChangeRole Tests
-// =====================
-
-func TestChangeRoleSuccess(t *testing.T) {
-	mockService := new(MockUserService)
-	handler := NewUserHandler(mockService)
-
-	userID := uuid.New()
-	roleID := uuid.New()
-	req := dto.ChangeRoleRequest{
-		UserID: userID,
-		RoleID: roleID,
-	}
-
-	mockService.On("ChangeRole", mock.Anything, userID, req).Return(nil)
-
-	router := setupRouter()
-	router.PATCH("/users/change-role", handler.ChangeRole)
-
-	w := performRequest(router, "PATCH", "/users/change-role", req)
-
-	assert.Equal(t, http.StatusNoContent, w.Code)
-	mockService.AssertExpectations(t)
-}
-
-func TestChangeRoleNotFound(t *testing.T) {
-	mockService := new(MockUserService)
-	handler := NewUserHandler(mockService)
-
-	userID := uuid.New()
-	roleID := uuid.New()
-	req := dto.ChangeRoleRequest{
-		UserID: userID,
-		RoleID: roleID,
-	}
-
-	mockService.On("ChangeRole", mock.Anything, userID, req).Return(apperrors.ErrNotFound)
-
-	router := setupRouter()
-	router.PATCH("/users/change-role", handler.ChangeRole)
-
-	w := performRequest(router, "PATCH", "/users/change-role", req)
-
-	assert.Equal(t, http.StatusNotFound, w.Code)
 }

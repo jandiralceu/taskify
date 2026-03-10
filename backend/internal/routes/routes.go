@@ -19,7 +19,6 @@ import (
 // RouteConfig holds all handler dependencies required to register API routes.
 type RouteConfig struct {
 	AuthHandler *handlers.AuthHandler
-	RoleHandler *handlers.RoleHandler
 	UserHandler *handlers.UserHandler
 }
 
@@ -68,21 +67,11 @@ func Setup(routeConfig *RouteConfig, config *config.Config, jwtManager *pkg.JWTM
 		protected.Use(middleware.AuthMiddleware(jwtManager))
 		protected.Use(middleware.CasbinMiddleware(enforcer))
 		{
-			roles := protected.Group("/roles")
-			{
-				roles.GET("", routeConfig.RoleHandler.FindAllRoles)
-				roles.GET("/:id", routeConfig.RoleHandler.FindRoleByID)
-				roles.POST("", routeConfig.RoleHandler.CreateRole)
-				roles.DELETE("/:id", routeConfig.RoleHandler.DeleteRole)
-			}
-
 			users := protected.Group("/users")
 			{
 				users.GET("", routeConfig.UserHandler.FindAllUsers)
 				users.GET("/:id", routeConfig.UserHandler.FindUserByID)
-				// Moderate limit for password changes
 				users.PATCH("/change-password", middleware.RateLimiter(cacheManager, "pass-change", config.RateLimitAuth), routeConfig.UserHandler.ChangePassword)
-				users.PATCH("/change-role", routeConfig.UserHandler.ChangeRole)
 				users.DELETE("/:id", routeConfig.UserHandler.DeleteUser)
 			}
 		}

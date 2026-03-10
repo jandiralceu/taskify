@@ -20,9 +20,11 @@ func TestCreateUser(t *testing.T) {
 
 	ctx := context.Background()
 	user := &models.User{
-		Name:         "Test User",
+		FirstName:    "Test",
+		LastName:     "User",
 		Email:        "test@example.com",
 		PasswordHash: "plain-password",
+		Role:         models.RoleEmployee,
 	}
 
 	mockHasher.On("Hash", "plain-password").Return("hashed-password", nil)
@@ -43,10 +45,10 @@ func TestFindAllUsers(t *testing.T) {
 
 	ctx := context.Background()
 	req := dto.GetUserListRequest{
-		Name: "test",
+		FirstName: "test",
 	}
 
-	users := []models.User{{Name: "test user"}}
+	users := []models.User{{FirstName: "test", LastName: "user", Role: models.RoleEmployee}}
 	mockRepo.On("FindAll", ctx, mock.AnythingOfType("repository.UserListFilter")).
 		Return(users, int64(1), nil)
 
@@ -65,7 +67,7 @@ func TestFindUserByID(t *testing.T) {
 
 	ctx := context.Background()
 	userID := uuid.New()
-	user := &models.User{ID: userID, Name: "test user"}
+	user := &models.User{ID: userID, FirstName: "test", LastName: "user", Role: models.RoleEmployee}
 
 	mockRepo.On("FindByID", ctx, userID).Return(user, nil)
 
@@ -141,25 +143,4 @@ func TestChangePassword(t *testing.T) {
 		assert.Error(t, err)
 		assert.True(t, errors.Is(err, apperrors.ErrUnauthorized))
 	})
-}
-
-func TestChangeRole(t *testing.T) {
-	mockRepo := new(MockUserRepository)
-	mockHasher := new(MockPasswordHasher)
-	svc := NewUserService(mockRepo, mockHasher)
-
-	ctx := context.Background()
-	userID := uuid.New()
-	roleID := uuid.New()
-	req := dto.ChangeRoleRequest{
-		UserID: userID,
-		RoleID: roleID,
-	}
-
-	mockRepo.On("ChangeRole", ctx, userID, roleID).Return(nil)
-
-	err := svc.ChangeRole(ctx, userID, req)
-
-	assert.NoError(t, err)
-	mockRepo.AssertExpectations(t)
 }

@@ -38,7 +38,7 @@ func setupCasbinRouter(enforcer *casbin.Enforcer) *gin.Engine {
 
 	r.Use(middleware.CasbinMiddleware(enforcer))
 
-	r.GET("/api/v1/roles", func(c *gin.Context) {
+	r.GET("/api/v1/users", func(c *gin.Context) {
 		c.Status(http.StatusOK)
 	})
 	r.PATCH("/api/v1/users/change-password", func(c *gin.Context) {
@@ -76,38 +76,38 @@ func TestCasbinMiddleware(t *testing.T) {
 			expectedStatus: http.StatusOK,
 		},
 		{
-			name:           "Manager can access roles",
-			role:           "manager",
-			method:         http.MethodGet,
-			path:           "/api/v1/roles",
-			expectedStatus: http.StatusOK,
-		},
-		{
-			name:           "Manager can change password",
-			role:           "manager",
+			name:           "Employee can change password",
+			role:           "employee",
 			method:         http.MethodPatch,
 			path:           "/api/v1/users/change-password",
 			expectedStatus: http.StatusOK,
 		},
 		{
-			name:           "Manager cannot delete users",
-			role:           "manager",
+			name:           "Employee cannot delete users",
+			role:           "employee",
 			method:         http.MethodDelete,
 			path:           "/api/v1/users/123",
+			expectedStatus: http.StatusForbidden,
+		},
+		{
+			name:           "Employee cannot list users",
+			role:           "employee",
+			method:         http.MethodGet,
+			path:           "/api/v1/users",
 			expectedStatus: http.StatusForbidden,
 		},
 		{
 			name:           "Unauthorized role has no access",
 			role:           "guest",
 			method:         http.MethodGet,
-			path:           "/api/v1/roles",
+			path:           "/api/v1/users",
 			expectedStatus: http.StatusForbidden,
 		},
 		{
 			name:           "Missing role is forbidden",
 			role:           "",
 			method:         http.MethodGet,
-			path:           "/api/v1/roles",
+			path:           "/api/v1/users",
 			expectedStatus: http.StatusForbidden,
 		},
 	}
@@ -141,7 +141,7 @@ func BenchmarkCasbinMiddleware_Authorized(b *testing.B) {
 	enforcer, _ := casbin.NewEnforcer(modelPath, policyPath)
 	router := setupCasbinRouter(enforcer)
 
-	req, _ := http.NewRequest(http.MethodGet, "/api/v1/roles", nil)
+	req, _ := http.NewRequest(http.MethodGet, "/api/v1/users", nil)
 	req.Header.Set("X-Test-Role", "admin")
 
 	b.ResetTimer()
@@ -160,7 +160,7 @@ func BenchmarkCasbinMiddleware_Forbidden(b *testing.B) {
 	router := setupCasbinRouter(enforcer)
 
 	req, _ := http.NewRequest(http.MethodDelete, "/api/v1/users/123", nil)
-	req.Header.Set("X-Test-Role", "manager")
+	req.Header.Set("X-Test-Role", "employee")
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

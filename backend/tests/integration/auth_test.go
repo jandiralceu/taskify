@@ -7,19 +7,12 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/jandiralceu/inventory_api_with_golang/internal/models"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestAuthFlowAndRBAC(t *testing.T) {
-	ts, db, cleanup := setupApp(t)
+	ts, _, cleanup := setupApp(t)
 	defer cleanup()
-
-	// 1. Get role IDs for testing
-	var adminRole, operatorRole models.Role
-	require.NoError(t, db.Where("name = ?", "admin").First(&adminRole).Error)
-	require.NoError(t, db.Where("name = ?", "operator").First(&operatorRole).Error)
 
 	baseURL := ts.URL
 
@@ -28,7 +21,7 @@ func TestAuthFlowAndRBAC(t *testing.T) {
 		password := "Password123!"
 
 		// Register
-		signUpUser(t, baseURL, "Tester", email, password, adminRole.ID.String())
+		signUpUser(t, baseURL, "First", "Last", email, password, "admin")
 
 		// SignIn
 		accessToken, refreshToken := signInUser(t, baseURL, email, password)
@@ -53,44 +46,30 @@ func TestAuthFlowAndRBAC(t *testing.T) {
 		assert.Equal(t, http.StatusNoContent, resp.StatusCode)
 	})
 
-	t.Run("RBAC: Admin can list roles, Operator cannot", func(t *testing.T) {
+	t.Run("RBAC: Admin can access restricted routes, Guest cannot", func(t *testing.T) {
 		adminEmail := "admin_test@example.com"
-		opEmail := "op_test@example.com"
 		password := "Pass123!"
 
 		// Create Admin
-		signUpUser(t, baseURL, "Admin User", adminEmail, password, adminRole.ID.String())
+		signUpUser(t, baseURL, "Admin", "User", adminEmail, password, "admin")
 		adminToken, _ := signInUser(t, baseURL, adminEmail, password)
 
-		// Create Operator
-		signUpUser(t, baseURL, "Op User", opEmail, password, operatorRole.ID.String())
-		opToken, _ := signInUser(t, baseURL, opEmail, password)
+		// Admin attempts to list users
+		resp := authedRequest(t, "GET", baseURL+"/api/v1/users", adminToken, nil)
+		assert.Equal(t, http.StatusOK, resp.StatusCode, "Admin should be able to list users")
 
-		// Admin attempts to list roles
-		resp := authedRequest(t, "GET", baseURL+"/api/v1/roles", adminToken, nil)
-		assert.Equal(t, http.StatusOK, resp.StatusCode, "Admin should be able to list roles")
-
-		var roles []models.Role
-		json.NewDecoder(resp.Body).Decode(&roles)
-		assert.GreaterOrEqual(t, len(roles), 3, "Should have seeded roles")
-
-		// Operator attempts to list roles
-		resp = authedRequest(t, "GET", baseURL+"/api/v1/roles", opToken, nil)
-		assert.Equal(t, http.StatusForbidden, resp.StatusCode, "Operator should NOT be able to list roles")
+		// Guest attempts to list users (no token)
+		resp = authedRequest(t, "GET", baseURL+"/api/v1/users", "", nil)
+		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode, "Guest should be unauthorized")
 	})
 
 	t.Run("RBAC: Accessing non-existent route returns 404 (with auth)", func(t *testing.T) {
 		adminEmail := "admin_404@example.com"
 		password := "Pass123!"
-		signUpUser(t, baseURL, "Admin 404", adminEmail, password, adminRole.ID.String())
+		signUpUser(t, baseURL, "Admin", "404", adminEmail, password, "admin")
 		adminToken, _ := signInUser(t, baseURL, adminEmail, password)
 
 		resp := authedRequest(t, "GET", baseURL+"/api/v1/non-existent", adminToken, nil)
 		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
-	})
-
-	t.Run("Auth: Request without token returns 401", func(t *testing.T) {
-		resp := authedRequest(t, "GET", baseURL+"/api/v1/roles", "", nil)
-		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 	})
 }

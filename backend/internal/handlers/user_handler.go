@@ -33,9 +33,10 @@ func NewUserHandler(userService service.UserService) *UserHandler {
 // @Produce      json
 // @Param        page    query  int     false  "Page number"
 // @Param        limit   query  int     false  "Number of items per page"
-// @Param        name    query  string  false  "Filter by name"
-// @Param        email   query  string  false  "Filter by email"
-// @Param        roleId  query  string  false  "Filter by role UUID"
+// @Param        first_name  query  string  false  "Filter by first name"
+// @Param        last_name   query  string  false  "Filter by last name"
+// @Param        email       query  string  false  "Filter by email"
+// @Param        role        query  string  false  "Filter by role (admin, employee)"
 // @Success      200     {object}  dto.UserListResponse
 // @Failure      400     {object}  ProblemDetails
 // @Failure      401     {object}  ProblemDetails
@@ -153,37 +154,6 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 	}
 
 	if err := h.userService.ChangePassword(c.Request.Context(), userID, req); err != nil {
-		RespondWithError(c, err)
-		return
-	}
-
-	c.Status(http.StatusNoContent)
-}
-
-// ChangeRole godoc
-// @Summary      Change user role
-// @Description  Updates a user's assigned role. Typically an administrative task.
-// @Tags         users
-// @Accept       json
-// @Produce      json
-// @Param        request body dto.ChangeRoleRequest true "User and Role UUIDs"
-// @Success      204 "No Content"
-// @Failure      400  {object}  ProblemDetails
-// @Failure      401  {object}  ProblemDetails
-// @Failure      403  {object}  ProblemDetails
-// @Failure      404  {object}  ProblemDetails
-// @Failure      500  {object}  ProblemDetails
-// @Failure      429  {object}  ProblemDetails
-// @Security     Bearer
-// @Router       /users/change-role [patch]
-func (h *UserHandler) ChangeRole(c *gin.Context) {
-	var req dto.ChangeRoleRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		RespondWithError(c, ParseValidationError(err))
-		return
-	}
-
-	if err := h.userService.ChangeRole(c.Request.Context(), req.UserID, req); err != nil {
 		RespondWithError(c, err)
 		return
 	}

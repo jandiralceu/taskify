@@ -85,11 +85,6 @@ func (m *MockUserRepository) ChangePassword(ctx context.Context, userID uuid.UUI
 	return args.Error(0)
 }
 
-func (m *MockUserRepository) ChangeRole(ctx context.Context, userID uuid.UUID, newRoleID uuid.UUID) error {
-	args := m.Called(ctx, userID, newRoleID)
-	return args.Error(0)
-}
-
 func (m *MockUserRepository) Delete(ctx context.Context, userID uuid.UUID) error {
 	args := m.Called(ctx, userID)
 	return args.Error(0)

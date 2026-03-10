@@ -1,6 +1,6 @@
 services:
   db:
-    container_name: inventory-postgres
+    container_name: taskify-postgres
     image: postgres:17.0
     restart: always
     ports:
@@ -8,17 +8,17 @@ services:
     environment:
       POSTGRES_USER: jandiralceu
       POSTGRES_PASSWORD: nk6eloPZ1FQk8Ku1
-      POSTGRES_DB: inventory
+      POSTGRES_DB: taskify
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U jandiralceu -d inventory"]
+      test: ["CMD-SHELL", "pg_isready -U jandiralceu -d taskify"]
       interval: 5s
       timeout: 5s
       retries: 5
     networks:
-      - inventory-network
+      - taskify-network
 
   jaeger:
-    container_name: inventory-jaeger
+    container_name: taskify-jaeger
     image: jaegertracing/all-in-one:latest
     restart: always
     ports:
@@ -27,10 +27,10 @@ services:
     environment:
       COLLECTOR_OTLP_ENABLED: "true"
     networks:
-      - inventory-network
+      - taskify-network
 
   redis:
-    container_name: inventory-redis
+    container_name: taskify-redis
     image: redis:7-alpine
     restart: always
     ports:
@@ -41,10 +41,10 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - inventory-network
+      - taskify-network
 
   api:
-    container_name: inventory-api
+    container_name: taskify-api
     build:
       context: ../backend
       dockerfile: Dockerfile
@@ -63,17 +63,17 @@ services:
       - DB_HOST=db
       - DB_USER=jandiralceu
       - DB_PASSWORD=nk6eloPZ1FQk8Ku1
-      - DB_NAME=inventory
+      - DB_NAME=taskify
       - DB_PORT=5432
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - OTLP_ENDPOINT=jaeger:4317
     volumes:
-      - ./private.pem:/app/private.pem:ro
-      - ./public.pem:/app/public.pem:ro
+      - ../backend/private.pem:/app/private.pem:ro
+      - ../backend/public.pem:/app/public.pem:ro
     networks:
-      - inventory-network
+      - taskify-network
 
 networks:
-  inventory-network:
+  taskify-network:
     driver: bridge

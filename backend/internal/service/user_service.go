@@ -24,8 +24,6 @@ type UserService interface {
 	FindByEmail(ctx context.Context, email string) (*models.User, error)
 	// ChangePassword updates a user's password after verifying the old one.
 	ChangePassword(ctx context.Context, userID uuid.UUID, req dto.ChangePasswordRequest) error
-	// ChangeRole updates a user's assigned role.
-	ChangeRole(ctx context.Context, userID uuid.UUID, req dto.ChangeRoleRequest) error
 	// Delete removes a user from the system.
 	Delete(ctx context.Context, userID uuid.UUID) error
 }
@@ -56,13 +54,14 @@ func (s *userService) Create(ctx context.Context, user *models.User) error {
 // FindAll delegates the retrieval of the user list to the repository.
 func (s *userService) FindAll(ctx context.Context, req dto.GetUserListRequest) (dto.PaginatedResponse[models.User], error) {
 	filter := repository.UserListFilter{
-		Name:   req.Name,
-		Email:  req.Email,
-		RoleID: req.RoleID,
+		FirstName: req.FirstName,
+		LastName:  req.LastName,
+		Email:     req.Email,
+		Role:      req.Role,
 		Pagination: repository.PaginationParams{
 			Page:  req.GetPage(),
 			Limit: req.GetLimit(),
-			Sort:  req.GetSort("created_at", "name", "email"),
+			Sort:  req.GetSort("created_at", "first_name", "last_name", "email"),
 			Order: req.GetOrder(),
 		},
 	}
@@ -111,8 +110,4 @@ func (s *userService) ChangePassword(ctx context.Context, userID uuid.UUID, req 
 	}
 
 	return s.userRepo.ChangePassword(ctx, userID, newHashedPassword)
-}
-
-func (s *userService) ChangeRole(ctx context.Context, userID uuid.UUID, req dto.ChangeRoleRequest) error {
-	return s.userRepo.ChangeRole(ctx, userID, req.RoleID)
 }

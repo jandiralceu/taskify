@@ -1,3 +1,4 @@
 p, admin, /api/v1/*, *
-p, manager, /api/v1/roles, GET
-p, manager, /api/v1/users/change-password, PATCH
+p, employee, /api/v1/auth/signout, POST
+p, employee, /api/v1/auth/refresh, POST
+p, employee, /api/v1/users/change-password, PATCH

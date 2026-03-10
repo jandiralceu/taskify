@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -10,20 +11,20 @@ import (
 
 // UserResponse is what we would typically return to the client
 type UserResponse struct {
-	ID        uuid.UUID `json:"id"`
-	Name      string    `json:"name"`
-	Email     string    `json:"email"`
-	RoleID    uuid.UUID `json:"role_id"`
-	CreatedAt time.Time `json:"created_at"`
+	ID        uuid.UUID   `json:"id"`
+	Name      string      `json:"name"`
+	Email     string      `json:"email"`
+	Role      models.Role `json:"role"`
+	CreatedAt time.Time   `json:"created_at"`
 }
 
 // MapUserToResponse simulates the conversion logic
 func MapUserToResponse(u models.User) UserResponse {
 	return UserResponse{
 		ID:        u.ID,
-		Name:      u.Name,
+		Name:      fmt.Sprintf("%s %s", u.FirstName, u.LastName),
 		Email:     u.Email,
-		RoleID:    u.RoleID,
+		Role:      u.Role,
 		CreatedAt: u.CreatedAt,
 	}
 }
@@ -35,9 +36,10 @@ func BenchmarkMappingLargeList(b *testing.B) {
 	for i := 0; i < size; i++ {
 		users[i] = models.User{
 			ID:        uuid.New(),
-			Name:      "User Name",
-			Email:     "user@example.com",
-			RoleID:    uuid.New(),
+			FirstName: "Jermaine",
+			LastName:  "Cole",
+			Email:     "jcole@fakeemail.com",
+			Role:      models.RoleEmployee,
 			CreatedAt: time.Now(),
 		}
 	}
