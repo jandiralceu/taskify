@@ -1,7 +1,6 @@
 package dto
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -12,7 +11,8 @@ import (
 // UserResponse is what we would typically return to the client
 type UserResponse struct {
 	ID        uuid.UUID   `json:"id"`
-	Name      string      `json:"name"`
+	FirstName string      `json:"first_name"`
+	LastName  string      `json:"last_name"`
 	Email     string      `json:"email"`
 	Role      models.Role `json:"role"`
 	CreatedAt time.Time   `json:"created_at"`
@@ -22,7 +22,8 @@ type UserResponse struct {
 func MapUserToResponse(u models.User) UserResponse {
 	return UserResponse{
 		ID:        u.ID,
-		Name:      fmt.Sprintf("%s %s", u.FirstName, u.LastName),
+		FirstName: u.FirstName,
+		LastName:  u.LastName,
 		Email:     u.Email,
 		Role:      u.Role,
 		CreatedAt: u.CreatedAt,
