@@ -26,3 +26,9 @@ type GetUserListRequest struct {
 }
 
 type UserListResponse PaginatedResponse[models.User]
+
+type UpdateUserRequest struct {
+	FirstName *string `json:"first_name" binding:"omitempty,min=2,max=100"`
+	LastName  *string `json:"last_name" binding:"omitempty,min=2,max=100"`
+	IsActive  *bool   `json:"is_active" binding:"omitempty"`
+}

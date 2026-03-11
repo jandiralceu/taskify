@@ -225,3 +225,38 @@ func TestChangePasswordBadRequest(t *testing.T) {
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
+
+// =====================
+// UpdateUser Tests
+// =====================
+
+func TestUpdateUserSuccess(t *testing.T) {
+	mockService := new(MockUserService)
+	handler := NewUserHandler(mockService)
+
+	userID := uuid.New()
+	newName := "John Updated"
+	req := dto.UpdateUserRequest{
+		FirstName: &newName,
+	}
+
+	resUser := &models.User{ID: userID, FirstName: newName}
+
+	mockService.On("Update", mock.Anything, userID, req).Return(resUser, nil)
+
+	router := setupRouter()
+	router.PATCH("/users/profile", func(c *gin.Context) {
+		c.Set(middleware.UserIDKey, userID)
+		handler.UpdateUser(c)
+	})
+
+	w := performRequest(router, "PATCH", "/users/profile", req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var actualUser models.User
+	err := json.Unmarshal(w.Body.Bytes(), &actualUser)
+	assert.NoError(t, err)
+	assert.Equal(t, newName, actualUser.FirstName)
+	mockService.AssertExpectations(t)
+}

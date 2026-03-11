@@ -11,7 +11,8 @@ import (
 
 type UserRepository interface {
 	Create(ctx context.Context, user *models.User) error
-	Update(ctx context.Context, user *models.User) error
+	Update(ctx context.Context, userID uuid.UUID, params UpdateUserParams) (*models.User, error)
+	UpdateAvatar(ctx context.Context, userID uuid.UUID, avatarURL *string) (*models.User, error)
 	FindAll(ctx context.Context, filter UserListFilter) (users []models.User, total int64, err error)
 	FindByID(ctx context.Context, userID uuid.UUID) (*models.User, error)
 	FindByEmail(ctx context.Context, email string) (*models.User, error)
@@ -37,6 +38,12 @@ type UserListFilter struct {
 	Pagination PaginationParams
 }
 
+type UpdateUserParams struct {
+	FirstName *string
+	LastName  *string
+	IsActive  *bool
+}
+
 const (
 	userIDQuery = "id = ?"
 )
@@ -48,11 +55,52 @@ func (r *userRepository) Create(ctx context.Context, user *models.User) error {
 	return nil
 }
 
-func (r *userRepository) Update(ctx context.Context, user *models.User) error {
-	if err := r.db.WithContext(ctx).Save(user).Error; err != nil {
-		return mapDatabaseError(err)
+func (r *userRepository) Update(ctx context.Context, userID uuid.UUID, params UpdateUserParams) (*models.User, error) {
+	updates := make(map[string]interface{})
+
+	if params.FirstName != nil {
+		updates["first_name"] = *params.FirstName
 	}
-	return nil
+	if params.LastName != nil {
+		updates["last_name"] = *params.LastName
+	}
+	if params.IsActive != nil {
+		updates["is_active"] = *params.IsActive
+	}
+
+	var user models.User
+	result := r.db.WithContext(ctx).Model(&user).Where(userIDQuery, userID).Updates(updates)
+	if result.Error != nil {
+		return nil, mapDatabaseError(result.Error)
+	}
+
+	if result.RowsAffected == 0 {
+		return nil, apperrors.ErrNotFound
+	}
+
+	if err := r.db.WithContext(ctx).First(&user, userIDQuery, userID).Error; err != nil {
+		return nil, mapDatabaseError(err)
+	}
+
+	return &user, nil
+}
+
+func (r *userRepository) UpdateAvatar(ctx context.Context, userID uuid.UUID, avatarURL *string) (*models.User, error) {
+	var user models.User
+	result := r.db.WithContext(ctx).Model(&user).Where(userIDQuery, userID).Update("avatar_url", avatarURL)
+	if result.Error != nil {
+		return nil, mapDatabaseError(result.Error)
+	}
+
+	if result.RowsAffected == 0 {
+		return nil, apperrors.ErrNotFound
+	}
+
+	if err := r.db.WithContext(ctx).First(&user, userIDQuery, userID).Error; err != nil {
+		return nil, mapDatabaseError(err)
+	}
+
+	return &user, nil
 }
 
 func (r *userRepository) Delete(ctx context.Context, userID uuid.UUID) error {

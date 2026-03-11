@@ -84,46 +84,26 @@ func (s *taskService) Update(ctx context.Context, taskID uuid.UUID, req dto.Upda
 		return nil, err
 	}
 
-	if req.Title != nil {
-		task.Title = *req.Title
-	}
-	if req.Description != nil {
-		task.Description = *req.Description
-	}
-	if req.Status != nil {
-		task.Status = *req.Status
-		if *req.Status == models.TaskStatusCompleted && task.CompletedAt == nil {
-			now := time.Now()
-			task.CompletedAt = &now
-		}
-	}
-	if req.Priority != nil {
-		task.Priority = *req.Priority
-	}
-	if req.IsBlocked != nil {
-		task.IsBlocked = *req.IsBlocked
-	}
-	if req.AssignedTo != nil {
-		task.AssignedTo = req.AssignedTo
-	}
-	if req.DueDate != nil {
-		task.DueDate = req.DueDate
-	}
-	if req.EstimatedHours != nil {
-		task.EstimatedHours = req.EstimatedHours
-	}
-	if req.ActualHours != nil {
-		task.ActualHours = req.ActualHours
-	}
-	if req.IsArchived != nil {
-		task.IsArchived = *req.IsArchived
+	params := repository.UpdateTaskParams{
+		Title:          req.Title,
+		Description:    req.Description,
+		Status:         req.Status,
+		Priority:       req.Priority,
+		IsBlocked:      req.IsBlocked,
+		AssignedTo:     req.AssignedTo,
+		DueDate:        req.DueDate,
+		EstimatedHours: req.EstimatedHours,
+		ActualHours:    req.ActualHours,
+		IsArchived:     req.IsArchived,
 	}
 
-	if err := s.taskRepo.Update(ctx, task); err != nil {
-		return nil, err
+	// Business logic: automatically set completed_at when status changes to completed
+	if req.Status != nil && *req.Status == models.TaskStatusCompleted && task.CompletedAt == nil {
+		now := time.Now()
+		params.CompletedAt = &now
 	}
 
-	return task, nil
+	return s.taskRepo.Update(ctx, taskID, params)
 }
 
 func (s *taskService) Delete(ctx context.Context, taskID uuid.UUID) error {
@@ -166,17 +146,13 @@ func (s *taskService) AddNote(ctx context.Context, taskID, userID uuid.UUID, req
 		return nil, err
 	}
 
-	note := &models.TaskNote{
+	params := repository.CreateNoteParams{
 		TaskID:  taskID,
 		UserID:  userID,
 		Content: req.Content,
 	}
 
-	if err := s.taskRepo.CreateNote(ctx, note); err != nil {
-		return nil, err
-	}
-
-	return note, nil
+	return s.taskRepo.CreateNote(ctx, params)
 }
 
 func (s *taskService) GetNotes(ctx context.Context, taskID uuid.UUID) ([]models.TaskNote, error) {
@@ -194,13 +170,11 @@ func (s *taskService) UpdateNote(ctx context.Context, noteID, userID uuid.UUID, 
 		return nil, apperrors.ErrForbidden
 	}
 
-	note.Content = req.Content
-
-	if err := s.taskRepo.UpdateNote(ctx, note); err != nil {
-		return nil, err
+	params := repository.UpdateNoteParams{
+		Content: req.Content,
 	}
 
-	return note, nil
+	return s.taskRepo.UpdateNote(ctx, noteID, params)
 }
 
 func (s *taskService) DeleteNote(ctx context.Context, noteID, userID uuid.UUID) error {

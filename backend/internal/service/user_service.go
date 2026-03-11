@@ -29,6 +29,8 @@ type UserService interface {
 	ChangePassword(ctx context.Context, userID uuid.UUID, req dto.ChangePasswordRequest) error
 	// Delete removes a user from the system.
 	Delete(ctx context.Context, userID uuid.UUID) error
+	// Update modifies general user profile information.
+	Update(ctx context.Context, userID uuid.UUID, req dto.UpdateUserRequest) (*models.User, error)
 	// UpdateAvatar uploads a profile picture and returns the URL/path.
 	UpdateAvatar(ctx context.Context, userID uuid.UUID, file io.Reader, filename string) (string, error)
 }
@@ -95,6 +97,17 @@ func (s *userService) Delete(ctx context.Context, userID uuid.UUID) error {
 	return s.userRepo.Delete(ctx, userID)
 }
 
+// Update handles partial updates to the user profile.
+func (s *userService) Update(ctx context.Context, userID uuid.UUID, req dto.UpdateUserRequest) (*models.User, error) {
+	params := repository.UpdateUserParams{
+		FirstName: req.FirstName,
+		LastName:  req.LastName,
+		IsActive:  req.IsActive,
+	}
+
+	return s.userRepo.Update(ctx, userID, params)
+}
+
 func (s *userService) ChangePassword(ctx context.Context, userID uuid.UUID, req dto.ChangePasswordRequest) error {
 	user, err := s.userRepo.FindByID(ctx, userID)
 	if err != nil {
@@ -149,9 +162,7 @@ func (s *userService) UpdateAvatar(ctx context.Context, userID uuid.UUID, file i
 
 	// 5. Update user in DB
 	oldAvatar := user.AvatarURL
-	user.AvatarURL = &filePath
-
-	if err := s.userRepo.Update(ctx, user); err != nil {
+	if _, err := s.userRepo.UpdateAvatar(ctx, userID, &filePath); err != nil {
 		os.Remove(filePath) // Cleanup
 		return "", err
 	}

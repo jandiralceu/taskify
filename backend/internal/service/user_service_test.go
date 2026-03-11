@@ -144,3 +144,26 @@ func TestChangePassword(t *testing.T) {
 		assert.True(t, errors.Is(err, apperrors.ErrUnauthorized))
 	})
 }
+
+func TestUpdateUser(t *testing.T) {
+	mockRepo := new(MockUserRepository)
+	mockHasher := new(MockPasswordHasher)
+	svc := NewUserService(mockRepo, mockHasher, "/tmp")
+
+	ctx := context.Background()
+	userID := uuid.New()
+	newName := "Updated"
+	req := dto.UpdateUserRequest{
+		FirstName: &newName,
+	}
+
+	expectedUser := &models.User{ID: userID, FirstName: newName}
+	mockRepo.On("Update", ctx, userID, mock.AnythingOfType("repository.UpdateUserParams")).
+		Return(expectedUser, nil)
+
+	res, err := svc.Update(ctx, userID, req)
+
+	assert.NoError(t, err)
+	assert.Equal(t, newName, res.FirstName)
+	mockRepo.AssertExpectations(t)
+}

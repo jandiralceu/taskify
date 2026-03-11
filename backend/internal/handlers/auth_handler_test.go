@@ -67,6 +67,14 @@ func (m *MockUserService) Delete(ctx context.Context, userID uuid.UUID) error {
 	return args.Error(0)
 }
 
+func (m *MockUserService) Update(ctx context.Context, userID uuid.UUID, req dto.UpdateUserRequest) (*models.User, error) {
+	args := m.Called(ctx, userID, req)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.User), args.Error(1)
+}
+
 func (m *MockUserService) UpdateAvatar(ctx context.Context, userID uuid.UUID, file io.Reader, filename string) (string, error) {
 	args := m.Called(ctx, userID, file, filename)
 	return args.String(0), args.Error(1)

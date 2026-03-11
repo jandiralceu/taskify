@@ -38,8 +38,8 @@ func TestUserRepositoryCreateSuccess(t *testing.T) {
 
 	mock.ExpectBegin()
 	mock.ExpectQuery(regexp.QuoteMeta(
-		`INSERT INTO "users" ("first_name","last_name","email","password_hash","role","is_active") VALUES ($1,$2,$3,$4,$5,$6) RETURNING "id","created_at","updated_at"`)).
-		WithArgs(user.FirstName, user.LastName, user.Email, user.PasswordHash, user.Role, sqlmock.AnyArg()).
+		`INSERT INTO "users" ("first_name","last_name","email","password_hash","role","is_active","avatar_url") VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING "id","created_at","updated_at"`)).
+		WithArgs(user.FirstName, user.LastName, user.Email, user.PasswordHash, user.Role, sqlmock.AnyArg(), sqlmock.AnyArg()).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "created_at", "updated_at"}).
 			AddRow(userID, time.Now(), time.Now()))
 	mock.ExpectCommit()
@@ -305,6 +305,118 @@ func TestUserRepositoryFindAllEmpty(t *testing.T) {
 	assert.Len(t, users, 0)
 	assert.Equal(t, int64(0), total)
 	mock.ExpectationsWereMet()
+}
+
+// =====================
+// Update Tests
+// =====================
+
+func TestUserRepositoryUpdateSuccess(t *testing.T) {
+	gormDB, mock, db := setupTestDB(t)
+	defer db.Close()
+
+	repo := NewUserRepository(gormDB)
+	ctx := context.Background()
+	userID := uuid.New()
+	newName := "Updated Name"
+
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta(`UPDATE "users" SET "first_name"=$1,"updated_at"=$2 WHERE id = $3`)).
+		WithArgs(newName, sqlmock.AnyArg(), userID).
+		WillReturnResult(sqlmock.NewResult(0, 1))
+	mock.ExpectCommit()
+
+	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE id = $1 ORDER BY "users"."id" LIMIT $2`)).
+		WithArgs(userID, 1).
+		WillReturnRows(sqlmock.NewRows([]string{"id", "first_name"}).AddRow(userID, newName))
+
+	params := UpdateUserParams{
+		FirstName: &newName,
+	}
+
+	user, err := repo.Update(ctx, userID, params)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, user)
+	assert.Equal(t, newName, user.FirstName)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestUserRepositoryUpdateNotFound(t *testing.T) {
+	gormDB, mock, db := setupTestDB(t)
+	defer db.Close()
+
+	repo := NewUserRepository(gormDB)
+	ctx := context.Background()
+	userID := uuid.New()
+	newName := "Updated Name"
+
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta(`UPDATE "users" SET "first_name"=$1,"updated_at"=$2 WHERE id = $3`)).
+		WithArgs(newName, sqlmock.AnyArg(), userID).
+		WillReturnResult(sqlmock.NewResult(0, 0))
+	mock.ExpectCommit()
+
+	params := UpdateUserParams{
+		FirstName: &newName,
+	}
+
+	user, err := repo.Update(ctx, userID, params)
+
+	assert.Error(t, err)
+	assert.Nil(t, user)
+	assert.True(t, errors.Is(err, apperrors.ErrNotFound))
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestUserRepositoryUpdateAvatarSuccess(t *testing.T) {
+	gormDB, mock, db := setupTestDB(t)
+	defer db.Close()
+
+	repo := NewUserRepository(gormDB)
+	ctx := context.Background()
+	userID := uuid.New()
+	avatarURL := "http://example.com/avatar.png"
+
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta(`UPDATE "users" SET "avatar_url"=$1,"updated_at"=$2 WHERE id = $3`)).
+		WithArgs(&avatarURL, sqlmock.AnyArg(), userID).
+		WillReturnResult(sqlmock.NewResult(0, 1))
+	mock.ExpectCommit()
+
+	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "users" WHERE id = $1 ORDER BY "users"."id" LIMIT $2`)).
+		WithArgs(userID, 1).
+		WillReturnRows(sqlmock.NewRows([]string{"id", "avatar_url"}).AddRow(userID, avatarURL))
+
+	user, err := repo.UpdateAvatar(ctx, userID, &avatarURL)
+
+	assert.NoError(t, err)
+	assert.NotNil(t, user)
+	assert.Equal(t, &avatarURL, user.AvatarURL)
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestUserRepositoryUpdateAvatarNotFound(t *testing.T) {
+	gormDB, mock, db := setupTestDB(t)
+	defer db.Close()
+
+	repo := NewUserRepository(gormDB)
+	ctx := context.Background()
+	userID := uuid.New()
+	avatarURL := "http://example.com/avatar.png"
+
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta(`UPDATE "users" SET "avatar_url"=$1,"updated_at"=$2 WHERE id = $3`)).
+		WithArgs(&avatarURL, sqlmock.AnyArg(), userID).
+		WillReturnResult(sqlmock.NewResult(0, 0))
+	mock.ExpectCommit()
+
+	user, err := repo.UpdateAvatar(ctx, userID, &avatarURL)
+
+	assert.Error(t, err)
+	assert.Nil(t, user)
+	assert.True(t, errors.Is(err, apperrors.ErrNotFound))
+	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
 // =====================

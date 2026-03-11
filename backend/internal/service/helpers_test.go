@@ -59,9 +59,20 @@ func (m *MockUserRepository) Create(ctx context.Context, user *models.User) erro
 	return args.Error(0)
 }
 
-func (m *MockUserRepository) Update(ctx context.Context, user *models.User) error {
-	args := m.Called(ctx, user)
-	return args.Error(0)
+func (m *MockUserRepository) Update(ctx context.Context, userID uuid.UUID, params repository.UpdateUserParams) (*models.User, error) {
+	args := m.Called(ctx, userID, params)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.User), args.Error(1)
+}
+
+func (m *MockUserRepository) UpdateAvatar(ctx context.Context, userID uuid.UUID, avatarURL *string) (*models.User, error) {
+	args := m.Called(ctx, userID, avatarURL)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.User), args.Error(1)
 }
 
 func (m *MockUserRepository) FindAll(ctx context.Context, filter repository.UserListFilter) ([]models.User, int64, error) {

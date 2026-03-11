@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jandiralceu/taskify/internal/apperrors"
@@ -11,14 +12,14 @@ import (
 
 type TaskRepository interface {
 	Create(ctx context.Context, task *models.Task) error
-	Update(ctx context.Context, task *models.Task) error
+	Update(ctx context.Context, taskID uuid.UUID, params UpdateTaskParams) (*models.Task, error)
 	Delete(ctx context.Context, taskID uuid.UUID) error
 	FindByID(ctx context.Context, taskID uuid.UUID) (*models.Task, error)
 	FindAll(ctx context.Context, filter TaskListFilter) (tasks []models.Task, total int64, err error)
 
 	// Notes
-	CreateNote(ctx context.Context, note *models.TaskNote) error
-	UpdateNote(ctx context.Context, note *models.TaskNote) error
+	CreateNote(ctx context.Context, params CreateNoteParams) (*models.TaskNote, error)
+	UpdateNote(ctx context.Context, noteID uuid.UUID, params UpdateNoteParams) (*models.TaskNote, error)
 	DeleteNote(ctx context.Context, noteID uuid.UUID) error
 	FindNoteByID(ctx context.Context, noteID uuid.UUID) (*models.TaskNote, error)
 	GetNotesByTaskID(ctx context.Context, taskID uuid.UUID) ([]models.TaskNote, error)
@@ -51,6 +52,30 @@ type TaskListFilter struct {
 	Pagination PaginationParams
 }
 
+type UpdateTaskParams struct {
+	Title          *string
+	Description    *string
+	Status         *models.TaskStatus
+	Priority       *models.TaskPriority
+	IsBlocked      *bool
+	AssignedTo     *uuid.UUID
+	DueDate        *time.Time
+	EstimatedHours *float64
+	ActualHours    *float64
+	CompletedAt    *time.Time
+	IsArchived     *bool
+}
+
+type CreateNoteParams struct {
+	TaskID  uuid.UUID
+	UserID  uuid.UUID
+	Content string
+}
+
+type UpdateNoteParams struct {
+	Content string
+}
+
 func (r *taskRepository) Create(ctx context.Context, task *models.Task) error {
 	if err := r.db.WithContext(ctx).Create(task).Error; err != nil {
 		return mapDatabaseError(err)
@@ -58,11 +83,58 @@ func (r *taskRepository) Create(ctx context.Context, task *models.Task) error {
 	return nil
 }
 
-func (r *taskRepository) Update(ctx context.Context, task *models.Task) error {
-	if err := r.db.WithContext(ctx).Save(task).Error; err != nil {
-		return mapDatabaseError(err)
+func (r *taskRepository) Update(ctx context.Context, taskID uuid.UUID, params UpdateTaskParams) (*models.Task, error) {
+	updates := make(map[string]interface{})
+
+	if params.Title != nil {
+		updates["title"] = *params.Title
 	}
-	return nil
+	if params.Description != nil {
+		updates["description"] = *params.Description
+	}
+	if params.Status != nil {
+		updates["status"] = *params.Status
+	}
+	if params.Priority != nil {
+		updates["priority"] = *params.Priority
+	}
+	if params.IsBlocked != nil {
+		updates["is_blocked"] = *params.IsBlocked
+	}
+	if params.AssignedTo != nil {
+		updates["assigned_to"] = params.AssignedTo
+	}
+	if params.DueDate != nil {
+		updates["due_date"] = params.DueDate
+	}
+	if params.EstimatedHours != nil {
+		updates["estimated_hours"] = params.EstimatedHours
+	}
+	if params.ActualHours != nil {
+		updates["actual_hours"] = params.ActualHours
+	}
+	if params.CompletedAt != nil {
+		updates["completed_at"] = params.CompletedAt
+	}
+	if params.IsArchived != nil {
+		updates["is_archived"] = *params.IsArchived
+	}
+
+	var task models.Task
+	result := r.db.WithContext(ctx).Model(&task).Where("id = ?", taskID).Updates(updates)
+	if result.Error != nil {
+		return nil, mapDatabaseError(result.Error)
+	}
+
+	if result.RowsAffected == 0 {
+		return nil, apperrors.ErrNotFound
+	}
+
+	if err := r.db.WithContext(ctx).First(&task, "id = ?", taskID).Error; err != nil {
+		return nil, mapDatabaseError(err)
+	}
+
+	return &task, nil
 }
 
 func (r *taskRepository) Delete(ctx context.Context, taskID uuid.UUID) error {
@@ -133,11 +205,16 @@ func (r *taskRepository) FindAll(ctx context.Context, filter TaskListFilter) ([]
 	return tasks, total, nil
 }
 
-func (r *taskRepository) CreateNote(ctx context.Context, note *models.TaskNote) error {
-	if err := r.db.WithContext(ctx).Create(note).Error; err != nil {
-		return mapDatabaseError(err)
+func (r *taskRepository) CreateNote(ctx context.Context, params CreateNoteParams) (*models.TaskNote, error) {
+	note := &models.TaskNote{
+		TaskID:  params.TaskID,
+		UserID:  params.UserID,
+		Content: params.Content,
 	}
-	return nil
+	if err := r.db.WithContext(ctx).Create(note).Error; err != nil {
+		return nil, mapDatabaseError(err)
+	}
+	return note, nil
 }
 
 func (r *taskRepository) GetNotesByTaskID(ctx context.Context, taskID uuid.UUID) ([]models.TaskNote, error) {
@@ -156,11 +233,22 @@ func (r *taskRepository) FindNoteByID(ctx context.Context, noteID uuid.UUID) (*m
 	return &note, nil
 }
 
-func (r *taskRepository) UpdateNote(ctx context.Context, note *models.TaskNote) error {
-	if err := r.db.WithContext(ctx).Save(note).Error; err != nil {
-		return mapDatabaseError(err)
+func (r *taskRepository) UpdateNote(ctx context.Context, noteID uuid.UUID, params UpdateNoteParams) (*models.TaskNote, error) {
+	var note models.TaskNote
+	result := r.db.WithContext(ctx).Model(&note).Where("id = ?", noteID).Update("content", params.Content)
+	if result.Error != nil {
+		return nil, mapDatabaseError(result.Error)
 	}
-	return nil
+
+	if result.RowsAffected == 0 {
+		return nil, apperrors.ErrNotFound
+	}
+
+	if err := r.db.WithContext(ctx).First(&note, "id = ?", noteID).Error; err != nil {
+		return nil, mapDatabaseError(err)
+	}
+
+	return &note, nil
 }
 
 func (r *taskRepository) DeleteNote(ctx context.Context, noteID uuid.UUID) error {
