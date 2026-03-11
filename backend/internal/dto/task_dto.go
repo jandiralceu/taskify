@@ -10,8 +10,9 @@ import (
 type CreateTaskRequest struct {
 	Title          string              `json:"title" binding:"required,min=3,max=255"`
 	Description    string              `json:"description" binding:"omitempty"`
-	Status         models.TaskStatus   `json:"status" binding:"omitempty,oneof=pending in_progress completed cancelled blocked"`
+	Status         models.TaskStatus   `json:"status" binding:"omitempty,oneof=pending in_progress completed cancelled"`
 	Priority       models.TaskPriority `json:"priority" binding:"omitempty,oneof=low medium high critical"`
+	IsBlocked      bool                `json:"is_blocked" binding:"omitempty"`
 	AssignedTo     *uuid.UUID          `json:"assigned_to" binding:"omitempty"`
 	DueDate        *time.Time          `json:"due_date" binding:"omitempty"`
 	EstimatedHours *float64            `json:"estimated_hours" binding:"omitempty,min=0"`
@@ -20,8 +21,9 @@ type CreateTaskRequest struct {
 type UpdateTaskRequest struct {
 	Title          *string              `json:"title" binding:"omitempty,min=3,max=255"`
 	Description    *string              `json:"description" binding:"omitempty"`
-	Status         *models.TaskStatus   `json:"status" binding:"omitempty,oneof=pending in_progress completed cancelled blocked"`
+	Status         *models.TaskStatus   `json:"status" binding:"omitempty,oneof=pending in_progress completed cancelled"`
 	Priority       *models.TaskPriority `json:"priority" binding:"omitempty,oneof=low medium high critical"`
+	IsBlocked      *bool                `json:"is_blocked" binding:"omitempty"`
 	AssignedTo     *uuid.UUID           `json:"assigned_to" binding:"omitempty"`
 	DueDate        *time.Time           `json:"due_date" binding:"omitempty"`
 	EstimatedHours *float64             `json:"estimated_hours" binding:"omitempty,min=0"`
@@ -35,6 +37,7 @@ type TaskResponse struct {
 	Description    string              `json:"description"`
 	Status         models.TaskStatus   `json:"status"`
 	Priority       models.TaskPriority `json:"priority"`
+	IsBlocked      bool                `json:"is_blocked"`
 	CreatedBy      uuid.UUID           `json:"created_by"`
 	AssignedTo     *uuid.UUID          `json:"assigned_to"`
 	DueDate        *time.Time          `json:"due_date"`
@@ -65,8 +68,10 @@ type TaskNoteResponse struct {
 
 type GetTaskListRequest struct {
 	PaginationRequest
-	Status     models.TaskStatus   `form:"status" binding:"omitempty,oneof=pending in_progress completed cancelled blocked"`
+	Status     models.TaskStatus   `form:"status" binding:"omitempty,oneof=pending in_progress completed cancelled"`
 	Priority   models.TaskPriority `form:"priority" binding:"omitempty,oneof=low medium high critical"`
+	IsBlocked  *bool               `form:"is_blocked" binding:"omitempty"`
+	IsArchived *bool               `form:"is_archived" binding:"omitempty"`
 	CreatedBy  *uuid.UUID          `form:"created_by" binding:"omitempty"`
 	AssignedTo *uuid.UUID          `form:"assigned_to" binding:"omitempty"`
 	Search     string              `form:"search" binding:"omitempty"`

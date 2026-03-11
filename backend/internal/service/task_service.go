@@ -64,6 +64,7 @@ func (s *taskService) Create(ctx context.Context, userID uuid.UUID, req dto.Crea
 		Description:    req.Description,
 		Status:         status,
 		Priority:       priority,
+		IsBlocked:      req.IsBlocked,
 		CreatedBy:      userID,
 		AssignedTo:     req.AssignedTo,
 		DueDate:        req.DueDate,
@@ -98,6 +99,9 @@ func (s *taskService) Update(ctx context.Context, taskID uuid.UUID, req dto.Upda
 	}
 	if req.Priority != nil {
 		task.Priority = *req.Priority
+	}
+	if req.IsBlocked != nil {
+		task.IsBlocked = *req.IsBlocked
 	}
 	if req.AssignedTo != nil {
 		task.AssignedTo = req.AssignedTo
@@ -140,9 +144,11 @@ func (s *taskService) GetAll(ctx context.Context, req dto.GetTaskListRequest) (d
 		Pagination: repository.PaginationParams{
 			Page:  req.GetPage(),
 			Limit: req.GetLimit(),
-			Sort:  req.GetSort("created_at", "title", "due_date", "priority", "status"),
+			Sort:  req.GetSort("created_at", "title", "due_date", "priority", "status", "is_blocked"),
 			Order: req.GetOrder(),
 		},
+		IsBlocked:  req.IsBlocked,
+		IsArchived: req.IsArchived,
 	}
 
 	tasks, total, err := s.taskRepo.FindAll(ctx, filter)

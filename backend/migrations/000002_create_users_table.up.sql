@@ -6,6 +6,7 @@ CREATE TABLE users (
     last_name VARCHAR(100) NOT NULL,
     role user_role NOT NULL DEFAULT 'employee',
     is_active BOOLEAN NOT NULL DEFAULT true,
+    avatar_url TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

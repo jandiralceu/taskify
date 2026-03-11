@@ -95,7 +95,7 @@ func main() {
 	userRepository := repository.NewUserRepository(db)
 	taskRepository := repository.NewTaskRepository(db)
 
-	userService := service.NewUserService(userRepository, hasher)
+	userService := service.NewUserService(userRepository, hasher, cfg.UploadPath)
 	taskService := service.NewTaskService(taskRepository, cfg.UploadPath)
 
 	authHandler := handlers.NewAuthHandler(userService, jwtManager, cacheManager, hasher)

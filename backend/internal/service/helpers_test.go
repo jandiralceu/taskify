@@ -59,6 +59,11 @@ func (m *MockUserRepository) Create(ctx context.Context, user *models.User) erro
 	return args.Error(0)
 }
 
+func (m *MockUserRepository) Update(ctx context.Context, user *models.User) error {
+	args := m.Called(ctx, user)
+	return args.Error(0)
+}
+
 func (m *MockUserRepository) FindAll(ctx context.Context, filter repository.UserListFilter) ([]models.User, int64, error) {
 	args := m.Called(ctx, filter)
 	return args.Get(0).([]models.User), args.Get(1).(int64), args.Error(2)

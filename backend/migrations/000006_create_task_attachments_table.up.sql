@@ -7,7 +7,7 @@ CREATE TABLE task_attachments (
     file_name VARCHAR(255) NOT NULL,
     file_size BIGINT NOT NULL, -- Size in bytes
     mime_type VARCHAR(100) NOT NULL, -- e.g., 'image/png', 'application/pdf'
-    file_path VARCHAR(500) NOT NULL,
+    file_path TEXT NOT NULL,
     
     -- Control
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

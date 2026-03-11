@@ -13,7 +13,6 @@ const (
 	TaskStatusInProgress TaskStatus = "in_progress"
 	TaskStatusCompleted  TaskStatus = "completed"
 	TaskStatusCancelled  TaskStatus = "cancelled"
-	TaskStatusBlocked    TaskStatus = "blocked"
 )
 
 type TaskPriority string
@@ -31,6 +30,7 @@ type Task struct {
 	Description    string       `gorm:"type:text" json:"description"`
 	Status         TaskStatus   `gorm:"type:task_status;not null;default:'pending'" json:"status"`
 	Priority       TaskPriority `gorm:"type:task_priority;not null;default:'medium'" json:"priority"`
+	IsBlocked      bool         `gorm:"not null;default:false" json:"is_blocked"`
 	CreatedBy      uuid.UUID    `gorm:"type:uuid;not null" json:"created_by"`
 	AssignedTo     *uuid.UUID   `gorm:"type:uuid" json:"assigned_to"`
 	DueDate        *time.Time   `gorm:"type:timestamptz" json:"due_date"`
@@ -67,7 +67,7 @@ type TaskAttachment struct {
 	FileName  string    `gorm:"type:varchar(255);not null" json:"file_name"`
 	FileSize  int64     `gorm:"type:bigint;not null" json:"file_size"`
 	MimeType  string    `gorm:"type:varchar(100);not null" json:"mime_type"`
-	FilePath  string    `gorm:"type:varchar(500);not null" json:"file_path"`
+	FilePath  string    `gorm:"type:text;not null" json:"file_path"`
 	CreatedAt time.Time `gorm:"type:timestamptz;not null;default:now()" json:"created_at"`
 	UpdatedAt time.Time `gorm:"type:timestamptz;not null;default:now()" json:"updated_at"`
 

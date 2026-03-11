@@ -143,6 +143,8 @@ func (h *TaskHandler) DeleteTask(c *gin.Context) {
 // @Produce      json
 // @Param        status      query string false "Filter by status"
 // @Param        priority    query string false "Filter by priority"
+// @Param        is_blocked  query boolean false "Filter by blocked status"
+// @Param        is_archived query boolean false "Filter by archived status"
 // @Param        search      query string false "Search in title/description"
 // @Param        assigned_to query string false "Filter by assigned user ID"
 // @Param        page        query int    false "Page number"

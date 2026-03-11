@@ -117,7 +117,7 @@ func setupAppCustom(t *testing.T, modifyConfig func(*config.Config)) (*httptest.
 	hasher := pkg.NewArgon2PasswordHasher()
 
 	userRepository := repository.NewUserRepository(db)
-	userService := service.NewUserService(userRepository, hasher)
+	userService := service.NewUserService(userRepository, hasher, cfg.UploadPath)
 	authHandler := handlers.NewAuthHandler(userService, jwtManager, cacheManager, hasher)
 	userHandler := handlers.NewUserHandler(userService)
 

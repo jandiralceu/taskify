@@ -9,6 +9,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"testing"
 	"time"
@@ -64,6 +65,11 @@ func (m *MockUserService) ChangePassword(ctx context.Context, userID uuid.UUID, 
 func (m *MockUserService) Delete(ctx context.Context, userID uuid.UUID) error {
 	args := m.Called(ctx, userID)
 	return args.Error(0)
+}
+
+func (m *MockUserService) UpdateAvatar(ctx context.Context, userID uuid.UUID, file io.Reader, filename string) (string, error) {
+	args := m.Called(ctx, userID, file, filename)
+	return args.String(0), args.Error(1)
 }
 
 // --- Mock PasswordHasher ---

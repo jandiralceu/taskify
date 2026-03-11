@@ -3,6 +3,9 @@ package service
 import (
 	"context"
 	"fmt"
+	"io"
+	"os"
+	"path/filepath"
 
 	"github.com/google/uuid"
 	"github.com/jandiralceu/taskify/internal/apperrors"
@@ -26,18 +29,21 @@ type UserService interface {
 	ChangePassword(ctx context.Context, userID uuid.UUID, req dto.ChangePasswordRequest) error
 	// Delete removes a user from the system.
 	Delete(ctx context.Context, userID uuid.UUID) error
+	// UpdateAvatar uploads a profile picture and returns the URL/path.
+	UpdateAvatar(ctx context.Context, userID uuid.UUID, file io.Reader, filename string) (string, error)
 }
 
 type userService struct {
-	userRepo repository.UserRepository
-	hasher   pkg.PasswordHasher
+	userRepo   repository.UserRepository
+	hasher     pkg.PasswordHasher
+	uploadPath string
 }
 
 var _ UserService = (*userService)(nil)
 
 // NewUserService initializes a UserService with its required repository and hasher dependencies.
-func NewUserService(userRepo repository.UserRepository, hasher pkg.PasswordHasher) UserService {
-	return &userService{userRepo: userRepo, hasher: hasher}
+func NewUserService(userRepo repository.UserRepository, hasher pkg.PasswordHasher, uploadPath string) UserService {
+	return &userService{userRepo: userRepo, hasher: hasher, uploadPath: uploadPath}
 }
 
 // Create performs password hashing using the injected hasher before persisting the user through the repository.
@@ -110,4 +116,50 @@ func (s *userService) ChangePassword(ctx context.Context, userID uuid.UUID, req 
 	}
 
 	return s.userRepo.ChangePassword(ctx, userID, newHashedPassword)
+}
+
+func (s *userService) UpdateAvatar(ctx context.Context, userID uuid.UUID, file io.Reader, filename string) (string, error) {
+	// 1. Verify user exists
+	user, err := s.userRepo.FindByID(ctx, userID)
+	if err != nil {
+		return "", err
+	}
+
+	// 2. Generate unique filename
+	ext := filepath.Ext(filename)
+	uniqueName := fmt.Sprintf("avatar_%s%s", uuid.New().String(), ext)
+	avatarDir := filepath.Join(s.uploadPath, "avatars")
+	filePath := filepath.Join(avatarDir, uniqueName)
+
+	// 3. Ensure directory exists
+	if err := os.MkdirAll(avatarDir, os.ModePerm); err != nil {
+		return "", fmt.Errorf("failed to create avatar directory: %w", err)
+	}
+
+	// 4. Create file
+	dst, err := os.Create(filePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to create file: %w", err)
+	}
+	defer dst.Close()
+
+	if _, err := io.Copy(dst, file); err != nil {
+		return "", fmt.Errorf("failed to save file: %w", err)
+	}
+
+	// 5. Update user in DB
+	oldAvatar := user.AvatarURL
+	user.AvatarURL = &filePath
+
+	if err := s.userRepo.Update(ctx, user); err != nil {
+		os.Remove(filePath) // Cleanup
+		return "", err
+	}
+
+	// 6. Delete old avatar if exists
+	if oldAvatar != nil {
+		os.Remove(*oldAvatar)
+	}
+
+	return filePath, nil
 }

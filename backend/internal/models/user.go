@@ -22,6 +22,7 @@ type User struct {
 	PasswordHash string    `gorm:"type:text;not null" json:"-"`
 	Role         Role      `gorm:"type:user_role;not null;default:'employee'" json:"role"`
 	IsActive     bool      `gorm:"not null;default:true" json:"is_active"`
+	AvatarURL    *string   `gorm:"type:text" json:"avatar_url"`
 	CreatedAt    time.Time `gorm:"type:timestamptz;not null;default:now()" json:"created_at"`
 	UpdatedAt    time.Time `gorm:"type:timestamptz;not null;default:now()" json:"updated_at"`
 }

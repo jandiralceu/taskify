@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -159,4 +160,41 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 	}
 
 	c.Status(http.StatusNoContent)
+}
+
+// UpdateAvatar godoc
+// @Summary      Update profile picture
+// @Description  Uploads a new profile picture for the authenticated user.
+// @Tags         users
+// @Accept       multipart/form-data
+// @Produce      json
+// @Param        avatar  formData  file  true  "Avatar image file"
+// @Success      200     {object}  map[string]string "Returns the avatar path"
+// @Failure      400     {object}  ProblemDetails
+// @Failure      401     {object}  ProblemDetails
+// @Security     Bearer
+// @Router       /users/avatar [post]
+func (h *UserHandler) UpdateAvatar(c *gin.Context) {
+	file, header, err := c.Request.FormFile("avatar")
+	if err != nil {
+		RespondWithError(c, fmt.Errorf("%w: %v", apperrors.ErrInvalidInput, err))
+		return
+	}
+	defer file.Close()
+
+	userID := middleware.GetUserID(c)
+	if userID == uuid.Nil {
+		RespondWithError(c, apperrors.ErrUnauthorized)
+		return
+	}
+
+	path, err := h.userService.UpdateAvatar(c.Request.Context(), userID, file, header.Filename)
+	if err != nil {
+		RespondWithError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"avatar_url": path,
+	})
 }

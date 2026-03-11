@@ -46,6 +46,7 @@ type TaskListFilter struct {
 	CreatedBy  *uuid.UUID
 	AssignedTo *uuid.UUID
 	Search     string
+	IsBlocked  *bool
 	IsArchived *bool
 	Pagination PaginationParams
 }
@@ -106,6 +107,9 @@ func (r *taskRepository) FindAll(ctx context.Context, filter TaskListFilter) ([]
 	}
 	if filter.IsArchived != nil {
 		query = query.Where("is_archived = ?", *filter.IsArchived)
+	}
+	if filter.IsBlocked != nil {
+		query = query.Where("is_blocked = ?", *filter.IsBlocked)
 	}
 	if filter.Search != "" {
 		search := "%" + sanitizeLike(filter.Search) + "%"

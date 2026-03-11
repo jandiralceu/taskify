@@ -11,6 +11,7 @@ import (
 
 type UserRepository interface {
 	Create(ctx context.Context, user *models.User) error
+	Update(ctx context.Context, user *models.User) error
 	FindAll(ctx context.Context, filter UserListFilter) (users []models.User, total int64, err error)
 	FindByID(ctx context.Context, userID uuid.UUID) (*models.User, error)
 	FindByEmail(ctx context.Context, email string) (*models.User, error)
@@ -42,6 +43,13 @@ const (
 
 func (r *userRepository) Create(ctx context.Context, user *models.User) error {
 	if err := r.db.WithContext(ctx).Create(user).Error; err != nil {
+		return mapDatabaseError(err)
+	}
+	return nil
+}
+
+func (r *userRepository) Update(ctx context.Context, user *models.User) error {
+	if err := r.db.WithContext(ctx).Save(user).Error; err != nil {
 		return mapDatabaseError(err)
 	}
 	return nil
