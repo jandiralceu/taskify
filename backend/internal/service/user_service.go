@@ -20,7 +20,7 @@ type UserService interface {
 	// Create registers a new user, ensuring the password is securely hashed.
 	Create(ctx context.Context, user *models.User) error
 	// FindAll returns a paginated list of users based on search criteria.
-	FindAll(ctx context.Context, req dto.GetUserListRequest) (dto.PaginatedResponse[models.User], error)
+	FindAll(ctx context.Context, req dto.GetUserListRequest) (*dto.PaginatedResponse[models.User], error)
 	// FindByID retrieves a single user by their unique UUID.
 	FindByID(ctx context.Context, userID uuid.UUID) (*models.User, error)
 	// FindByEmail locates a user using their unique email address.
@@ -60,7 +60,7 @@ func (s *userService) Create(ctx context.Context, user *models.User) error {
 }
 
 // FindAll delegates the retrieval of the user list to the repository.
-func (s *userService) FindAll(ctx context.Context, req dto.GetUserListRequest) (dto.PaginatedResponse[models.User], error) {
+func (s *userService) FindAll(ctx context.Context, req dto.GetUserListRequest) (*dto.PaginatedResponse[models.User], error) {
 	filter := repository.UserListFilter{
 		FirstName: req.FirstName,
 		LastName:  req.LastName,
@@ -76,7 +76,7 @@ func (s *userService) FindAll(ctx context.Context, req dto.GetUserListRequest) (
 
 	users, total, err := s.userRepo.FindAll(ctx, filter)
 	if err != nil {
-		return dto.PaginatedResponse[models.User]{}, err
+		return nil, err
 	}
 
 	return dto.NewPaginatedResponse(users, total, filter.Pagination.Page, filter.Pagination.Limit), nil

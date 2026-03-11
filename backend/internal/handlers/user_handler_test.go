@@ -39,7 +39,7 @@ func TestFindAllUsersSuccess(t *testing.T) {
 	}
 
 	mockService.On("FindAll", mock.Anything, mock.AnythingOfType("dto.GetUserListRequest")).
-		Return(response, nil)
+		Return(&response, nil)
 
 	router := setupRouter()
 	router.GET("/users", handler.FindAllUsers)
@@ -62,7 +62,7 @@ func TestFindAllUsersServiceError(t *testing.T) {
 	handler := NewUserHandler(mockService)
 
 	mockService.On("FindAll", mock.Anything, mock.AnythingOfType("dto.GetUserListRequest")).
-		Return(dto.PaginatedResponse[models.User]{}, errors.New("database error"))
+		Return(nil, errors.New("database error"))
 
 	router := setupRouter()
 	router.GET("/users", handler.FindAllUsers)

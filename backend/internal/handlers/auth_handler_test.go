@@ -36,9 +36,12 @@ func (m *MockUserService) Create(ctx context.Context, user *models.User) error {
 	return args.Error(0)
 }
 
-func (m *MockUserService) FindAll(ctx context.Context, req dto.GetUserListRequest) (dto.PaginatedResponse[models.User], error) {
+func (m *MockUserService) FindAll(ctx context.Context, req dto.GetUserListRequest) (*dto.PaginatedResponse[models.User], error) {
 	args := m.Called(ctx, req)
-	return args.Get(0).(dto.PaginatedResponse[models.User]), args.Error(1)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*dto.PaginatedResponse[models.User]), args.Error(1)
 }
 
 func (m *MockUserService) FindByID(ctx context.Context, userID uuid.UUID) (*models.User, error) {

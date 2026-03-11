@@ -51,10 +51,10 @@ type PaginatedResponse[T any] struct {
 	TotalPages int   `json:"totalPages"`
 }
 
-// NewPaginatedResponse computes the total pages and return a [PaginatedResponse].
-func NewPaginatedResponse[T any](data []T, total int64, page, limit int) PaginatedResponse[T] {
+// NewPaginatedResponse computes the total pages and return a pointer to [PaginatedResponse].
+func NewPaginatedResponse[T any](data []T, total int64, page, limit int) *PaginatedResponse[T] {
 	totalPages := int(math.Ceil(float64(total) / float64(limit)))
-	return PaginatedResponse[T]{
+	return &PaginatedResponse[T]{
 		Data:       data,
 		Total:      total,
 		Page:       page,
