@@ -260,3 +260,67 @@ func TestUpdateUserSuccess(t *testing.T) {
 	assert.Equal(t, newName, actualUser.FirstName)
 	mockService.AssertExpectations(t)
 }
+
+// =====================
+// UpdateAvatar Tests
+// =====================
+
+func TestUpdateAvatarSuccess(t *testing.T) {
+	mockService := new(MockUserService)
+	handler := NewUserHandler(mockService)
+
+	userID := uuid.New()
+	avatarPath := "/uploads/avatars/avatar.png"
+
+	mockService.On("UpdateAvatar", mock.Anything, userID, mock.Anything, "avatar.png").
+		Return(avatarPath, nil)
+
+	router := setupRouter()
+	router.POST("/users/avatar", func(c *gin.Context) {
+		c.Set(middleware.UserIDKey, userID)
+		handler.UpdateAvatar(c)
+	})
+
+	// Create multipart form data
+	body, contentType := createMultipartForm("avatar", "avatar.png", "fake-image-binary")
+	w := performRequestWithContentType(router, "POST", "/users/avatar", body, contentType)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var resp map[string]string
+	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.Equal(t, avatarPath, resp["avatar_url"])
+	mockService.AssertExpectations(t)
+}
+
+func TestUpdateAvatarNoFile(t *testing.T) {
+	mockService := new(MockUserService)
+	handler := NewUserHandler(mockService)
+
+	router := setupRouter()
+	router.POST("/users/avatar", handler.UpdateAvatar)
+
+	w := performRequestWithContentType(router, "POST", "/users/avatar", nil, "multipart/form-data")
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestUpdateAvatarServiceError(t *testing.T) {
+	mockService := new(MockUserService)
+	handler := NewUserHandler(mockService)
+
+	userID := uuid.New()
+	mockService.On("UpdateAvatar", mock.Anything, userID, mock.Anything, "avatar.png").
+		Return("", errors.New("storage error"))
+
+	router := setupRouter()
+	router.POST("/users/avatar", func(c *gin.Context) {
+		c.Set(middleware.UserIDKey, userID)
+		handler.UpdateAvatar(c)
+	})
+
+	body, contentType := createMultipartForm("avatar", "avatar.png", "fake-image-binary")
+	w := performRequestWithContentType(router, "POST", "/users/avatar", body, contentType)
+
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+}

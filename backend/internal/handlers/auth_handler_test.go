@@ -457,6 +457,37 @@ func TestSignIn_Unauthorized_WrongPassword(t *testing.T) {
 	mockService.AssertExpectations(t)
 }
 
+func TestSignIn_InternalServerError_CacheFailure(t *testing.T) {
+	handler, mockService, mockCache, _ := setupAuthHandler(t)
+
+	hasher := pkg.NewArgon2PasswordHasher()
+	hashedPassword, _ := hasher.Hash("password123")
+
+	userID := uuid.New()
+	mockService.On("FindByEmail", mock.Anything, "john@example.com").
+		Return(&models.User{
+			ID:           userID,
+			Email:        "john@example.com",
+			PasswordHash: hashedPassword,
+			Role:         models.RoleAdmin,
+		}, nil)
+
+	mockCache.On("Set", mock.Anything, mock.Anything, "active", mock.Anything).
+		Return(errors.New("redis failure"))
+
+	router := setupRouter()
+	router.POST("/auth/signin", handler.SignIn)
+
+	body := map[string]any{
+		"email":    "john@example.com",
+		"password": "password123",
+	}
+
+	w := performRequest(router, "POST", "/auth/signin", body)
+
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+}
+
 // =====================
 // SignOut Tests
 // =====================
@@ -515,6 +546,25 @@ func TestSignOut_Unauthorized_InvalidToken(t *testing.T) {
 
 	assert.Equal(t, "Unauthorized", resp.Title)
 	assert.Equal(t, "unauthorized: invalid or expired refresh token", resp.Detail)
+}
+
+func TestSignOut_Unauthorized_WrongTokenType(t *testing.T) {
+	handler, _, _, _, jwtManager := setupAuthHandlerWithMockHasher(t)
+
+	userID := uuid.New()
+	// Generate an ACCESS token instead of REFRESH
+	accessToken, _ := jwtManager.GenerateToken(userID, "admin", 15*time.Minute, pkg.Access)
+
+	router := setupRouter()
+	router.POST("/auth/signout", handler.SignOut)
+
+	body := map[string]any{
+		"refreshToken": accessToken,
+	}
+
+	w := performRequest(router, "POST", "/auth/signout", body)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
 }
 
 // =====================
@@ -587,6 +637,25 @@ func TestRefreshToken_Unauthorized_InvalidToken(t *testing.T) {
 
 	assert.Equal(t, "Unauthorized", resp.Title)
 	assert.Equal(t, "unauthorized: invalid or expired refresh token", resp.Detail)
+}
+
+func TestRefreshToken_Unauthorized_WrongTokenType(t *testing.T) {
+	handler, _, _, _, jwtManager := setupAuthHandlerWithMockHasher(t)
+
+	userID := uuid.New()
+	// Generate an ACCESS token instead of REFRESH
+	accessToken, _ := jwtManager.GenerateToken(userID, "admin", 15*time.Minute, pkg.Access)
+
+	router := setupRouter()
+	router.POST("/auth/refresh", handler.RefreshToken)
+
+	body := map[string]any{
+		"refreshToken": accessToken,
+	}
+
+	w := performRequest(router, "POST", "/auth/refresh", body)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
 }
 
 func TestRefreshToken_Unauthorized_TokenNotInCache(t *testing.T) {

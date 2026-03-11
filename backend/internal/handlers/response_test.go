@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -21,12 +23,10 @@ func setupRouter() *gin.Engine {
 }
 
 func performRequest(router *gin.Engine, method, path string, body any) *httptest.ResponseRecorder {
-	var reqBody *bytes.Buffer
+	var reqBody io.Reader
 	if body != nil {
 		jsonBytes, _ := json.Marshal(body)
 		reqBody = bytes.NewBuffer(jsonBytes)
-	} else {
-		reqBody = bytes.NewBuffer(nil)
 	}
 
 	req, _ := http.NewRequest(method, path, reqBody)
@@ -34,6 +34,25 @@ func performRequest(router *gin.Engine, method, path string, body any) *httptest
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 	return w
+}
+
+func performRequestWithContentType(router *gin.Engine, method, path string, body io.Reader, contentType string) *httptest.ResponseRecorder {
+	req, _ := http.NewRequest(method, path, body)
+	if contentType != "" {
+		req.Header.Set("Content-Type", contentType)
+	}
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+	return w
+}
+
+func createMultipartForm(fieldName, filename, content string) (*bytes.Buffer, string) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, _ := writer.CreateFormFile(fieldName, filename)
+	_, _ = part.Write([]byte(content))
+	_ = writer.Close()
+	return body, writer.FormDataContentType()
 }
 
 // =====================
