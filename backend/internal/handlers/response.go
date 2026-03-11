@@ -58,6 +58,12 @@ func RespondWithError(c *gin.Context, err error) {
 		title = "Forbidden"
 		detail = err.Error()
 		errorType = "https://api.example.com/errors/forbidden"
+	case errors.Is(err, apperrors.ErrStorage), errors.Is(err, apperrors.ErrInternal):
+		statusCode = http.StatusInternalServerError
+		title = "Internal Server Error"
+		detail = "An unexpected error occurred. Please try again later."
+		errorType = "https://api.example.com/errors/internal-server-error"
+		_ = c.Error(err)
 	default:
 		// Check for structured validation errors
 		var vErr *apperrors.ValidationErrors

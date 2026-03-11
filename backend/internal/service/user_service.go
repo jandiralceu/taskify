@@ -52,7 +52,7 @@ func NewUserService(userRepo repository.UserRepository, hasher pkg.PasswordHashe
 func (s *userService) Create(ctx context.Context, user *models.User) error {
 	hashedPassword, err := s.hasher.Hash(user.PasswordHash)
 	if err != nil {
-		return fmt.Errorf("failed to hash password: %w", err)
+		return apperrors.ErrInternal
 	}
 	user.PasswordHash = hashedPassword
 
@@ -146,18 +146,18 @@ func (s *userService) UpdateAvatar(ctx context.Context, userID uuid.UUID, file i
 
 	// 3. Ensure directory exists
 	if err := os.MkdirAll(avatarDir, os.ModePerm); err != nil {
-		return "", fmt.Errorf("failed to create avatar directory: %w", err)
+		return "", apperrors.ErrStorage
 	}
 
 	// 4. Create file
 	dst, err := os.Create(filePath)
 	if err != nil {
-		return "", fmt.Errorf("failed to create file: %w", err)
+		return "", apperrors.ErrStorage
 	}
 	defer dst.Close()
 
 	if _, err := io.Copy(dst, file); err != nil {
-		return "", fmt.Errorf("failed to save file: %w", err)
+		return "", apperrors.ErrStorage
 	}
 
 	// 5. Update user in DB

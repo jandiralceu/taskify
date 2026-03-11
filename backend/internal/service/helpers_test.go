@@ -120,3 +120,96 @@ func (m *MockPasswordHasher) Verify(password, hash string) (bool, error) {
 	args := m.Called(password, hash)
 	return args.Bool(0), args.Error(1)
 }
+
+// MockTaskRepository is a mock implementation of repository.TaskRepository.
+type MockTaskRepository struct {
+	mock.Mock
+}
+
+func (m *MockTaskRepository) Create(ctx context.Context, task *models.Task) error {
+	args := m.Called(ctx, task)
+	return args.Error(0)
+}
+
+func (m *MockTaskRepository) Update(ctx context.Context, taskID uuid.UUID, params repository.UpdateTaskParams) (*models.Task, error) {
+	args := m.Called(ctx, taskID, params)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.Task), args.Error(1)
+}
+
+func (m *MockTaskRepository) Delete(ctx context.Context, taskID uuid.UUID) error {
+	args := m.Called(ctx, taskID)
+	return args.Error(0)
+}
+
+func (m *MockTaskRepository) FindByID(ctx context.Context, taskID uuid.UUID) (*models.Task, error) {
+	args := m.Called(ctx, taskID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.Task), args.Error(1)
+}
+
+func (m *MockTaskRepository) FindAll(ctx context.Context, filter repository.TaskListFilter) ([]models.Task, int64, error) {
+	args := m.Called(ctx, filter)
+	return args.Get(0).([]models.Task), args.Get(1).(int64), args.Error(2)
+}
+
+func (m *MockTaskRepository) CreateNote(ctx context.Context, params repository.CreateNoteParams) (*models.TaskNote, error) {
+	args := m.Called(ctx, params)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.TaskNote), args.Error(1)
+}
+
+func (m *MockTaskRepository) UpdateNote(ctx context.Context, noteID uuid.UUID, params repository.UpdateNoteParams) (*models.TaskNote, error) {
+	args := m.Called(ctx, noteID, params)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.TaskNote), args.Error(1)
+}
+
+func (m *MockTaskRepository) DeleteNote(ctx context.Context, noteID uuid.UUID) error {
+	args := m.Called(ctx, noteID)
+	return args.Error(0)
+}
+
+func (m *MockTaskRepository) FindNoteByID(ctx context.Context, noteID uuid.UUID) (*models.TaskNote, error) {
+	args := m.Called(ctx, noteID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.TaskNote), args.Error(1)
+}
+
+func (m *MockTaskRepository) GetNotesByTaskID(ctx context.Context, taskID uuid.UUID) ([]models.TaskNote, error) {
+	args := m.Called(ctx, taskID)
+	return args.Get(0).([]models.TaskNote), args.Error(1)
+}
+
+func (m *MockTaskRepository) CreateAttachment(ctx context.Context, attachment *models.TaskAttachment) error {
+	args := m.Called(ctx, attachment)
+	return args.Error(0)
+}
+
+func (m *MockTaskRepository) DeleteAttachment(ctx context.Context, attachmentID uuid.UUID) error {
+	args := m.Called(ctx, attachmentID)
+	return args.Error(0)
+}
+
+func (m *MockTaskRepository) FindAttachmentByID(ctx context.Context, attachmentID uuid.UUID) (*models.TaskAttachment, error) {
+	args := m.Called(ctx, attachmentID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.TaskAttachment), args.Error(1)
+}
+
+func (m *MockTaskRepository) GetAttachmentsByTaskID(ctx context.Context, taskID uuid.UUID) ([]models.TaskAttachment, error) {
+	args := m.Called(ctx, taskID)
+	return args.Get(0).([]models.TaskAttachment), args.Error(1)
+}

@@ -205,18 +205,18 @@ func (s *taskService) AddAttachment(ctx context.Context, taskID, userID uuid.UUI
 
 	// 3. Ensure upload directory exists
 	if err := os.MkdirAll(s.uploadPath, os.ModePerm); err != nil {
-		return nil, fmt.Errorf("failed to create upload directory: %w", err)
+		return nil, apperrors.ErrStorage
 	}
 
 	// 4. Create local file
 	dst, err := os.Create(filePath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create file on disk: %w", err)
+		return nil, apperrors.ErrStorage
 	}
 	defer dst.Close()
 
 	if _, err := io.Copy(dst, file); err != nil {
-		return nil, fmt.Errorf("failed to stream file to disk: %w", err)
+		return nil, apperrors.ErrStorage
 	}
 
 	// 5. Build attachment record (save relative or absolute path, usually relative is better for portability)

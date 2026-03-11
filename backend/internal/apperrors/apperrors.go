@@ -24,6 +24,7 @@ var (
 	ErrAlreadyExists = errors.New("resource already exists")
 	ErrInvalidID     = errors.New("invalid identifier")
 	ErrForbidden     = errors.New("forbidden")
+	ErrStorage       = errors.New("storage operation failure")
 )
 
 // InvalidParam represents a single field-level validation failure,
