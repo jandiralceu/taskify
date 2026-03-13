@@ -1,4 +1,8 @@
 @import 'tailwindcss';
+@import '@skeletonlabs/skeleton';
+@import '@skeletonlabs/skeleton-svelte';
+@import './lib/themes/roxo.css';
+
 @plugin '@tailwindcss/typography';
 
 @theme {

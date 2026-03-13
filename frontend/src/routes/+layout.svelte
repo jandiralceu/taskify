@@ -1,7 +1,7 @@
 <script lang="ts">
 	import '../app.css';
 	import '@fontsource-variable/roboto';
-	import favicon from '$lib/assets/favicon.svg';
+	import favicon from '$lib/assets/favicon.ico';
 
 	let { children } = $props();
 </script>

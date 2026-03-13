@@ -1,60 +1,71 @@
 <script lang="ts">
+	import logo from '$lib/assets/logo.webp';
 	import { resolve } from '$app/paths';
+	import { Mail, Lock } from '@lucide/svelte';
+	import Input from '$lib/components/Input.svelte';
+
 	let email = $state('');
 	let password = $state('');
 
 	function handleSubmit(e: SubmitEvent) {
 		e.preventDefault();
 		console.log('Login attempt:', { email, password });
-		// Implementar lógica de login aqui
 	}
 </script>
 
-<form class="mt-8 space-y-6" onsubmit={handleSubmit}>
-	<div class="-space-y-px rounded-md shadow-sm">
-		<div>
-			<label for="email-address" class="sr-only">E-mail</label>
-			<input
-				id="email-address"
-				name="email"
-				type="email"
-				required
-				bind:value={email}
-				class="relative block w-full appearance-none rounded-none rounded-t-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none sm:text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-				placeholder="Endereço de e-mail"
-			/>
-		</div>
-		<div>
-			<label for="password" class="sr-only">Senha</label>
-			<input
-				id="password"
-				name="password"
-				type="password"
-				required
-				bind:value={password}
-				class="relative block w-full appearance-none rounded-none rounded-b-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none sm:text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-				placeholder="Senha"
-			/>
-		</div>
-	</div>
+<form class="mt-8 space-y-6 w-full max-w-md" onsubmit={handleSubmit}>
+	<h1>
+		<img src={logo} alt="Taskify Logo" class="h-12 w-auto" />
+	</h1>
 
-	<div class="flex items-center justify-between">
-		<div class="text-sm">
-			<a
-				href={resolve('/signup')}
-				class="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400"
-			>
-				Não tem uma conta? Cadastre-se
-			</a>
-		</div>
+	<h2 class="text-primary-500 text-3xl font-bold">Sign in to your account</h2>
+	<p class="text-sm text-gray-600">Welcome back! Please sign in to your account.</p>
+
+	<div class="space-y-4">
+		<Input
+			id="email-address"
+			name="email"
+			type="email"
+			placeholder="Email"
+			bind:value={email}
+			required
+		>
+			{#snippet icon()}
+				<Mail size={20} />
+			{/snippet}
+		</Input>
+
+		<Input
+			id="password"
+			name="password"
+			type="password"
+			placeholder="Password"
+			bind:value={password}
+			required
+		>
+			{#snippet icon()}
+				<Lock size={20} />
+			{/snippet}
+		</Input>
 	</div>
 
 	<div>
 		<button
 			type="submit"
-			class="group relative flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+			class="group relative flex w-full justify-center rounded-xl border border-transparent bg-primary-500 px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-primary-600 focus:ring-2 focus:ring-primary-500/50 focus:outline-none active:scale-[0.98]"
 		>
 			Entrar
 		</button>
+	</div>
+
+	<div class="flex items-center justify-center">
+		<div class="text-sm">
+			<a
+				href={resolve('/signup')}
+				class="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400"
+			>
+				Não tem uma conta? Cadastre-se
+			</a>
+		</div>
 	</div>
 </form>
