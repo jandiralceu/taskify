@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Plus, Ellipsis, MessageSquare, CheckSquare } from '@lucide/svelte';
+	import { Plus, Ellipsis, MessageSquare, SquareCheck } from '@lucide/svelte';
 	import { createProfileQuery } from '$lib/state/user.svelte';
 
 	const profileQuery = createProfileQuery();
@@ -85,26 +85,34 @@
 	<header class="px-8 pb-12">
 		<div class="flex items-end justify-between">
 			<div class="space-y-2">
-				<h1 class="text-4xl text-surface-900 tracking-tight leading-tight">
+				<h2 class="text-4xl text-surface-900 tracking-tight leading-tight">
 					<span class="font-light">Welcome</span> 
-					<span class="font-medium">{profileQuery.data?.firstName || 'User'}</span>, 
+					<span class="font-normal">{profileQuery.data?.firstName || 'User'}</span>, 
 					<span class="font-light">here's a look at</span> <br />
-					<span class="font-medium">your tasks for today!</span>
-				</h1>
-				<p class="text-surface-800 text-sm font-medium">
+					<span class="font-normal">your tasks for today!</span>
+				</h2>
+				<p class="text-surface-800 text-xl font-light">
 					Today is {formattedDate}
 				</p>
 			</div>
 		</div>
 	</header>
 
+	<div class="px-8 flex items-center justify-between mb-16">
+		<h3 class="text-3xl font-light text-surface-900 tracking-tight">Tasks</h3>
+		<button class="bg-[#820AD1] hover:bg-[#6a08aa] text-white px-6 py-2.5 rounded-xl font-medium shadow-lg shadow-[#820AD1]/20 transition-all active:scale-95 flex items-center gap-2">
+			<Plus size={18} />
+			Add Task
+		</button>
+	</div>
+
 	<!-- Board Content -->
 	<div class="flex-1 overflow-x-auto custom-scrollbar-h">
-		<div class="inline-flex h-full pb-8">
+		<div class="inline-flex h-full pl-3 pr-8 pb-8">
 			{#each columns as column (column.id)}
 				<div class="w-[340px] flex flex-col gap-6 shrink-0 border-r border-slate-300/50 last:border-r-0 px-5">
 					<!-- Column Header -->
-					<div class="flex items-center justify-between px-2">
+					<div class="flex items-center justify-between">
 						<h3 class="text-sm font-medium text-surface-900">{column.title}</h3>
 						<button class="text-surface-300 hover:text-surface-500 transition-colors">
 							<Ellipsis size={18} />
@@ -149,7 +157,7 @@
 									<div class="flex items-center gap-3 text-surface-300">
 										{#if (task.subtasksTotal ?? 0) > 0}
 											<div class="flex items-center gap-1">
-												<CheckSquare size={13} strokeWidth={2.5} />
+												<SquareCheck size={13} strokeWidth={2.5} />
 												<span class="text-[10px] font-bold">{task.subtasksTotal ?? 0}</span>
 											</div>
 										{/if}
