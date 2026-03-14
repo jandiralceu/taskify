@@ -1,90 +1,154 @@
 <script lang="ts">
+	import logo from '$lib/assets/logo.webp';
 	import { resolve } from '$app/paths';
-	let name = $state('');
+	import { Mail, Lock, User, Users, Shield, Check } from '@lucide/svelte';
+	import Input from '$lib/components/Input.svelte';
+
+	let firstName = $state('');
+	let lastName = $state('');
 	let email = $state('');
 	let password = $state('');
-	let confirmPassword = $state('');
+	let role = $state<'admin' | 'employee'>('employee');
 
 	function handleSubmit(e: SubmitEvent) {
 		e.preventDefault();
-		if (password !== confirmPassword) {
-			alert('As senhas não coincidem!');
-			return;
-		}
-		console.log('Signup attempt:', { name, email, password });
-		// Implementar lógica de cadastro aqui
+		console.log('Signup attempt:', { firstName, lastName, email, password, role });
 	}
 </script>
 
-<form class="mt-8 space-y-6" onsubmit={handleSubmit}>
-	<div class="-space-y-px rounded-md shadow-sm">
-		<div>
-			<label for="name" class="sr-only">Nome Completo</label>
-			<input
-				id="name"
-				name="name"
-				type="text"
-				required
-				bind:value={name}
-				class="relative block w-full appearance-none rounded-none rounded-t-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none sm:text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-				placeholder="Nome completo"
-			/>
-		</div>
-		<div>
-			<label for="email-address" class="sr-only">E-mail</label>
-			<input
-				id="email-address"
-				name="email"
-				type="email"
-				required
-				bind:value={email}
-				class="relative block w-full appearance-none rounded-none border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none sm:text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-				placeholder="Endereço de e-mail"
-			/>
-		</div>
-		<div>
-			<label for="password" class="sr-only">Senha</label>
-			<input
-				id="password"
-				name="password"
-				type="password"
-				required
-				bind:value={password}
-				class="relative block w-full appearance-none rounded-none border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none sm:text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-				placeholder="Senha"
-			/>
-		</div>
-		<div>
-			<label for="confirm-password" class="sr-only">Confirmar Senha</label>
-			<input
-				id="confirm-password"
-				name="confirm-password"
-				type="password"
-				required
-				bind:value={confirmPassword}
-				class="relative block w-full appearance-none rounded-none rounded-b-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:ring-indigo-500 focus:outline-none sm:text-sm dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-				placeholder="Confirmar senha"
-			/>
-		</div>
+<form class="w-full max-w-md mt-8 space-y-6" onsubmit={handleSubmit}>
+	<h1>
+		<img src={logo} alt="Taskify Logo" class="h-12 w-auto" />
+	</h1>
+
+	<div class="space-y-1 pb-4">
+		<h2 class="text-primary-500 text-3xl font-bold">Create your account</h2>
+		<p class="text-surface-600 text-sm dark:text-surface-400">Join Taskify today and start managing your tasks efficiently.</p>
 	</div>
 
-	<div class="flex items-center justify-between">
-		<div class="text-sm">
-			<a
-				href={resolve('/signin')}
-				class="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400"
+	<div class="space-y-4">
+		<div class="grid grid-cols-2 gap-4">
+			<Input
+				id="first-name"
+				name="first_name"
+				placeholder="First Name"
+				bind:value={firstName}
+				required
 			>
-				Já tem uma conta? Entre aqui
-			</a>
+				{#snippet icon()}
+					<User size={20} />
+				{/snippet}
+			</Input>
+
+			<Input
+				id="last-name"
+				name="last_name"
+				placeholder="Last Name"
+				bind:value={lastName}
+				required
+			>
+				{#snippet icon()}
+					<User size={20} />
+				{/snippet}
+			</Input>
+		</div>
+
+		<Input
+			id="email-address"
+			name="email"
+			type="email"
+			placeholder="Email"
+			bind:value={email}
+			required
+		>
+			{#snippet icon()}
+				<Mail size={20} />
+			{/snippet}
+		</Input>
+
+		<Input
+			id="password"
+			name="password"
+			type="password"
+			placeholder="Password"
+			bind:value={password}
+			required
+		>
+			{#snippet icon()}
+				<Lock size={20} />
+			{/snippet}
+		</Input>
+
+		<div class="space-y-3">
+			<span class="block text-sm font-medium text-surface-700 dark:text-surface-300">Select your Role</span>
+			<div class="flex flex-col gap-4">
+				<label class="relative flex cursor-pointer rounded-xl border p-4 transition-all {role === 'employee' ? 'border-primary-500 bg-primary-50 dark:border-primary-500 dark:bg-primary-900/20' : 'border-surface-200 bg-white hover:border-surface-300 dark:border-surface-700 dark:bg-surface-900 dark:hover:border-surface-600'}">
+					<input
+						type="radio"
+						name="role"
+						value="employee"
+						bind:group={role}
+						class="sr-only"
+					/>
+					<div class="flex w-full items-center gap-4">
+						<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg transition-colors {role === 'employee' ? 'bg-primary-100 text-primary-600 dark:bg-primary-900/50 dark:text-primary-400' : 'bg-surface-100 text-surface-500 dark:bg-surface-800'}">
+							<Users size={24} />
+						</div>
+						<div class="flex-1">
+							<div class="font-semibold text-surface-900 dark:text-surface-50">Employee</div>
+							<div class="text-xs text-surface-500 dark:text-surface-400 mt-0.5">Regular access to tasks and projects.</div>
+						</div>
+						<div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors {role === 'employee' ? 'border-primary-500 bg-primary-500 text-white' : 'border-surface-300 dark:border-surface-600'}">
+							{#if role === 'employee'}
+								<Check size={14} strokeWidth={3} />
+							{/if}
+						</div>
+					</div>
+				</label>
+
+				<label class="relative flex cursor-pointer rounded-xl border p-4 transition-all {role === 'admin' ? 'border-primary-500 bg-primary-50 dark:border-primary-500 dark:bg-primary-900/20' : 'border-surface-200 bg-white hover:border-surface-300 dark:border-surface-700 dark:bg-surface-900 dark:hover:border-surface-600'}">
+					<input
+						type="radio"
+						name="role"
+						value="admin"
+						bind:group={role}
+						class="sr-only"
+					/>
+					<div class="flex w-full items-center gap-4">
+						<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg transition-colors {role === 'admin' ? 'bg-primary-100 text-primary-600 dark:bg-primary-900/50 dark:text-primary-400' : 'bg-surface-100 text-surface-500 dark:bg-surface-800'}">
+							<Shield size={24} />
+						</div>
+						<div class="flex-1">
+							<div class="font-semibold text-surface-900 dark:text-surface-50">Admin</div>
+							<div class="text-xs text-surface-500 dark:text-surface-400 mt-0.5">Full access to manage users and system settings.</div>
+						</div>
+						<div class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors {role === 'admin' ? 'border-primary-500 bg-primary-500 text-white' : 'border-surface-300 dark:border-surface-600'}">
+							{#if role === 'admin'}
+								<Check size={14} strokeWidth={3} />
+							{/if}
+						</div>
+					</div>
+				</label>
+			</div>
 		</div>
 	</div>
 
 	<div>
 		<button
 			type="submit"
-			class="group relative flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+			class="group relative flex w-full justify-center rounded-xl border border-transparent bg-primary-500 px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-primary-600 focus:ring-2 focus:ring-primary-500/50 focus:outline-none active:scale-[0.98]"
 		>
-			Criar Conta
+			Create Account
 		</button>
+	</div>
+
+	<div class="flex items-center justify-center gap-1 text-sm text-surface-600 dark:text-surface-400">
+		<span>Already have an account?</span>
+		<a
+			href={resolve('/signin')}
+			class="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400"
+		>
+			Sign in
+		</a>
 	</div>
 </form>
