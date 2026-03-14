@@ -42,3 +42,53 @@ export interface RefreshTokenResponse {
 export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
 export type TaskPriority = 'low' | 'medium' | 'high' | 'critical';
 
+export interface TaskResponse {
+	id: string;
+	title: string;
+	description: string;
+	status: TaskStatus;
+	priority: TaskPriority;
+	isBlocked: boolean;
+	createdBy: string;
+	assignedTo?: string;
+	dueDate?: string;
+	completedAt?: string;
+	estimatedHours?: number;
+	actualHours?: number;
+	isArchived: boolean;
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface CreateTaskRequest {
+	title: string;
+	description?: string;
+	status?: TaskStatus;
+	priority?: TaskPriority;
+	isBlocked?: boolean;
+	assignedTo?: string;
+	dueDate?: string;
+	estimatedHours?: number;
+}
+
+export interface UpdateTaskRequest {
+	title?: string;
+	description?: string;
+	status?: TaskStatus;
+	priority?: TaskPriority;
+	isBlocked?: boolean;
+	assignedTo?: string;
+	dueDate?: string;
+	estimatedHours?: number;
+	actualHours?: number;
+	isArchived?: boolean;
+}
+
+export interface PaginatedResponse<T> {
+	data: T[];
+	total: number;
+	page: number;
+	pageSize: number;
+	totalPages: number;
+}
+
