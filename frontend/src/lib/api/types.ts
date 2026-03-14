@@ -29,6 +29,15 @@ export interface SignOutRequest {
 	refreshToken: string;
 }
 
+export interface RefreshTokenRequest {
+	refreshToken: string;
+}
+
+export interface RefreshTokenResponse {
+	accessToken: string;
+	refreshToken: string;
+}
+
 export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
 export type TaskPriority = 'low' | 'medium' | 'high' | 'critical';
 
