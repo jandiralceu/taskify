@@ -8,8 +8,8 @@
 		defaultOptions: {
 			queries: {
 				enabled: true,
-				retry: 1, // Minimize retries for better DX
-				staleTime: 60 * 1000 // 1 minute
+				retry: 1,
+				staleTime: 60 * 1000
 			}
 		}
 	});

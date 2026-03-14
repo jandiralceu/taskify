@@ -1,5 +1,5 @@
 import { api } from './client';
-import type { CreateUserRequest, SignInRequest, SignInResponse } from './types';
+import type { CreateUserRequest, SignInRequest, SignInResponse, SignOutRequest } from './types';
 
 export const authService = {
 	async signup(data: CreateUserRequest): Promise<void> {
@@ -8,5 +8,9 @@ export const authService = {
 
 	async signin(data: SignInRequest): Promise<SignInResponse> {
 		return api.post('auth/signin', { json: data }).json();
+	},
+
+	async signout(data: SignOutRequest): Promise<void> {
+		await api.post('auth/signout', { json: data });
 	}
 };

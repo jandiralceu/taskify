@@ -24,3 +24,11 @@ export interface SignInResponse {
 	accessToken: string;
 	refreshToken: string;
 }
+
+export interface SignOutRequest {
+	refreshToken: string;
+}
+
+export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
+export type TaskPriority = 'low' | 'medium' | 'high' | 'critical';
+

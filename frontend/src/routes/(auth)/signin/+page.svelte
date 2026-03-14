@@ -4,6 +4,7 @@
 	import { Mail, Lock } from '@lucide/svelte';
 
 	import { resolve } from '$app/paths';
+	import { goto } from '$app/navigation';
 	import Input from '$lib/components/Input.svelte';
 	import logo from '$lib/assets/logo.webp';
 	import { authService } from '$lib/api/auth.service';
@@ -28,7 +29,7 @@
 			console.log('Login successful!');
 			storage.set(AUTH_KEYS.ACCESS_TOKEN, data.accessToken);
 			storage.set(AUTH_KEYS.REFRESH_TOKEN, data.refreshToken);
-			// Example: goto('/tasks');
+			goto(resolve('/'));
 		},
 		onError: (error: Error) => {
 			console.error('Login failed:', error);
