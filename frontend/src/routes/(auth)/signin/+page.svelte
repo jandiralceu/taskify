@@ -29,9 +29,9 @@
 	const signinMutation = createMutation(() => ({
 		mutationFn: (data: SignInRequest) => authService.signin(data),
 		onSuccess: async (data: SignInResponse) => {
-			console.log('Login successful!');
 			storage.set(AUTH_KEYS.ACCESS_TOKEN, data.accessToken);
 			storage.set(AUTH_KEYS.REFRESH_TOKEN, data.refreshToken);
+			
 			import('$lib/state/user.svelte').then(m => m.authState.token = data.accessToken);
 			await queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY });
 			goto(resolve('/'));
