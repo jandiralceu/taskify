@@ -11,8 +11,12 @@
 	import { resolve } from '$app/paths';
 	import logoWhite from '$lib/assets/logo_white.webp';
 	import { authService } from '$lib/api/auth.service';
+	import { createProfileQuery, PROFILE_QUERY_KEY, authState } from '$lib/state/user.svelte';
+	import { useQueryClient } from '@tanstack/svelte-query';
 
 	let { children } = $props();
+	const queryClient = useQueryClient();
+	const profileQuery = createProfileQuery();
 
 	async function handleLogout() {
 		const refreshToken = storage.get(AUTH_KEYS.REFRESH_TOKEN);
@@ -25,6 +29,12 @@
 		}
 		storage.remove(AUTH_KEYS.ACCESS_TOKEN);
 		storage.remove(AUTH_KEYS.REFRESH_TOKEN);
+		
+		// Limpa o estado reativo e o cache
+		authState.token = null;
+		queryClient.setQueryData(PROFILE_QUERY_KEY, null);
+		queryClient.removeQueries({ queryKey: PROFILE_QUERY_KEY });
+		
 		goto(resolve('/signin'));
 	}
 
@@ -60,10 +70,10 @@
 			<a 
 				href={resolve('/profile')}
 				class="w-10 h-10 rounded-xl overflow-hidden border-2 transition-all duration-300 {activeRoute === resolve('/profile') ? 'border-white shadow-lg scale-110' : 'border-transparent opacity-50 hover:opacity-100 hover:border-white/20'}"
-				title="Meu Perfil"
+				title={profileQuery.data ? `${profileQuery.data.firstName} ${profileQuery.data.lastName}` : 'Meu Perfil'}
 			>
 				<img 
-					src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jandir" 
+					src="https://api.dicebear.com/7.x/avataaars/svg?seed={profileQuery.data?.firstName || 'user'}" 
 					alt="Profile" 
 					class="w-full h-full object-cover"
 				/>

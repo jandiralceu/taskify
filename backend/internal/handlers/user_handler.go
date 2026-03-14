@@ -233,3 +233,31 @@ func (h *UserHandler) UpdateAvatar(c *gin.Context) {
 		"avatar_url": path,
 	})
 }
+
+// GetProfile godoc
+// @Summary      Get authenticated user profile
+// @Description  Retrieve the profile of the currently authenticated user.
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  models.User
+// @Failure      401  {object}  ProblemDetails
+// @Failure      404  {object}  ProblemDetails
+// @Failure      500  {object}  ProblemDetails
+// @Security     Bearer
+// @Router       /users/profile [get]
+func (h *UserHandler) GetProfile(c *gin.Context) {
+	userID := middleware.GetUserID(c)
+	if userID == uuid.Nil {
+		RespondWithError(c, apperrors.ErrUnauthorized)
+		return
+	}
+
+	user, err := h.userService.FindByID(c.Request.Context(), userID)
+	if err != nil {
+		RespondWithError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
+}

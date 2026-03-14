@@ -9,11 +9,14 @@
 	import logo from '$lib/assets/logo.webp';
 	import { authService } from '$lib/api/auth.service';
 	import { storage, AUTH_KEYS } from '$lib/utils/storage';
+	import { PROFILE_QUERY_KEY } from '$lib/state/user.svelte';
+	import { useQueryClient } from '@tanstack/svelte-query';
 	import type { SignInRequest, SignInResponse } from '$lib/api/types';
 
 	let email = $state('');
 	let password = $state('');
 	let submitted = $state(false);
+	const queryClient = useQueryClient();
 
 	const signinSchema = z.object({
 		email: z.email('Please enter a valid email address'),
@@ -25,10 +28,12 @@
 
 	const signinMutation = createMutation(() => ({
 		mutationFn: (data: SignInRequest) => authService.signin(data),
-		onSuccess: (data: SignInResponse) => {
+		onSuccess: async (data: SignInResponse) => {
 			console.log('Login successful!');
 			storage.set(AUTH_KEYS.ACCESS_TOKEN, data.accessToken);
 			storage.set(AUTH_KEYS.REFRESH_TOKEN, data.refreshToken);
+			import('$lib/state/user.svelte').then(m => m.authState.token = data.accessToken);
+			await queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY });
 			goto(resolve('/'));
 		},
 		onError: (error: Error) => {
