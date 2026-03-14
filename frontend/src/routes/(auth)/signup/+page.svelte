@@ -1,10 +1,13 @@
 <script lang="ts">
+	import { createMutation } from '@tanstack/svelte-query';
 	import { z } from 'zod';
 	import { Mail, Lock, User, Users, Shield, Check } from '@lucide/svelte';
 
 	import { resolve } from '$app/paths';
 	import Input from '$lib/components/Input.svelte';
 	import logo from '$lib/assets/logo.webp';
+	import { authService } from '$lib/api/auth.service';
+	import type { CreateUserRequest } from '$lib/api/types';
 
 	let firstName = $state('');
 	let lastName = $state('');
@@ -16,12 +19,23 @@
 	const signupSchema = z.object({
 		firstName: z.string().min(2, 'Must be at least 2 characters').max(100, 'Max 100 characters'),
 		lastName: z.string().min(2, 'Must be at least 2 characters').max(100, 'Max 100 characters'),
-		email: z.string().email('Please enter a valid email address').max(255, 'Max 255 characters'),
+		email: z.email('Please enter a valid email address').max(255, 'Max 255 characters'),
 		password: z.string().min(8, 'Password must be at least 8 characters')
 	});
 
 	let validationResult = $derived(signupSchema.safeParse({ firstName, lastName, email, password }));
 	let fieldErrors = $derived(submitted && !validationResult.success ? z.treeifyError(validationResult.error).properties : undefined);
+
+	const signupMutation = createMutation(() => ({
+		mutationFn: (data: CreateUserRequest) => authService.signup(data),
+		onSuccess: () => {
+			console.log('Signup successful!');
+			// Example: goto('/signin');
+		},
+		onError: (error: Error) => {
+			console.error('Signup failed:', error);
+		}
+	}));
 
 	function handleSubmit(e: SubmitEvent) {
 		e.preventDefault();
@@ -31,8 +45,13 @@
 			return;
 		}
 
-		console.log('Signup attempt:', { firstName, lastName, email, password, role });
-		// Ready to send to API
+		signupMutation.mutate({ 
+			firstName, 
+			lastName, 
+			email, 
+			password, 
+			role 
+		});
 	}
 </script>
 
@@ -50,7 +69,7 @@
 		<div class="grid grid-cols-2 gap-4">
 			<Input
 				id="first-name"
-				name="first_name"
+				name="firstName"
 				placeholder="First Name"
 				bind:value={firstName}
 				error={fieldErrors?.firstName?.errors?.[0]}
@@ -63,7 +82,7 @@
 
 			<Input
 				id="last-name"
-				name="last_name"
+				name="lastName"
 				placeholder="Last Name"
 				bind:value={lastName}
 				error={fieldErrors?.lastName?.errors?.[0]}
@@ -160,9 +179,10 @@
 	<div>
 		<button
 			type="submit"
-			class="group relative flex w-full justify-center rounded-xl border border-transparent bg-primary-500 px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-primary-600 focus:ring-2 focus:ring-primary-500/50 focus:outline-none active:scale-[0.98]"
+			disabled={signupMutation.isPending}
+			class="group relative flex w-full justify-center rounded-xl border border-transparent bg-primary-500 px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-primary-600 focus:ring-2 focus:ring-primary-500/50 focus:outline-none active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
 		>
-			Create Account
+			{signupMutation.isPending ? 'Creating Account...' : 'Create Account'}
 		</button>
 	</div>
 

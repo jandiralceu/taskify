@@ -1,7 +1,18 @@
 <script lang="ts">
+	import { QueryClient, QueryClientProvider } from '@tanstack/svelte-query';
 	import '../app.css';
 	import '@fontsource-variable/roboto';
 	import favicon from '$lib/assets/favicon.ico';
+
+	const queryClient = new QueryClient({
+		defaultOptions: {
+			queries: {
+				enabled: true,
+				retry: 1, // Minimize retries for better DX
+				staleTime: 60 * 1000 // 1 minute
+			}
+		}
+	});
 
 	let { children } = $props();
 </script>
@@ -10,4 +21,6 @@
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-{@render children()}
+<QueryClientProvider client={queryClient}>
+	{@render children()}
+</QueryClientProvider>

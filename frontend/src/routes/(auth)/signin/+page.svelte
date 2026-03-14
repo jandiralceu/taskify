@@ -1,9 +1,14 @@
 <script lang="ts">
-	import logo from '$lib/assets/logo.webp';
-	import { resolve } from '$app/paths';
-	import { Mail, Lock } from '@lucide/svelte';
-	import Input from '$lib/components/Input.svelte';
+	import { createMutation } from '@tanstack/svelte-query';
 	import { z } from 'zod';
+	import { Mail, Lock } from '@lucide/svelte';
+
+	import { resolve } from '$app/paths';
+	import Input from '$lib/components/Input.svelte';
+	import logo from '$lib/assets/logo.webp';
+	import { authService } from '$lib/api/auth.service';
+	import { storage, AUTH_KEYS } from '$lib/utils/storage';
+	import type { SignInRequest, SignInResponse } from '$lib/api/types';
 
 	let email = $state('');
 	let password = $state('');
@@ -17,6 +22,19 @@
 	let validationResult = $derived(signinSchema.safeParse({ email, password }));
 	let fieldErrors = $derived(submitted && !validationResult.success ? z.treeifyError(validationResult.error).properties : undefined);
 
+	const signinMutation = createMutation(() => ({
+		mutationFn: (data: SignInRequest) => authService.signin(data),
+		onSuccess: (data: SignInResponse) => {
+			console.log('Login successful!');
+			storage.set(AUTH_KEYS.ACCESS_TOKEN, data.accessToken);
+			storage.set(AUTH_KEYS.REFRESH_TOKEN, data.refreshToken);
+			// Example: goto('/tasks');
+		},
+		onError: (error: Error) => {
+			console.error('Login failed:', error);
+		}
+	}));
+
 	function handleSubmit(e: SubmitEvent) {
 		e.preventDefault();
 		submitted = true;
@@ -25,7 +43,7 @@
 			return;
 		}
 
-		console.log('Login attempt:', { email, password });
+		signinMutation.mutate({ email, password });
 	}
 </script>
 
@@ -72,9 +90,10 @@
 	<div>
 		<button
 			type="submit"
-			class="group relative flex w-full justify-center rounded-xl border border-transparent bg-primary-500 px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-primary-600 focus:ring-2 focus:ring-primary-500/50 focus:outline-none active:scale-[0.98]"
+			disabled={signinMutation.isPending}
+			class="group relative flex w-full justify-center rounded-xl border border-transparent bg-primary-500 px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-primary-600 focus:ring-2 focus:ring-primary-500/50 focus:outline-none active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
 		>
-			Sign in
+			{signinMutation.isPending ? 'Logging in...' : 'Sign in'}
 		</button>
 	</div>
 
