@@ -289,7 +289,7 @@ func TestUpdateAvatarSuccess(t *testing.T) {
 
 	var resp map[string]string
 	json.Unmarshal(w.Body.Bytes(), &resp)
-	assert.Equal(t, avatarPath, resp["avatar_url"])
+	assert.Equal(t, avatarPath, resp["avatarUrl"])
 	mockService.AssertExpectations(t)
 }
 

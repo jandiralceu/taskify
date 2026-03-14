@@ -1,5 +1,8 @@
 <script lang="ts">
-	import { Plus, ChevronDown, Ellipsis, Link2, Paperclip, MessageSquare } from '@lucide/svelte';
+	import { Plus, Ellipsis, MessageSquare, CheckSquare } from '@lucide/svelte';
+	import { createProfileQuery } from '$lib/state/user.svelte';
+
+	const profileQuery = createProfileQuery();
 
 	const columns = [
 		{ id: 'pending', title: 'Pending' },
@@ -12,178 +15,168 @@
 		{ 
 			id: 1, 
 			col: 'pending', 
-			title: 'Lorem Ipsum', 
-			date: '04/09/2020', 
-			priority: 'low',
-			tags: ['Development', 'Legal', 'Tag Name']
+			title: '3.4. Simplicity', 
+			description: 'One of the key elements to consider when designing is simplicity...',
+			progress: 0,
+			comments: 4,
+			subtasksTotal: 0,
+			subtasksCompleted: 0
 		},
 		{ 
 			id: 2, 
 			col: 'pending', 
-			title: 'Cras sed sem lacinia', 
-			date: '04/09/2020', 
-			priority: 'medium',
-			tags: ['Development', 'Legal']
+			title: '3.5. Consistency', 
+			progress: 0,
+			comments: 2
 		},
 		{ 
 			id: 3, 
 			col: 'in_progress', 
-			title: 'Curabitur Varius', 
-			date: '04/09/2020', 
-			priority: 'high',
-			tags: ['Development', 'Legal', 'Tag Name']
+			title: '3.1. Design Research', 
+			progress: 80,
+			subtasksTotal: 6,
+			subtasksCompleted: 5,
+			tag: 'after review',
+			comments: 2
 		},
 		{ 
 			id: 4, 
+			col: 'in_progress', 
+			title: '3.2. Content 🍕', 
+			description: 'There are benefits to starting with no content, or even fake content...',
+			progress: 25,
+			subtasksTotal: 4,
+			subtasksCompleted: 1,
+			comments: 1
+		},
+		{ 
+			id: 5, 
 			col: 'completed', 
-			title: 'Morbi quis venenatis', 
-			date: '04/09/2020', 
-			priority: 'critical',
-			tags: ['Development', 'Legal']
+			title: '2.2. Design Thinking & Ethics', 
+			progress: 100,
+			subtasksTotal: 3,
+			subtasksCompleted: 3,
+			tag: 'in review',
+			comments: 1
+		},
+		{ 
+			id: 6, 
+			col: 'completed', 
+			title: '1. Getting Started 🚀', 
+			description: "If you've ever wanted to pursue a career in design, learn the ins-and-outs...",
+			tag: 'reviewed',
+			comments: 1,
+			subtasksTotal: 1,
+			subtasksCompleted: 1
 		}
 	];
 
-	function getPriorityClass(p: string) {
-		switch (p.toLowerCase()) {
-			case 'low': return 'bg-sky-50 text-sky-500';
-			case 'medium': return 'bg-orange-50 text-orange-500';
-			case 'high': return 'bg-rose-50 text-rose-500';
-			case 'critical': return 'bg-red-100 text-red-700 border border-red-200';
-			default: return 'bg-slate-50 text-slate-400';
-		}
-	}
+	let formattedDate = $derived.by(() => {
+		return new Intl.DateTimeFormat('en-GB', {
+			day: 'numeric',
+			month: 'long',
+			year: 'numeric'
+		}).format(new Date());
+	});
 </script>
 
-<div class="space-y-16 h-full flex flex-col pt-16">
+<div class="h-full flex flex-col pt-8">
 	<!-- Project Header -->
-	<header class="space-y-6">
+	<header class="px-8 pb-12">
 		<div class="flex items-end justify-between">
-			<div class="space-y-4">
-				<h1 class="text-2xl font-black text-surface-900 tracking-tight">Tasks</h1>
-				
-				<!-- Progress Bar Section -->
-				<div class="flex items-center gap-6">
-					<div class="w-[400px] h-2 bg-surface-200 rounded-full overflow-hidden flex shadow-inner">
-						<div class="h-full bg-primary-500" style="width: 35%"></div>
-						<div class="h-full bg-secondary-500" style="width: 25%"></div>
-						<div class="h-full bg-tertiary-500" style="width: 20%"></div>
-						<div class="h-full bg-surface-400" style="width: 20%"></div>
-					</div>
-					<span class="text-sm font-bold text-surface-400">12 Tasks</span>
-				</div>
-
-				<!-- Status Indicators -->
-				<div class="flex gap-6">
-					{#each columns as col, i (col.id)}
-						<div class="flex items-center gap-2">
-							<div class="w-4 h-4 rounded-full flex items-center justify-center text-[10px] text-white font-bold {['bg-primary-500', 'bg-secondary-500', 'bg-tertiary-500', 'bg-surface-400'][i]}">
-								{i+1}
-							</div>
-							<span class="text-xs font-bold text-surface-400">{col.title}</span>
-						</div>
-					{/each}
-				</div>
-			</div>
-
-			<!-- Filters -->
-			<div class="flex items-center gap-6">
-				<button class="flex items-center gap-2 text-xs font-bold text-surface-400 hover:text-primary-600 transition-colors">
-					Due Date: <span class="text-surface-900">Today</span>
-					<ChevronDown size={16} />
-				</button>
-				<button class="flex items-center gap-2 text-xs font-bold text-surface-400 hover:text-primary-600 transition-colors">
-					Priority: <span class="text-surface-900">Any</span>
-					<ChevronDown size={16} />
-				</button>
-				<button class="flex items-center gap-2 text-xs font-bold text-surface-400 hover:text-primary-600 transition-colors">
-					Tags: <span class="text-surface-900">All</span>
-					<ChevronDown size={16} />
-				</button>
+			<div class="space-y-2">
+				<h1 class="text-4xl text-surface-900 tracking-tight leading-tight">
+					<span class="font-light">Welcome</span> 
+					<span class="font-medium">{profileQuery.data?.firstName || 'User'}</span>, 
+					<span class="font-light">here's a look at</span> <br />
+					<span class="font-medium">your tasks for today!</span>
+				</h1>
+				<p class="text-surface-800 text-sm font-medium">
+					Today is {formattedDate}
+				</p>
 			</div>
 		</div>
 	</header>
 
 	<!-- Board Content -->
-	<div class="flex-1 flex gap-6 overflow-hidden">
-		{#each columns as column (column.id)}
-			<div class="w-[320px] flex flex-col gap-4">
-				<!-- Column Header -->
-				<div class="flex flex-col gap-2">
-					<h3 class="text-lg font-black text-surface-900 px-2">{column.title}</h3>
-				</div>
+	<div class="flex-1 overflow-x-auto custom-scrollbar-h">
+		<div class="inline-flex h-full pb-8">
+			{#each columns as column (column.id)}
+				<div class="w-[340px] flex flex-col gap-6 shrink-0 border-r border-slate-300/50 last:border-r-0 px-5">
+					<!-- Column Header -->
+					<div class="flex items-center justify-between px-2">
+						<h3 class="text-sm font-medium text-surface-900">{column.title}</h3>
+						<button class="text-surface-300 hover:text-surface-500 transition-colors">
+							<Ellipsis size={18} />
+						</button>
+					</div>
 
-				<!-- Cards Area -->
-				<div class="flex-1 overflow-y-auto pr-2 space-y-4 custom-scrollbar">
-					{#each tasks.filter(t => t.col === column.id) as task (task.id)}
-						<div class="bg-white rounded-2xl p-6 shadow-sm border border-surface-100 hover:shadow-md transition-all cursor-pointer group relative">
-							<div class="flex justify-between items-start mb-4">
-								<h4 class="text-lg font-black text-surface-900 leading-tight group-hover:text-primary-600 transition-colors">{task.title}</h4>
-								<button class="text-surface-300 opacity-0 group-hover:opacity-100 transition-opacity">
-									<Ellipsis size={18} />
-								</button>
-							</div>
-
-							<div class="flex items-center gap-2 text-xs text-surface-400 mb-4 font-bold">
-								<Link2 size={14} />
-								{task.date}
-							</div>
-
-							<!-- Priority Badge -->
-							<div class="mb-4">
-								<span class="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider {getPriorityClass(task.priority)}">
-									{task.priority}
-								</span>
-							</div>
-
-							<!-- Tags -->
-							<div class="flex flex-wrap gap-2 mb-6">
-								{#each task.tags as tag (tag)}
-									<span class="px-3 py-1 bg-primary-50 text-primary-600 rounded-lg text-[10px] font-bold">
-										{tag}
-									</span>
-								{/each}
-							</div>
-
-							<!-- Card Footer -->
-							<div class="flex justify-between items-center pt-4 border-t border-surface-50">
-								<div class="flex items-center gap-3 text-surface-300">
-									<div class="flex items-center gap-1">
-										<Paperclip size={14} />
-										<span class="text-[10px] font-bold">3</span>
-									</div>
-									<div class="flex items-center gap-1">
-										<MessageSquare size={14} />
-										<span class="text-[10px] font-bold">4</span>
-									</div>
+					<!-- Cards Area -->
+					<div class="flex-1 overflow-y-auto pr-2 space-y-4 custom-scrollbar">
+						{#each tasks.filter(t => t.col === column.id) as task (task.id)}
+							<div class="bg-white rounded-xl p-5 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] hover:shadow-lg transition-all cursor-pointer group border border-surface-50/50">
+								<div class="flex justify-between items-start mb-3">
+									<h4 class="text-[15px] font-bold text-surface-800 leading-snug">{task.title}</h4>
 								</div>
 
-								<div class="flex -space-x-2">
-									{#each [1, 2] as j (j)}
-										<div class="w-7 h-7 rounded-full border-2 border-white overflow-hidden bg-surface-200">
-											<img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${task.id + j + 100}`} alt="user" />
+								{#if task.description}
+									<p class="text-xs text-surface-400 leading-relaxed mb-4 line-clamp-2">
+										{task.description}
+									</p>
+								{/if}
+
+								<!-- Progress Bar (Image Style) -->
+								{#if task.progress !== undefined && (task.subtasksTotal ?? 0) > 0}
+									<div class="mb-4">
+										<div class="flex items-center justify-between mb-1.5">
+											<div class="flex-1 h-1.5 bg-indigo-50 rounded-full overflow-hidden mr-3">
+												<div class="h-full bg-indigo-600 rounded-full" style="width: {task.progress}%"></div>
+											</div>
+											<span class="text-[10px] font-bold text-surface-400">{task.subtasksCompleted ?? 0}/{task.subtasksTotal ?? 0}</span>
 										</div>
-									{/each}
-									<button class="w-7 h-7 rounded-full border-2 border-white border-dashed bg-surface-50 flex items-center justify-center text-surface-300 hover:text-primary-600 transition-colors">
-										<Plus size={12} />
-									</button>
+									</div>
+								{/if}
+
+								<div class="flex items-center justify-between mt-auto">
+									<div class="flex gap-2">
+										{#if task.tag}
+											<span class="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded text-[10px] font-bold">
+												{task.tag}
+											</span>
+										{/if}
+									</div>
+
+									<div class="flex items-center gap-3 text-surface-300">
+										{#if (task.subtasksTotal ?? 0) > 0}
+											<div class="flex items-center gap-1">
+												<CheckSquare size={13} strokeWidth={2.5} />
+												<span class="text-[10px] font-bold">{task.subtasksTotal ?? 0}</span>
+											</div>
+										{/if}
+										{#if task.comments}
+											<div class="flex items-center gap-1">
+												<MessageSquare size={13} strokeWidth={2.5} />
+												<span class="text-[10px] font-bold">{task.comments}</span>
+											</div>
+										{/if}
+									</div>
 								</div>
 							</div>
-						</div>
-					{/each}
+						{/each}
 
-					<!-- Sample Placeholder for empty look -->
-					{#if column.id === 'in_progress' && tasks.filter(t => t.col === column.id).length === 1}
-						<div class="h-40 bg-surface-100 border-2 border-dashed border-surface-200 rounded-2xl"></div>
-					{/if}
+						<!-- Plus Button at bottom of column -->
+						<button class="w-full py-4 rounded-xl border-2 border-dashed border-surface-100/50 text-surface-200 hover:text-indigo-500 hover:border-indigo-100 hover:bg-indigo-50/30 transition-all flex items-center justify-center">
+							<Plus size={20} />
+						</button>
+					</div>
 				</div>
-			</div>
-		{/each}
-
-
+			{/each}
+		</div>
 	</div>
 </div>
 
 <style>
+	/* Vertical Scrollbar */
 	.custom-scrollbar::-webkit-scrollbar {
 		width: 4px;
 	}
@@ -191,6 +184,18 @@
 		background: transparent;
 	}
 	.custom-scrollbar::-webkit-scrollbar-thumb {
+		background: #e2e8f0;
+		border-radius: 20px;
+	}
+
+	/* Horizontal Scrollbar */
+	.custom-scrollbar-h::-webkit-scrollbar {
+		height: 6px;
+	}
+	.custom-scrollbar-h::-webkit-scrollbar-track {
+		background: transparent;
+	}
+	.custom-scrollbar-h::-webkit-scrollbar-thumb {
 		background: #e2e8f0;
 		border-radius: 20px;
 	}

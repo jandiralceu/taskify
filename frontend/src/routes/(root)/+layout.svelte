@@ -2,7 +2,6 @@
 	import {
 		ListTodo,
 		Users,
-		Search as SearchIcon,
 		LogOut
 	} from '@lucide/svelte';
 	import { page } from '$app/state';
@@ -44,11 +43,18 @@
 	] as const;
 
 	let activeRoute = $derived(page.url.pathname);
+
+	let userInitials = $derived.by(() => {
+		if (!profileQuery.data) return '';
+		const f = profileQuery.data.firstName?.[0] || '';
+		const l = profileQuery.data.lastName?.[0] || '';
+		return (f + l).toUpperCase();
+	});
 </script>
 
 <div class="h-screen w-full bg-[#F7F3F9] flex overflow-hidden font-sans text-surface-900">
 	<!-- Left Sidebar (Nubank Purple) -->
-	<aside class="w-[75px] bg-[#2E1065] flex flex-col items-center py-6 z-30 shrink-0 shadow-2xl">
+	<aside class="w-[75px] bg-[#820AD1] flex flex-col items-center py-6 z-30 shrink-0 shadow-2xl">
 		<a href={resolve('/')} class="mb-10 block hover:scale-110 transition-transform">
 			<img src={logoWhite} alt="Taskify" class="w-8 h-auto" />
 		</a>
@@ -57,7 +63,7 @@
 			{#each navItems as item (item.href)}
 				<a 
 					href={resolve(item.href)}
-					class="p-2.5 rounded-xl transition-all duration-300 {activeRoute === resolve(item.href) ? 'text-[#2E1065] bg-white shadow-lg' : 'text-white/40 hover:text-white/70'}"
+					class="p-2.5 rounded-xl transition-all duration-300 {activeRoute === resolve(item.href) ? 'text-[#820AD1] bg-white shadow-lg' : 'text-white/40 hover:text-white/70'}"
 					title={item.label}
 				>
 					<item.icon size={22} strokeWidth={2.5} />
@@ -69,14 +75,24 @@
 			<!-- Profile Avatar -->
 			<a 
 				href={resolve('/profile')}
-				class="w-10 h-10 rounded-xl overflow-hidden border-2 transition-all duration-300 {activeRoute === resolve('/profile') ? 'border-white shadow-lg scale-110' : 'border-transparent opacity-50 hover:opacity-100 hover:border-white/20'}"
+				class="w-10 h-10 rounded-xl overflow-hidden border-2 transition-all duration-300 flex items-center justify-center text-xs font-bold {activeRoute === resolve('/profile') ? 'border-white shadow-lg scale-110 bg-white text-[#820AD1]' : 'border-transparent bg-white/10 text-white hover:bg-white/20 hover:border-white/20'}"
 				title={profileQuery.data ? `${profileQuery.data.firstName} ${profileQuery.data.lastName}` : 'Meu Perfil'}
 			>
-				<img 
-					src="https://api.dicebear.com/7.x/avataaars/svg?seed={profileQuery.data?.firstName || 'user'}" 
-					alt="Profile" 
-					class="w-full h-full object-cover"
-				/>
+				{#if profileQuery.data?.avatarUrl}
+					<img 
+						src={profileQuery.data.avatarUrl} 
+						alt="Profile" 
+						class="w-full h-full object-cover"
+					/>
+				{:else if userInitials}
+					<span>{userInitials}</span>
+				{:else}
+					<img 
+						src="https://api.dicebear.com/7.x/avataaars/svg?seed=user" 
+						alt="Profile" 
+						class="w-full h-full object-cover opacity-50"
+					/>
+				{/if}
 			</a>
 		</nav>
 
@@ -92,27 +108,9 @@
 	<!-- Main Body Wrapper -->
 	<div class="flex-1 flex flex-col min-w-0 relative">
 		
-		<!-- Top Navigation Header -->
-		<header class="h-20 flex items-center justify-between px-8 shrink-0 bg-transparent">
-			<!-- Search Bar -->
-			<div class="w-full max-w-[400px] relative">
-				<div class="absolute inset-y-0 left-4 flex items-center text-surface-400">
-					<SearchIcon size={18} />
-				</div>
-				<input 
-					type="text" 
-					placeholder="Search" 
-					class="w-full h-11 bg-white border-none rounded-full pl-12 pr-6 text-sm shadow-sm focus:ring-2 focus:ring-[#820AD1]/10 placeholder:text-surface-300"
-				/>
-			</div>
-
-			<!-- Right Side Placeholder -->
-			<div class="w-[180px]"></div>
-		</header>
-
 		<!-- Page Content Area -->
 		<main class="flex-1 overflow-x-auto overflow-y-hidden custom-scrollbar">
-			<div class="h-full min-w-max p-8 pt-0">
+			<div class="h-full min-w-max p-8">
 				{@render children()}
 			</div>
 		</main>

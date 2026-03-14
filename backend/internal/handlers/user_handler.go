@@ -230,7 +230,7 @@ func (h *UserHandler) UpdateAvatar(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"avatar_url": path,
+		"avatarUrl": path,
 	})
 }
 
