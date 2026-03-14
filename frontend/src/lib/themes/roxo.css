@@ -59,6 +59,10 @@
 	--color-success-500: #24d138;
 	--color-success-contrast-500: #ffffff;
 
+	/* Error: Red (#ef4444) */
+	--color-error-500: #ef4444;
+	--color-error-contrast-500: #ffffff;
+
 	/* Surface: White/Dark Gray */
 	--color-surface-50: #ffffff;
 	--color-surface-100: #fcfcfc;
