@@ -1,22 +1,42 @@
 <script lang="ts">
-	import logo from '$lib/assets/logo.webp';
-	import { resolve } from '$app/paths';
+	import { z } from 'zod';
 	import { Mail, Lock, User, Users, Shield, Check } from '@lucide/svelte';
+
+	import { resolve } from '$app/paths';
 	import Input from '$lib/components/Input.svelte';
+	import logo from '$lib/assets/logo.webp';
 
 	let firstName = $state('');
 	let lastName = $state('');
 	let email = $state('');
 	let password = $state('');
 	let role = $state<'admin' | 'employee'>('employee');
+	let submitted = $state(false);
+
+	const signupSchema = z.object({
+		firstName: z.string().min(2, 'Must be at least 2 characters').max(100, 'Max 100 characters'),
+		lastName: z.string().min(2, 'Must be at least 2 characters').max(100, 'Max 100 characters'),
+		email: z.email('Please enter a valid email address').max(255, 'Max 255 characters'),
+		password: z.string().min(8, 'Password must be at least 8 characters')
+	});
+
+	let validationResult = $derived(signupSchema.safeParse({ firstName, lastName, email, password }));
+	let errors = $derived(submitted && !validationResult.success ? validationResult.error.flatten().fieldErrors : {});
 
 	function handleSubmit(e: SubmitEvent) {
 		e.preventDefault();
+		submitted = true;
+
+		if (!validationResult.success) {
+			return;
+		}
+
 		console.log('Signup attempt:', { firstName, lastName, email, password, role });
+		// Ready to send to API
 	}
 </script>
 
-<form class="w-full max-w-md mt-8 space-y-6" onsubmit={handleSubmit}>
+<form class="w-full max-w-md mt-8 space-y-6" onsubmit={handleSubmit} novalidate>
 	<h1>
 		<img src={logo} alt="Taskify Logo" class="h-12 w-auto" />
 	</h1>
@@ -33,6 +53,7 @@
 				name="first_name"
 				placeholder="First Name"
 				bind:value={firstName}
+				error={errors.firstName?.[0]}
 				required
 			>
 				{#snippet icon()}
@@ -45,6 +66,7 @@
 				name="last_name"
 				placeholder="Last Name"
 				bind:value={lastName}
+				error={errors.lastName?.[0]}
 				required
 			>
 				{#snippet icon()}
@@ -59,6 +81,7 @@
 			type="email"
 			placeholder="Email"
 			bind:value={email}
+			error={errors.email?.[0]}
 			required
 		>
 			{#snippet icon()}
@@ -72,6 +95,7 @@
 			type="password"
 			placeholder="Password"
 			bind:value={password}
+			error={errors.password?.[0]}
 			required
 		>
 			{#snippet icon()}

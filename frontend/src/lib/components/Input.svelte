@@ -11,6 +11,7 @@
 		label?: string;
 		required?: boolean;
 		icon?: Snippet;
+		error?: string;
 	}
 
 	let {
@@ -21,7 +22,8 @@
 		placeholder,
 		label,
 		required = false,
-		icon
+		icon,
+		error
 	}: Props = $props();
 
 	let showPassword = $state(false);
@@ -48,7 +50,7 @@
 			{placeholder}
 			type={inputType}
 			bind:value={value}
-			class="block h-12 w-full rounded-xl border border-surface-300 bg-surface-50 px-3.5 text-surface-900 placeholder-surface-600 transition-all focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none sm:text-sm dark:border-surface-700 dark:bg-surface-900 dark:text-surface-50 dark:placeholder-surface-400 {icon ? 'pl-10' : 'pl-4'} {type === 'password' ? 'pr-10' : 'pr-4'}"
+			class="block h-12 w-full rounded-xl border bg-surface-50 px-3.5 text-surface-900 placeholder-surface-600 transition-all focus:ring-2 focus:outline-none sm:text-sm dark:bg-surface-900 dark:text-surface-50 dark:placeholder-surface-400 {icon ? 'pl-10' : 'pl-4'} {type === 'password' ? 'pr-10' : 'pr-4'} {error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20 dark:border-red-500' : 'border-surface-300 focus:border-primary-500 focus:ring-primary-500/20 dark:border-surface-700'}"
 		/>
 
 		{#if type === 'password'}
@@ -66,4 +68,7 @@
 			</button>
 		{/if}
 	</div>
+	{#if error}
+		<p class="mt-1 text-xs text-red-500 font-medium">{error}</p>
+	{/if}
 </div>

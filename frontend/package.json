@@ -50,6 +50,7 @@
 	},
 	"dependencies": {
 		"@fontsource-variable/roboto": "^5.2.10",
-		"@lucide/svelte": "^0.577.0"
+		"@lucide/svelte": "^0.577.0",
+		"zod": "^4.3.6"
 	}
 }
