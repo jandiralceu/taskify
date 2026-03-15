@@ -15,7 +15,7 @@ type TaskRepository interface {
 	Update(ctx context.Context, taskID uuid.UUID, params UpdateTaskParams) (*models.Task, error)
 	Delete(ctx context.Context, taskID uuid.UUID) error
 	FindByID(ctx context.Context, taskID uuid.UUID) (*models.Task, error)
-	FindAll(ctx context.Context, filter TaskListFilter) (tasks []models.Task, total int64, err error)
+	FindAll(ctx context.Context, filter TaskListFilter) ([]models.Task, error)
 
 	// Notes
 	CreateNote(ctx context.Context, params CreateNoteParams) (*models.TaskNote, error)
@@ -49,7 +49,8 @@ type TaskListFilter struct {
 	Search     string
 	IsBlocked  *bool
 	IsArchived *bool
-	Pagination PaginationParams
+	Sort       string
+	Order      string
 }
 
 type UpdateTaskParams struct {
@@ -130,7 +131,7 @@ func (r *taskRepository) Update(ctx context.Context, taskID uuid.UUID, params Up
 		return nil, apperrors.ErrNotFound
 	}
 
-	if err := r.db.WithContext(ctx).First(&task, "id = ?", taskID).Error; err != nil {
+	if err := r.db.WithContext(ctx).Preload("Assignee").First(&task, "id = ?", taskID).Error; err != nil {
 		return nil, mapDatabaseError(err)
 	}
 
@@ -153,15 +154,15 @@ func (r *taskRepository) FindByID(ctx context.Context, taskID uuid.UUID) (*model
 	if err := r.db.WithContext(ctx).
 		Preload("Notes").
 		Preload("Attachments").
+		Preload("Assignee").
 		First(&task, "id = ?", taskID).Error; err != nil {
 		return nil, mapDatabaseError(err)
 	}
 	return &task, nil
 }
 
-func (r *taskRepository) FindAll(ctx context.Context, filter TaskListFilter) ([]models.Task, int64, error) {
+func (r *taskRepository) FindAll(ctx context.Context, filter TaskListFilter) ([]models.Task, error) {
 	var tasks []models.Task
-	var total int64
 
 	query := r.db.WithContext(ctx).Model(&models.Task{})
 
@@ -188,21 +189,20 @@ func (r *taskRepository) FindAll(ctx context.Context, filter TaskListFilter) ([]
 		query = query.Where("(title ILIKE ? OR description ILIKE ?)", search, search)
 	}
 
-	if err := query.Count(&total).Error; err != nil {
-		return nil, 0, mapDatabaseError(err)
+	orderBy := "created_at DESC"
+	if filter.Sort != "" {
+		order := filter.Order
+		if order == "" {
+			order = "desc"
+		}
+		orderBy = filter.Sort + " " + order
 	}
 
-	err := query.
-		Order(filter.Pagination.GetOrderBy()).
-		Offset(filter.Pagination.GetOffset()).
-		Limit(filter.Pagination.Limit).
-		Find(&tasks).Error
-
-	if err != nil {
-		return nil, 0, mapDatabaseError(err)
+	if err := query.Order(orderBy).Preload("Assignee").Find(&tasks).Error; err != nil {
+		return nil, mapDatabaseError(err)
 	}
 
-	return tasks, total, nil
+	return tasks, nil
 }
 
 func (r *taskRepository) CreateNote(ctx context.Context, params CreateNoteParams) (*models.TaskNote, error) {

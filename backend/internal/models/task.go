@@ -43,7 +43,7 @@ type Task struct {
 
 	// Associations
 	Creator     User             `gorm:"foreignKey:CreatedBy" json:"-"`
-	Assignee    *User            `gorm:"foreignKey:AssignedTo" json:"-"`
+	Assignee    *User            `gorm:"foreignKey:AssignedTo" json:"assignee,omitempty"`
 	Notes       []TaskNote       `gorm:"foreignKey:TaskID" json:"notes,omitempty"`
 	Attachments []TaskAttachment `gorm:"foreignKey:TaskID" json:"attachments,omitempty"`
 }

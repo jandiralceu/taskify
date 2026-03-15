@@ -1,9 +1,11 @@
+export type UserRole = 'admin' | 'employee';
+
 export interface CreateUserRequest {
 	firstName: string;
 	lastName: string;
 	email: string;
 	password: string;
-	role: 'admin' | 'employee';
+	role: UserRole;
 }
 
 export interface UserResponse {
@@ -11,7 +13,7 @@ export interface UserResponse {
 	firstName: string;
 	lastName: string;
 	email: string;
-	role: string;
+	role: UserRole;
 	avatarUrl?: string;
 	createdAt: string;
 }
@@ -51,6 +53,7 @@ export interface TaskResponse {
 	isBlocked: boolean;
 	createdBy: string;
 	assignedTo?: string;
+	assignee?: UserResponse;
 	dueDate?: string;
 	completedAt?: string;
 	estimatedHours?: number;
@@ -84,11 +87,4 @@ export interface UpdateTaskRequest {
 	isArchived?: boolean;
 }
 
-export interface PaginatedResponse<T> {
-	data: T[];
-	total: number;
-	page: number;
-	pageSize: number;
-	totalPages: number;
-}
 
