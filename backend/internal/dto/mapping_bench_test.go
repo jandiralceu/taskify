@@ -11,11 +11,11 @@ import (
 // UserResponse is what we would typically return to the client
 type UserResponse struct {
 	ID        uuid.UUID   `json:"id"`
-	FirstName string      `json:"first_name"`
-	LastName  string      `json:"last_name"`
+	FirstName string      `json:"firstName"`
+	LastName  string      `json:"lastName"`
 	Email     string      `json:"email"`
 	Role      models.Role `json:"role"`
-	CreatedAt time.Time   `json:"created_at"`
+	CreatedAt time.Time   `json:"createdAt"`
 }
 
 // MapUserToResponse simulates the conversion logic

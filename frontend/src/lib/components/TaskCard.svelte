@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Ellipsis, Flag, File, MessageCircle, Link } from '@lucide/svelte';
+	import { Ellipsis, Flag, MessageCircle, Paperclip, User } from '@lucide/svelte';
 	import type { TaskResponse, TaskPriority } from '$lib/api/types';
 
 	interface Props {
@@ -34,7 +34,7 @@
 	draggable="true"
 	ondragstart={onDragStart}
 	ondragend={onDragEnd}
-	class="bg-white rounded-2xl p-5 border border-surface-200 shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing {isDragging ? 'opacity-40 scale-95' : ''}"
+	class="bg-white rounded-2xl p-5 border border-gray-200 border-1 border-solid hover:shadow-md transition-all cursor-grab active:cursor-grabbing {isDragging ? 'opacity-40 scale-95' : ''}"
 >
 	<!-- Header: Priority + Menu -->
 	<div class="flex justify-between items-center mb-3">
@@ -47,14 +47,7 @@
 	</div>
 
 	<!-- Title -->
-	<h4 class="text-[16px] font-bold text-surface-900 leading-snug mb-2">{task.title}</h4>
-
-	<!-- Description -->
-	{#if task.description}
-		<p class="text-[13px] text-surface-500 leading-relaxed mb-4 line-clamp-2">
-			{task.description}
-		</p>
-	{/if}
+	<h4 class="font-medium leading-snug mb-2">{task.title}</h4>
 
 	<!-- Assignees -->
 	<div class="flex items-center justify-between mb-4">
@@ -80,7 +73,7 @@
 				{/if}
 			{:else}
 				<div class="size-7 rounded-full bg-surface-100 border-2 border-white flex items-center justify-center text-surface-400">
-					<span class="text-[10px] font-bold">?</span>
+					<User size={14} />
 				</div>
 			{/if}
 		</div>
@@ -89,7 +82,7 @@
 	<!-- Date -->
 	<div class="flex items-center mb-4">
 		{#if task.dueDate}
-			<div class="flex items-center gap-2 text-[13px] font-medium text-surface-500">
+			<div class="flex items-center gap-2 text-xs font-medium text-surface-700">
 				<Flag size={14} />
 				<span>{formatDate(task.dueDate)}</span>
 			</div>
@@ -97,18 +90,14 @@
 	</div>
 
 	<!-- Footer: Comments, Links, Files -->
-	<div class="flex items-center gap-4 pt-3 border-t border-surface-100 text-surface-500">
-		<div class="flex items-center gap-1.5 text-[13px]">
+	<div class="flex items-center justify-between pt-3 border-t border-surface-100 text-surface-700 text-xs">
+		<div class="flex items-center gap-1.5">
+			<Paperclip size={14} />
+			<span>1 Attachments</span>
+		</div>
+		<div class="flex items-center gap-1.5">
 			<MessageCircle size={14} />
 			<span>12 Comments</span>
-		</div>
-		<div class="flex items-center gap-1.5 text-[13px]">
-			<Link size={14} />
-			<span>1 Links</span>
-		</div>
-		<div class="flex items-center gap-1.5 text-[13px]">
-			<File size={14} />
-			<span>0/3</span>
 		</div>
 	</div>
 </div>

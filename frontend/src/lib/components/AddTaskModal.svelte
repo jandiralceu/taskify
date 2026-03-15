@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { X, Calendar, Flag, Clock, LoaderCircle } from '@lucide/svelte';
-	import { Dialog, Portal } from '@skeletonlabs/skeleton-svelte';
-	import { createCreateTaskMutation } from '$lib/state/tasks.svelte';
+	import { X, Flag, Clock, LoaderCircle } from '@lucide/svelte';
+	import { Dialog, DatePicker, Portal, type DateValue } from '@skeletonlabs/skeleton-svelte';
+	import { createTaskMutation } from '$lib/state/tasks.svelte';
 	import Input from './Input.svelte';
 
 	interface Props {
@@ -14,10 +14,10 @@
 	let title = $state('');
 	let description = $state('');
 	let priority = $state<'low' | 'medium' | 'high' | 'critical'>('medium');
-	let dueDate = $state('');
+	let dueDateValue = $state<DateValue[]>([]);
 	let estimatedHours = $state<number | undefined>(undefined);
 
-	const createTaskMutation = createCreateTaskMutation();
+	const createTask = createTaskMutation();
 
 	function handleOpenChange(e: { open: boolean }) {
 		if (!e.open) onClose();
@@ -27,11 +27,13 @@
 		e.preventDefault();
 		if (!title) return;
 
-		await createTaskMutation.mutateAsync({
+		const selectedDate = dueDateValue.at(0);
+
+		await createTask.mutateAsync({
 			title,
 			description,
 			priority,
-			dueDate: dueDate || undefined,
+			dueDate: selectedDate ? `${selectedDate.toString()}T00:00:00Z` : undefined,
 			estimatedHours
 		});
 
@@ -39,16 +41,16 @@
 		title = '';
 		description = '';
 		priority = 'medium';
-		dueDate = '';
+		dueDateValue = [];
 		estimatedHours = undefined;
 	}
 </script>
 
-<Dialog open={isOpen} onOpenChange={handleOpenChange}>
+<Dialog open={isOpen} onOpenChange={handleOpenChange} closeOnInteractOutside={false}>
 	<Portal>
 		<Dialog.Backdrop class="fixed inset-0 z-50 bg-surface-950/40 backdrop-blur-sm" />
 		<Dialog.Positioner class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
-			<Dialog.Content class="w-full max-w-xl bg-white dark:bg-surface-900 rounded-3xl shadow-2xl overflow-hidden border border-surface-100 dark:border-surface-800">
+			<Dialog.Content class="w-full max-w-xl bg-white dark:bg-surface-900 rounded-3xl shadow-2xl border border-surface-100 dark:border-surface-800">
 				<!-- Header -->
 				<div class="px-8 pt-8 pb-4 flex items-center justify-between">
 					<div>
@@ -85,7 +87,7 @@
 							id="description"
 							bind:value={description}
 							placeholder="Add some details about this task..."
-							class="block w-full rounded-xl border border-surface-300 bg-surface-50 px-4 py-3 text-surface-900 placeholder-surface-600 transition-all focus:border-[#820AD1] focus:ring-2 focus:ring-[#820AD1]/10 focus:outline-none sm:text-sm min-h-[100px] resize-none"
+							class="block w-full rounded-xl border border-surface-300 bg-surface-50 px-4 py-3 text-surface-900 placeholder-surface-600 transition-all focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10 focus:outline-none sm:text-sm min-h-[100px] resize-none"
 						></textarea>
 					</div>
 
@@ -102,7 +104,7 @@
 								<select
 									id="priority"
 									bind:value={priority}
-									class="block h-12 w-full appearance-none rounded-xl border border-surface-300 bg-surface-50 pl-11 pr-10 text-surface-900 transition-all focus:border-[#820AD1] focus:ring-2 focus:ring-[#820AD1]/10 focus:outline-none sm:text-sm cursor-pointer"
+									class="block h-12 w-full appearance-none rounded-xl border border-surface-300 bg-surface-50 pl-11 pr-10 text-surface-900 transition-all focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10 focus:outline-none sm:text-sm cursor-pointer"
 								>
 									<option value="low">Low</option>
 									<option value="medium">Medium</option>
@@ -114,39 +116,126 @@
 
 						<!-- Due Date -->
 						<div class="space-y-1">
-							<label for="due-date" class="block text-sm font-medium text-surface-700 dark:text-surface-300">
-								Due Date
-							</label>
-							<div class="relative">
-								<div class="absolute inset-y-0 left-4 flex items-center text-surface-400 pointer-events-none">
-									<Calendar size={18} />
-								</div>
-								<input
-									id="due-date"
-									type="date"
-									bind:value={dueDate}
-									class="block h-12 w-full rounded-xl border border-surface-300 bg-surface-50 pl-11 pr-4 text-surface-900 transition-all focus:border-[#820AD1] focus:ring-2 focus:ring-[#820AD1]/10 focus:outline-none sm:text-sm"
-								/>
-							</div>
+							<DatePicker value={dueDateValue} onValueChange={(e) => (dueDateValue = e.value)}>
+								<DatePicker.Label class="block text-sm font-medium text-surface-700 dark:text-surface-300">
+									Due Date
+								</DatePicker.Label>
+								<DatePicker.Control class="relative">
+									<DatePicker.Input
+										placeholder="Pick a date"
+										class="block h-12 w-full rounded-xl border border-surface-300 bg-surface-50 px-4 pr-12 text-surface-900 transition-all focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10 focus:outline-none sm:text-sm"
+									/>
+									<DatePicker.Trigger class="absolute inset-y-0 right-3 flex items-center text-surface-400 hover:text-surface-600 transition-colors" />
+								</DatePicker.Control>
+								<DatePicker.Positioner>
+									<DatePicker.Content>
+											<DatePicker.View view="day">
+												<DatePicker.Context>
+													{#snippet children(ctx)}
+														<DatePicker.ViewControl>
+															<DatePicker.PrevTrigger />
+															<DatePicker.ViewTrigger>
+																<DatePicker.RangeText />
+															</DatePicker.ViewTrigger>
+															<DatePicker.NextTrigger />
+														</DatePicker.ViewControl>
+														<DatePicker.Table>
+															<DatePicker.TableHead>
+																<DatePicker.TableRow>
+																	{#each ctx().weekDays as weekDay, id (id)}
+																		<DatePicker.TableHeader>{weekDay.short}</DatePicker.TableHeader>
+																	{/each}
+																</DatePicker.TableRow>
+															</DatePicker.TableHead>
+															<DatePicker.TableBody>
+																{#each ctx().weeks as week, id (id)}
+																	<DatePicker.TableRow>
+																		{#each week as day, id (id)}
+																			<DatePicker.TableCell value={day}>
+																				<DatePicker.TableCellTrigger>{day.day}</DatePicker.TableCellTrigger>
+																			</DatePicker.TableCell>
+																		{/each}
+																	</DatePicker.TableRow>
+																{/each}
+															</DatePicker.TableBody>
+														</DatePicker.Table>
+													{/snippet}
+												</DatePicker.Context>
+											</DatePicker.View>
+											<DatePicker.View view="month">
+												<DatePicker.Context>
+													{#snippet children(ctx)}
+														<DatePicker.ViewControl>
+															<DatePicker.PrevTrigger />
+															<DatePicker.ViewTrigger>
+																<DatePicker.RangeText />
+															</DatePicker.ViewTrigger>
+															<DatePicker.NextTrigger />
+														</DatePicker.ViewControl>
+														<DatePicker.Table>
+															<DatePicker.TableBody>
+																{#each ctx().getMonthsGrid({ columns: 4, format: 'short' }) as months, id (id)}
+																	<DatePicker.TableRow>
+																		{#each months as month, id (id)}
+																			<DatePicker.TableCell value={month.value}>
+																				<DatePicker.TableCellTrigger>{month.label}</DatePicker.TableCellTrigger>
+																			</DatePicker.TableCell>
+																		{/each}
+																	</DatePicker.TableRow>
+																{/each}
+															</DatePicker.TableBody>
+														</DatePicker.Table>
+													{/snippet}
+												</DatePicker.Context>
+											</DatePicker.View>
+											<DatePicker.View view="year">
+												<DatePicker.Context>
+													{#snippet children(ctx)}
+														<DatePicker.ViewControl>
+															<DatePicker.PrevTrigger />
+															<DatePicker.ViewTrigger>
+																<DatePicker.RangeText />
+															</DatePicker.ViewTrigger>
+															<DatePicker.NextTrigger />
+														</DatePicker.ViewControl>
+														<DatePicker.Table>
+															<DatePicker.TableBody>
+																{#each ctx().getYearsGrid({ columns: 4 }) as years, id (id)}
+																	<DatePicker.TableRow>
+																		{#each years as year, id (id)}
+																			<DatePicker.TableCell value={year.value}>
+																				<DatePicker.TableCellTrigger>{year.label}</DatePicker.TableCellTrigger>
+																			</DatePicker.TableCell>
+																		{/each}
+																	</DatePicker.TableRow>
+																{/each}
+															</DatePicker.TableBody>
+														</DatePicker.Table>
+													{/snippet}
+												</DatePicker.Context>
+											</DatePicker.View>
+									</DatePicker.Content>
+								</DatePicker.Positioner>
+							</DatePicker>
 						</div>
 
-						<!-- Estimated Hours -->
-						<div class="space-y-1">
-							<label for="estimated-hours" class="block text-sm font-medium text-surface-700 dark:text-surface-300">
-								Estimativa (horas)
-							</label>
-							<div class="relative">
-								<div class="absolute inset-y-0 left-4 flex items-center text-surface-400 pointer-events-none">
-									<Clock size={18} />
-								</div>
-								<input
-									id="estimated-hours"
-									type="number"
-									min="0"
-									step="0.5"
-									bind:value={estimatedHours}
-									placeholder="0.0"
-									class="block h-12 w-full rounded-xl border border-surface-300 bg-surface-50 pl-11 pr-4 text-surface-900 transition-all focus:border-[#820AD1] focus:ring-2 focus:ring-[#820AD1]/10 focus:outline-none sm:text-sm"
+					<!-- Estimated Hours -->
+					<div class="space-y-1">
+						<label for="estimated-hours" class="block text-sm font-medium text-surface-700 dark:text-surface-300">
+							Estimativa (horas)
+						</label>
+						<div class="relative">
+							<div class="absolute inset-y-0 left-4 flex items-center text-surface-400 pointer-events-none">
+								<Clock size={18} />
+							</div>
+							<input
+								id="estimated-hours"
+								type="number"
+								min="0"
+								step="0.5"
+								bind:value={estimatedHours}
+								placeholder="0.0"
+								class="block h-12 w-full rounded-xl border border-surface-300 bg-surface-50 pl-11 pr-4 text-surface-900 transition-all focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10 focus:outline-none sm:text-sm"
 								/>
 							</div>
 						</div>
@@ -162,10 +251,10 @@
 						</Dialog.CloseTrigger>
 						<button
 							type="submit"
-							disabled={createTaskMutation.isPending}
-							class="bg-[#820AD1] hover:bg-[#6a08aa] text-white px-8 py-2.5 rounded-xl font-bold shadow-lg shadow-[#820AD1]/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+							disabled={createTask.isPending}
+							class="bg-primary-500 hover:bg-primary-700 text-white px-8 py-2.5 rounded-xl font-bold shadow-lg shadow-primary-500/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
 						>
-							{#if createTaskMutation.isPending}
+							{#if createTask.isPending}
 								<LoaderCircle size={18} class="animate-spin" />
 								Creating...
 							{:else}

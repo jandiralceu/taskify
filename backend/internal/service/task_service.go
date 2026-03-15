@@ -20,7 +20,7 @@ type TaskService interface {
 	Update(ctx context.Context, taskID uuid.UUID, req dto.UpdateTaskRequest) (*models.Task, error)
 	Delete(ctx context.Context, taskID uuid.UUID) error
 	GetByID(ctx context.Context, taskID uuid.UUID) (*models.Task, error)
-	GetAll(ctx context.Context, req dto.GetTaskListRequest) (*dto.PaginatedResponse[models.Task], error)
+	GetAll(ctx context.Context, req dto.GetTaskListRequest) ([]models.Task, error)
 
 	// Notes
 	AddNote(ctx context.Context, taskID, userID uuid.UUID, req dto.CreateTaskNoteRequest) (*models.TaskNote, error)
@@ -114,29 +114,20 @@ func (s *taskService) GetByID(ctx context.Context, taskID uuid.UUID) (*models.Ta
 	return s.taskRepo.FindByID(ctx, taskID)
 }
 
-func (s *taskService) GetAll(ctx context.Context, req dto.GetTaskListRequest) (*dto.PaginatedResponse[models.Task], error) {
+func (s *taskService) GetAll(ctx context.Context, req dto.GetTaskListRequest) ([]models.Task, error) {
 	filter := repository.TaskListFilter{
 		Status:     req.Status,
 		Priority:   req.Priority,
 		CreatedBy:  req.CreatedBy,
 		AssignedTo: req.AssignedTo,
 		Search:     req.Search,
-		Pagination: repository.PaginationParams{
-			Page:  req.GetPage(),
-			Limit: req.GetLimit(),
-			Sort:  req.GetSort("created_at", "title", "due_date", "priority", "status", "is_blocked"),
-			Order: req.GetOrder(),
-		},
 		IsBlocked:  req.IsBlocked,
 		IsArchived: req.IsArchived,
+		Sort:       req.Sort,
+		Order:      req.Order,
 	}
 
-	tasks, total, err := s.taskRepo.FindAll(ctx, filter)
-	if err != nil {
-		return nil, err
-	}
-
-	return dto.NewPaginatedResponse(tasks, total, filter.Pagination.Page, filter.Pagination.Limit), nil
+	return s.taskRepo.FindAll(ctx, filter)
 }
 
 func (s *taskService) AddNote(ctx context.Context, taskID, userID uuid.UUID, req dto.CreateTaskNoteRequest) (*models.TaskNote, error) {

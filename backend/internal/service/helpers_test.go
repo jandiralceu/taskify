@@ -152,9 +152,9 @@ func (m *MockTaskRepository) FindByID(ctx context.Context, taskID uuid.UUID) (*m
 	return args.Get(0).(*models.Task), args.Error(1)
 }
 
-func (m *MockTaskRepository) FindAll(ctx context.Context, filter repository.TaskListFilter) ([]models.Task, int64, error) {
+func (m *MockTaskRepository) FindAll(ctx context.Context, filter repository.TaskListFilter) ([]models.Task, error) {
 	args := m.Called(ctx, filter)
-	return args.Get(0).([]models.Task), args.Get(1).(int64), args.Error(2)
+	return args.Get(0).([]models.Task), args.Error(1)
 }
 
 func (m *MockTaskRepository) CreateNote(ctx context.Context, params repository.CreateNoteParams) (*models.TaskNote, error) {

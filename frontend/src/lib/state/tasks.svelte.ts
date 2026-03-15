@@ -4,7 +4,7 @@ import type { CreateTaskRequest, UpdateTaskRequest, TaskResponse } from '$lib/ap
 
 export const TASKS_QUERY_KEY = ['tasks'];
 
-export function createTasksQuery(params: GetTasksParams = {}) {
+export function getTasksQuery(params: GetTasksParams = {}) {
 	return createQuery(() => ({
 		queryKey: [...TASKS_QUERY_KEY, params],
 		queryFn: () => tasksService.getTasks(params)
@@ -20,10 +20,10 @@ export function createTasksQuery(params: GetTasksParams = {}) {
  * without requiring a manual refresh.
  *
  * @example
- * const updateTask = createUpdateTaskMutation();
+ * const updateTask = updateTaskMutation();
  * await updateTask.mutateAsync({ id: task.id, data: { status: 'in_progress' } });
  */
-export function createUpdateTaskMutation() {
+export function updateTaskMutation() {
 	const queryClient = useQueryClient();
 
 	return createMutation<TaskResponse, Error, { id: string; data: UpdateTaskRequest }>(() => ({
@@ -34,9 +34,9 @@ export function createUpdateTaskMutation() {
 	}));
 }
 
-export function createCreateTaskMutation() {
+export function createTaskMutation() {
 	const queryClient = useQueryClient();
-	
+
 	return createMutation<TaskResponse, Error, CreateTaskRequest>(() => ({
 		mutationFn: (data) => tasksService.createTask(data),
 		onSuccess: () => {

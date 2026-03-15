@@ -127,13 +127,13 @@ func TestTaskServiceGetAll(t *testing.T) {
 
 	tasks := []models.Task{{Title: "Task 1"}}
 	mockRepo.On("FindAll", ctx, mock.AnythingOfType("repository.TaskListFilter")).
-		Return(tasks, int64(1), nil).Once()
+		Return(tasks, nil).Once()
 
 	res, err := svc.GetAll(ctx, req)
 
 	assert.NoError(t, err)
-	assert.NotNil(t, res)
-	assert.Equal(t, int64(1), res.Total)
+	assert.Len(t, res, 1)
+	assert.Equal(t, "Task 1", res[0].Title)
 	mockRepo.AssertExpectations(t)
 }
 

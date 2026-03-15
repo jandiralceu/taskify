@@ -137,19 +137,19 @@ func (h *TaskHandler) DeleteTask(c *gin.Context) {
 
 // ListTasks godoc
 // @Summary      List tasks
-// @Description  Get a paginated list of tasks with optional filtering.
+// @Description  Get all tasks with optional filtering.
 // @Tags         tasks
 // @Accept       json
 // @Produce      json
-// @Param        status      query string false "Filter by status"
-// @Param        priority    query string false "Filter by priority"
-// @Param        is_blocked  query boolean false "Filter by blocked status"
-// @Param        is_archived query boolean false "Filter by archived status"
-// @Param        search      query string false "Search in title/description"
-// @Param        assigned_to query string false "Filter by assigned user ID"
-// @Param        page        query int    false "Page number"
-// @Param        limit       query int    false "Items per page"
-// @Success      200 {object} dto.PaginatedResponse[models.Task]
+// @Param        status      query string  false "Filter by status"
+// @Param        priority    query string  false "Filter by priority"
+// @Param        isBlocked   query boolean false "Filter by blocked status"
+// @Param        isArchived  query boolean false "Filter by archived status"
+// @Param        search      query string  false "Search in title/description"
+// @Param        assignedTo  query string  false "Filter by assigned user ID"
+// @Param        sort        query string  false "Sort field (e.g. createdAt, title)"
+// @Param        order       query string  false "Sort order: asc or desc"
+// @Success      200 {array} models.Task
 // @Security     Bearer
 // @Router       /tasks [get]
 func (h *TaskHandler) ListTasks(c *gin.Context) {

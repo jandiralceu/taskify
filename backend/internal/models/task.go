@@ -30,16 +30,16 @@ type Task struct {
 	Description    string       `gorm:"type:text" json:"description"`
 	Status         TaskStatus   `gorm:"type:task_status;not null;default:'pending'" json:"status"`
 	Priority       TaskPriority `gorm:"type:task_priority;not null;default:'medium'" json:"priority"`
-	IsBlocked      bool         `gorm:"not null;default:false" json:"is_blocked"`
-	CreatedBy      uuid.UUID    `gorm:"type:uuid;not null" json:"created_by"`
-	AssignedTo     *uuid.UUID   `gorm:"type:uuid" json:"assigned_to"`
-	DueDate        *time.Time   `gorm:"type:timestamptz" json:"due_date"`
-	CompletedAt    *time.Time   `gorm:"type:timestamptz" json:"completed_at"`
-	EstimatedHours *float64     `gorm:"type:decimal(5,2)" json:"estimated_hours"`
-	ActualHours    *float64     `gorm:"type:decimal(5,2)" json:"actual_hours"`
-	IsArchived     bool         `gorm:"not null;default:false" json:"is_archived"`
-	CreatedAt      time.Time    `gorm:"type:timestamptz;not null;default:now()" json:"created_at"`
-	UpdatedAt      time.Time    `gorm:"type:timestamptz;not null;default:now()" json:"updated_at"`
+	IsBlocked      bool         `gorm:"not null;default:false" json:"isBlocked"`
+	CreatedBy      uuid.UUID    `gorm:"type:uuid;not null" json:"createdBy"`
+	AssignedTo     *uuid.UUID   `gorm:"type:uuid" json:"assignedTo"`
+	DueDate        *time.Time   `gorm:"type:timestamptz" json:"dueDate"`
+	CompletedAt    *time.Time   `gorm:"type:timestamptz" json:"completedAt"`
+	EstimatedHours *float64     `gorm:"type:decimal(5,2)" json:"estimatedHours"`
+	ActualHours    *float64     `gorm:"type:decimal(5,2)" json:"actualHours"`
+	IsArchived     bool         `gorm:"not null;default:false" json:"isArchived"`
+	CreatedAt      time.Time    `gorm:"type:timestamptz;not null;default:now()" json:"createdAt"`
+	UpdatedAt      time.Time    `gorm:"type:timestamptz;not null;default:now()" json:"updatedAt"`
 
 	// Associations
 	Creator     User             `gorm:"foreignKey:CreatedBy" json:"-"`
@@ -50,11 +50,11 @@ type Task struct {
 
 type TaskNote struct {
 	ID        uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
-	TaskID    uuid.UUID `gorm:"type:uuid;not null" json:"task_id"`
-	UserID    uuid.UUID `gorm:"type:uuid;not null" json:"user_id"`
+	TaskID    uuid.UUID `gorm:"type:uuid;not null" json:"taskId"`
+	UserID    uuid.UUID `gorm:"type:uuid;not null" json:"userId"`
 	Content   string    `gorm:"type:text;not null" json:"content"`
-	CreatedAt time.Time `gorm:"type:timestamptz;not null;default:now()" json:"created_at"`
-	UpdatedAt time.Time `gorm:"type:timestamptz;not null;default:now()" json:"updated_at"`
+	CreatedAt time.Time `gorm:"type:timestamptz;not null;default:now()" json:"createdAt"`
+	UpdatedAt time.Time `gorm:"type:timestamptz;not null;default:now()" json:"updatedAt"`
 
 	// Associations
 	User User `gorm:"foreignKey:UserID" json:"-"`
@@ -62,14 +62,14 @@ type TaskNote struct {
 
 type TaskAttachment struct {
 	ID        uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
-	TaskID    uuid.UUID `gorm:"type:uuid;not null" json:"task_id"`
-	UserID    uuid.UUID `gorm:"type:uuid;not null" json:"user_id"`
-	FileName  string    `gorm:"type:varchar(255);not null" json:"file_name"`
-	FileSize  int64     `gorm:"type:bigint;not null" json:"file_size"`
-	MimeType  string    `gorm:"type:varchar(100);not null" json:"mime_type"`
-	FilePath  string    `gorm:"type:text;not null" json:"file_path"`
-	CreatedAt time.Time `gorm:"type:timestamptz;not null;default:now()" json:"created_at"`
-	UpdatedAt time.Time `gorm:"type:timestamptz;not null;default:now()" json:"updated_at"`
+	TaskID    uuid.UUID `gorm:"type:uuid;not null" json:"taskId"`
+	UserID    uuid.UUID `gorm:"type:uuid;not null" json:"userId"`
+	FileName  string    `gorm:"type:varchar(255);not null" json:"fileName"`
+	FileSize  int64     `gorm:"type:bigint;not null" json:"fileSize"`
+	MimeType  string    `gorm:"type:varchar(100);not null" json:"mimeType"`
+	FilePath  string    `gorm:"type:text;not null" json:"filePath"`
+	CreatedAt time.Time `gorm:"type:timestamptz;not null;default:now()" json:"createdAt"`
+	UpdatedAt time.Time `gorm:"type:timestamptz;not null;default:now()" json:"updatedAt"`
 
 	// Associations
 	User User `gorm:"foreignKey:UserID" json:"-"`

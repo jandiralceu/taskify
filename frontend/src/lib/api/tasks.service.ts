@@ -3,29 +3,28 @@ import type {
 	CreateTaskRequest,
 	TaskResponse,
 	UpdateTaskRequest,
-	PaginatedResponse,
 	TaskStatus,
 	TaskPriority
 } from './types';
 
 export interface GetTasksParams {
-	page?: number;
-	pageSize?: number;
 	status?: TaskStatus;
 	priority?: TaskPriority;
 	search?: string;
+	sort?: string;
+	order?: 'asc' | 'desc';
 }
 
 class TasksService {
 	async getTasks(params: GetTasksParams = {}) {
 		const searchParams = new URLSearchParams();
-		if (params.page) searchParams.set('page', params.page.toString());
-		if (params.pageSize) searchParams.set('page_size', params.pageSize.toString());
 		if (params.status) searchParams.set('status', params.status);
 		if (params.priority) searchParams.set('priority', params.priority);
 		if (params.search) searchParams.set('search', params.search);
+		if (params.sort) searchParams.set('sort', params.sort);
+		if (params.order) searchParams.set('order', params.order);
 
-		return api.get('tasks', { searchParams }).json<PaginatedResponse<TaskResponse>>();
+		return api.get('tasks', { searchParams }).json<TaskResponse[]>();
 	}
 
 	async createTask(data: CreateTaskRequest) {

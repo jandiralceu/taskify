@@ -207,8 +207,8 @@ func TestRegister_Success(t *testing.T) {
 	router.POST("/auth/register", handler.Register)
 
 	body := map[string]any{
-		"first_name": "John",
-		"last_name":  "Doe",
+		"firstName": "John",
+		"lastName":  "Doe",
 		"email":      "john@example.com",
 		"password":   "password123",
 		"role":       "admin",
@@ -228,8 +228,8 @@ func TestRegister_BadRequest_MissingFields(t *testing.T) {
 
 	// Missing "password" and "roleId"
 	body := map[string]any{
-		"first_name": "John",
-		"last_name":  "Doe",
+		"firstName": "John",
+		"lastName":  "Doe",
 		"email":      "john@example.com",
 	}
 
@@ -246,8 +246,8 @@ func TestRegister_BadRequest_InvalidEmail(t *testing.T) {
 	router.POST("/auth/register", handler.Register)
 
 	body := map[string]any{
-		"first_name": "John",
-		"last_name":  "Doe",
+		"firstName": "John",
+		"lastName":  "Doe",
 		"email":      "not-an-email",
 		"password":   "password123",
 		"role":       "admin",
@@ -266,8 +266,8 @@ func TestRegister_BadRequest_PasswordTooShort(t *testing.T) {
 	router.POST("/auth/register", handler.Register)
 
 	body := map[string]any{
-		"first_name": "John",
-		"last_name":  "Doe",
+		"firstName": "John",
+		"lastName":  "Doe",
 		"email":      "john@example.com",
 		"password":   "short",
 		"role":       "admin",
@@ -289,8 +289,8 @@ func TestRegister_Conflict_EmailExists(t *testing.T) {
 	router.POST("/auth/register", handler.Register)
 
 	body := map[string]any{
-		"first_name": "John",
-		"last_name":  "Doe",
+		"firstName": "John",
+		"lastName":  "Doe",
 		"email":      "john@example.com",
 		"password":   "password123",
 		"role":       "admin",
@@ -319,8 +319,8 @@ func TestRegister_InternalServerError(t *testing.T) {
 	router.POST("/auth/register", handler.Register)
 
 	body := map[string]any{
-		"first_name": "John",
-		"last_name":  "Doe",
+		"firstName": "John",
+		"lastName":  "Doe",
 		"email":      "john@example.com",
 		"password":   "password123",
 		"role":       "admin",

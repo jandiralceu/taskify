@@ -54,7 +54,7 @@
 
 <div class="h-screen w-full bg-[#F7F3F9] flex overflow-hidden font-sans text-surface-900">
 	<!-- Left Sidebar (Nubank Purple) -->
-	<aside class="w-[75px] bg-[#820AD1] flex flex-col items-center py-6 z-30 shrink-0 shadow-2xl">
+	<aside class="w-[75px] bg-primary-500 flex flex-col items-center py-6 z-30 shrink-0 shadow-2xl">
 		<a href={resolve('/')} class="mb-10 block hover:scale-110 transition-transform">
 			<img src={logoWhite} alt="Taskify" class="w-8 h-auto" />
 		</a>
@@ -63,7 +63,7 @@
 			{#each navItems as item (item.href)}
 				<a 
 					href={resolve(item.href)}
-					class="p-2.5 rounded-xl transition-all duration-300 {activeRoute === resolve(item.href) ? 'text-[#820AD1] bg-white shadow-lg' : 'text-white/40 hover:text-white/70'}"
+					class="p-2.5 rounded-xl transition-all duration-300 {activeRoute === resolve(item.href) ? 'text-primary-500 bg-white shadow-lg' : 'text-white/40 hover:text-white/70'}"
 					title={item.label}
 				>
 					<item.icon size={22} strokeWidth={2.5} />
@@ -75,7 +75,7 @@
 			<!-- Profile Avatar -->
 			<a 
 				href={resolve('/profile')}
-				class="w-10 h-10 rounded-xl overflow-hidden border-2 transition-all duration-300 flex items-center justify-center text-xs font-bold {activeRoute === resolve('/profile') ? 'border-white shadow-lg scale-110 bg-white text-[#820AD1]' : 'border-transparent bg-white/10 text-white hover:bg-white/20 hover:border-white/20'}"
+				class="w-10 h-10 rounded-xl overflow-hidden border-2 transition-all duration-300 flex items-center justify-center text-xs font-bold {activeRoute === resolve('/profile') ? 'border-white shadow-lg scale-110 bg-white text-primary-500' : 'border-transparent bg-white/10 text-white hover:bg-white/20 hover:border-white/20'}"
 				title={profileQuery.data ? `${profileQuery.data.firstName} ${profileQuery.data.lastName}` : 'Meu Perfil'}
 			>
 				{#if profileQuery.data?.avatarUrl}

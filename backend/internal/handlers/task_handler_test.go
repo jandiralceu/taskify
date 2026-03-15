@@ -53,12 +53,12 @@ func (m *MockTaskService) GetByID(ctx context.Context, taskID uuid.UUID) (*model
 	return args.Get(0).(*models.Task), args.Error(1)
 }
 
-func (m *MockTaskService) GetAll(ctx context.Context, req dto.GetTaskListRequest) (*dto.PaginatedResponse[models.Task], error) {
+func (m *MockTaskService) GetAll(ctx context.Context, req dto.GetTaskListRequest) ([]models.Task, error) {
 	args := m.Called(ctx, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*dto.PaginatedResponse[models.Task]), args.Error(1)
+	return args.Get(0).([]models.Task), args.Error(1)
 }
 
 func (m *MockTaskService) AddNote(ctx context.Context, taskID, userID uuid.UUID, req dto.CreateTaskNoteRequest) (*models.TaskNote, error) {
@@ -253,10 +253,7 @@ func TestListTasks_Success(t *testing.T) {
 	mockService := new(MockTaskService)
 	handler := NewTaskHandler(mockService)
 
-	res := &dto.PaginatedResponse[models.Task]{
-		Data:  []models.Task{{ID: uuid.New(), Title: "Task 1"}},
-		Total: 1,
-	}
+	res := []models.Task{{ID: uuid.New(), Title: "Task 1"}}
 
 	mockService.On("GetAll", mock.Anything, mock.AnythingOfType("dto.GetTaskListRequest")).Return(res, nil)
 
