@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { X, Calendar, Flag, Clock, Loader2 } from '@lucide/svelte';
+	import { X, Calendar, Flag, Clock, LoaderCircle } from '@lucide/svelte';
 	import { Dialog, Portal } from '@skeletonlabs/skeleton-svelte';
 	import { createCreateTaskMutation } from '$lib/state/tasks.svelte';
 	import Input from './Input.svelte';
@@ -166,7 +166,7 @@
 							class="bg-[#820AD1] hover:bg-[#6a08aa] text-white px-8 py-2.5 rounded-xl font-bold shadow-lg shadow-[#820AD1]/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
 						>
 							{#if createTaskMutation.isPending}
-								<Loader2 size={18} class="animate-spin" />
+								<LoaderCircle size={18} class="animate-spin" />
 								Creating...
 							{:else}
 								Create Task

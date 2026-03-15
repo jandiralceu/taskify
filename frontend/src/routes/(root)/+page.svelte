@@ -1,13 +1,15 @@
 <script lang="ts">
-	import { Plus, Ellipsis, MessageSquare, SquareCheck, Loader2 } from '@lucide/svelte';
+	import { Plus, Ellipsis, SquareCheck, LoaderCircle } from '@lucide/svelte';
 	import { createProfileQuery } from '$lib/state/user.svelte';
-	import { createTasksQuery } from '$lib/state/tasks.svelte';
+	import { createTasksQuery, createUpdateTaskMutation } from '$lib/state/tasks.svelte';
 	import AddTaskModal from '$lib/components/AddTaskModal.svelte';
+	import type { TaskStatus } from '$lib/api/types';
 
 	const profileQuery = createProfileQuery();
-	const tasksQuery = createTasksQuery({ pageSize: 100 }); // Fetch all for board view
+	const tasksQuery = createTasksQuery({ pageSize: 100 });
+	const updateTaskMutation = createUpdateTaskMutation();
 
-	const columns = [
+	const columns: { id: TaskStatus; title: string }[] = [
 		{ id: 'pending', title: 'Pending' },
 		{ id: 'in_progress', title: 'In Progress' },
 		{ id: 'completed', title: 'Completed' },
@@ -15,6 +17,19 @@
 	];
 
 	let isModalOpen = $state(false);
+
+	/**
+	 * Drag-and-drop state.
+	 *
+	 * - draggingTaskId: the id of the task card currently being dragged.
+	 *   Used to apply a visual "ghost" style (reduced opacity + scale) to
+	 *   the source card while it is in flight.
+	 *
+	 * - dragOverColumn: the id of the column currently under the dragged card.
+	 *   Used to highlight the target drop zone with a purple tint and ring.
+	 */
+	let draggingTaskId = $state<string | null>(null);
+	let dragOverColumn = $state<string | null>(null);
 
 	let formattedDate = $derived.by(() => {
 		return new Intl.DateTimeFormat('en-GB', {
@@ -26,6 +41,83 @@
 
 	function handleAddTask() {
 		isModalOpen = true;
+	}
+
+	// ---------------------------------------------------------------------------
+	// Drag-and-drop handlers
+	//
+	// Flow overview:
+	//   1. User starts dragging a card  → onDragStart
+	//   2. Card enters a column         → onDragOver  (fires repeatedly)
+	//   3. Card leaves a column         → onDragLeave
+	//   4. User releases the card       → onDrop  (or onDragEnd on cancel)
+	//
+	// The task id is passed through the native DataTransfer API so it survives
+	// across all drag events without relying on closure state.
+	// ---------------------------------------------------------------------------
+
+	/**
+	 * Fired when the user begins dragging a task card.
+	 * Stores the task id in both reactive state (for visual feedback) and in
+	 * the DataTransfer object (for retrieval on drop).
+	 */
+	function onDragStart(e: DragEvent, taskId: string) {
+		draggingTaskId = taskId;
+		e.dataTransfer!.effectAllowed = 'move';
+		e.dataTransfer!.setData('text/plain', taskId);
+	}
+
+	/**
+	 * Fired when the drag operation ends, regardless of whether a drop occurred.
+	 * Resets all drag-related visual state to ensure no column stays highlighted.
+	 */
+	function onDragEnd() {
+		draggingTaskId = null;
+		dragOverColumn = null;
+	}
+
+	/**
+	 * Fired continuously while a dragged card hovers over a column.
+	 * preventDefault() is required to allow the drop event to fire.
+	 */
+	function onDragOver(e: DragEvent, columnId: string) {
+		e.preventDefault();
+		e.dataTransfer!.dropEffect = 'move';
+		dragOverColumn = columnId;
+	}
+
+	/**
+	 * Fired when the dragged card leaves a column's bounding box.
+	 * The relatedTarget check prevents false positives caused by the cursor
+	 * briefly leaving and re-entering child elements (cards, buttons, etc.)
+	 * inside the same column.
+	 */
+	function onDragLeave(e: DragEvent, columnId: string) {
+		const related = e.relatedTarget as Node | null;
+		const target = e.currentTarget as HTMLElement;
+		if (!target.contains(related)) {
+			if (dragOverColumn === columnId) dragOverColumn = null;
+		}
+	}
+
+	/**
+	 * Fired when the user drops a card onto a column.
+	 * Reads the task id from DataTransfer, guards against no-op moves
+	 * (dropping onto the same column), then calls the update mutation to
+	 * persist the new status on the backend. TanStack Query's cache
+	 * invalidation in the mutation's onSuccess triggers an automatic re-fetch,
+	 * moving the card to the correct column in the UI.
+	 */
+	async function onDrop(e: DragEvent, targetStatus: TaskStatus) {
+		e.preventDefault();
+		const taskId = e.dataTransfer!.getData('text/plain');
+		dragOverColumn = null;
+		draggingTaskId = null;
+
+		const task = tasksQuery.data?.data.find(t => t.id === taskId);
+		if (!task || task.status === targetStatus) return;
+
+		await updateTaskMutation.mutateAsync({ id: taskId, data: { status: targetStatus } });
 	}
 </script>
 
@@ -71,11 +163,17 @@
 						</button>
 					</div>
 
-					<!-- Cards Area -->
-					<div class="flex-1 overflow-y-auto pr-2 space-y-4 custom-scrollbar">
+					<!-- Cards Area (drop zone) -->
+					<div
+						class="flex-1 overflow-y-auto pr-2 space-y-4 custom-scrollbar rounded-xl transition-colors {dragOverColumn === column.id ? 'bg-[#820AD1]/5 ring-2 ring-[#820AD1]/20' : ''}"
+						ondragover={(e) => onDragOver(e, column.id)}
+						ondragleave={(e) => onDragLeave(e, column.id)}
+						ondrop={(e) => onDrop(e, column.id)}
+						role="list"
+					>
 						{#if tasksQuery.isPending}
 							<div class="flex flex-col items-center justify-center py-12 text-surface-400">
-								<Loader2 size={24} class="animate-spin mb-2" />
+								<LoaderCircle size={24} class="animate-spin mb-2" />
 								<span class="text-xs font-medium">Loading tasks...</span>
 							</div>
 						{:else if tasksQuery.isError}
@@ -84,7 +182,13 @@
 							</div>
 						{:else if tasksQuery.data?.data}
 							{#each tasksQuery.data.data.filter(t => t.status === column.id) as task (task.id)}
-								<div class="bg-white rounded-xl p-5 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] hover:shadow-lg transition-all cursor-pointer group border border-surface-50/50">
+								<div
+									role="listitem"
+									draggable="true"
+									ondragstart={(e) => onDragStart(e, task.id)}
+									ondragend={onDragEnd}
+									class="bg-white rounded-xl p-5 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] hover:shadow-lg transition-all cursor-grab active:cursor-grabbing group border border-surface-50/50 {draggingTaskId === task.id ? 'opacity-40 scale-95' : ''}"
+								>
 									<div class="flex justify-between items-start mb-3">
 										<h4 class="text-[15px] font-bold text-surface-800 leading-snug">{task.title}</h4>
 									</div>
@@ -115,16 +219,16 @@
 							{/each}
 						{/if}
 
-					<!-- Plus Button only on Pending column -->
-					{#if column.id === 'pending'}
-						<button 
-							onclick={handleAddTask}
-							class="w-full py-3 rounded-xl border-2 border-dashed border-[#820AD1]/30 text-[#820AD1]/60 hover:text-[#820AD1] hover:border-[#820AD1] hover:bg-[#820AD1]/5 transition-all flex items-center justify-center gap-2 font-medium text-sm"
-						>
-							<Plus size={16} />
-							Add task
-						</button>
-					{/if}
+						<!-- Plus Button only on Pending column -->
+						{#if column.id === 'pending'}
+							<button
+								onclick={handleAddTask}
+								class="w-full py-3 rounded-xl border-2 border-dashed border-[#820AD1]/30 text-[#820AD1]/60 hover:text-[#820AD1] hover:border-[#820AD1] hover:bg-[#820AD1]/5 transition-all flex items-center justify-center gap-2 font-medium text-sm"
+							>
+								<Plus size={16} />
+								Add task
+							</button>
+						{/if}
 					</div>
 				</div>
 			{/each}
