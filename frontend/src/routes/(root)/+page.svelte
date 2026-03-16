@@ -6,6 +6,7 @@
 	import { getTasksQuery, updateTaskMutation, deleteTaskMutation } from '$lib/state/tasks.svelte';
 	import AddTaskModal from '$lib/components/AddTaskModal.svelte';
 	import UserDetailDrawer from '$lib/components/UserDetailDrawer.svelte';
+	import { toaster } from '$lib/state/toast.svelte';
 	import type { TaskResponse, TaskStatus, TaskPriority, UserRole } from '$lib/api/types';
 
 	const ADMIN: UserRole = 'admin';
@@ -164,8 +165,19 @@
 		await updateTask.mutateAsync({ id: taskId, data: { status: targetStatus } });
 	}
 
-	async function handleDeleteTask(taskId: string) {
-		await deleteTask.mutateAsync(taskId);
+	async function handleDeleteTask(taskId: string, title?: string) {
+		try {
+			await deleteTask.mutateAsync(taskId);
+			toaster.success({
+				title: 'Task Deleted',
+				description: title ? `"${title}" has been deleted.` : 'Task has been deleted.'
+			});
+		} catch {
+			toaster.error({
+				title: 'Delete Failed',
+				description: 'Could not delete the task. Please try again.'
+			});
+		}
 	}
 
 	async function handleToggleBlock(taskId: string, blocked: boolean) {

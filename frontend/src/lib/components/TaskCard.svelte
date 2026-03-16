@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Ellipsis, Pencil, ShieldBan, ShieldCheck, Trash2, Flag, MessageCircle, Paperclip } from '@lucide/svelte';
-	import { Popover, Portal } from '@skeletonlabs/skeleton-svelte';
+	import { Ellipsis, Pencil, ShieldBan, ShieldCheck, Trash2, Flag, MessageCircle, Paperclip, TriangleAlert } from '@lucide/svelte';
+	import { Popover, Portal, Dialog } from '@skeletonlabs/skeleton-svelte';
 	import type { TaskResponse } from '$lib/api/types';
 	import { priorityConfig } from '$lib/utils/task';
 
@@ -9,7 +9,7 @@
 		isDragging?: boolean;
 		onDragStart: (e: DragEvent) => void;
 		onDragEnd: () => void;
-		onDelete?: (taskId: string) => void;
+		onDelete?: (taskId: string, title: string) => void;
 		onToggleBlock?: (taskId: string, blocked: boolean) => void;
 		onViewDetails?: (task: TaskResponse) => void;
 		onViewUser?: (userId: string) => void;
@@ -17,6 +17,17 @@
 
 	let { task, isDragging = false, onDragStart, onDragEnd, onDelete, onToggleBlock, onViewDetails, onViewUser }: Props = $props();
 	let isMenuOpen = $state(false);
+	let isDeleteConfirmOpen = $state(false);
+
+	function openDeleteConfirm() {
+		isMenuOpen = false;
+		isDeleteConfirmOpen = true;
+	}
+
+	function confirmDelete() {
+		isDeleteConfirmOpen = false;
+		onDelete?.(task.id, task.title);
+	}
 
 	function formatDate(dateStr: string) {
 		return new Intl.DateTimeFormat('en-GB', {
@@ -98,17 +109,13 @@
 							{/if}
 						</button>
 						<hr class="my-1 border-surface-100" />
-						<button
-							onclick={(e) => {
-								e.stopPropagation();
-								onDelete?.(task.id);
-								isMenuOpen = false;
-							}}
-							class="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-						>
-							<Trash2 size={15} />
-							<span>Delete</span>
-						</button>
+					<button
+						onclick={(e) => { e.stopPropagation(); openDeleteConfirm(); }}
+						class="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+					>
+						<Trash2 size={15} />
+						<span>Delete</span>
+					</button>
 					</Popover.Content>
 				</Popover.Positioner>
 			</Portal>
@@ -168,3 +175,53 @@
 		</div>
 	</div>
 </div>
+
+<!-- Delete Confirmation Dialog -->
+<Dialog
+	role="alertdialog"
+	open={isDeleteConfirmOpen}
+	onOpenChange={(e) => { if (!e.open) isDeleteConfirmOpen = false; }}
+>
+	<Portal>
+		<Dialog.Backdrop class="fixed inset-0 z-50 bg-surface-950/40 backdrop-blur-sm" />
+		<Dialog.Positioner class="fixed inset-0 z-50 flex items-center justify-center p-4">
+			<Dialog.Content
+				onclick={(e) => e.stopPropagation()}
+				class="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-surface-100 p-6 space-y-4"
+			>
+				<div class="flex items-start gap-4">
+					<div class="shrink-0 size-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-500">
+						<TriangleAlert size={20} />
+					</div>
+					<div>
+						<Dialog.Title class="text-base font-bold text-surface-900">
+							Delete Task
+						</Dialog.Title>
+						<Dialog.Description class="text-sm text-surface-500 mt-1">
+							Are you sure you want to delete
+							<span class="font-semibold text-surface-700">"{task.title}"</span>?
+							This action cannot be undone.
+						</Dialog.Description>
+					</div>
+				</div>
+
+				<div class="flex items-center justify-end gap-3 pt-2">
+					<Dialog.CloseTrigger
+						type="button"
+						class="px-5 py-2.5 rounded-xl text-sm font-medium text-surface-500 hover:text-surface-900 hover:bg-surface-50 transition-all"
+					>
+						Cancel
+					</Dialog.CloseTrigger>
+					<button
+						type="button"
+						onclick={confirmDelete}
+						class="px-5 py-2.5 rounded-xl text-sm font-bold bg-rose-500 hover:bg-rose-600 text-white transition-all active:scale-95 flex items-center gap-2"
+					>
+						<Trash2 size={15} />
+						Delete
+					</button>
+				</div>
+			</Dialog.Content>
+		</Dialog.Positioner>
+	</Portal>
+</Dialog>
