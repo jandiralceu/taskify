@@ -165,6 +165,46 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
+// UpdateUserByID godoc
+// @Summary      Update a user by ID
+// @Description  Updates a user's profile information by their unique ID. Admin only.
+// @Tags         users
+// @Accept       json
+// @Produce      json
+// @Param        id      path   string                true  "User UUID"
+// @Param        request body   dto.UpdateUserRequest true  "User update data"
+// @Success      200 {object} models.User
+// @Failure      400  {object}  ProblemDetails
+// @Failure      401  {object}  ProblemDetails
+// @Failure      403  {object}  ProblemDetails
+// @Failure      404  {object}  ProblemDetails
+// @Failure      429  {object}  ProblemDetails
+// @Failure      500  {object}  ProblemDetails
+// @Security     Bearer
+// @Router       /users/{id} [patch]
+func (h *UserHandler) UpdateUserByID(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		RespondWithError(c, apperrors.ErrInvalidID)
+		return
+	}
+
+	var req dto.UpdateUserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		RespondWithError(c, ParseValidationError(err))
+		return
+	}
+
+	user, err := h.userService.Update(c.Request.Context(), id, req)
+	if err != nil {
+		RespondWithError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, user)
+}
+
 // UpdateUser godoc
 // @Summary      Update user profile
 // @Description  Updates the authenticated user's profile information (first name, last name, isActive).

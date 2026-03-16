@@ -105,6 +105,12 @@ export interface CreateTaskRequest {
 	estimatedHours?: number;
 }
 
+export interface UpdateUserRequest {
+	firstName?: string;
+	lastName?: string;
+	isActive?: boolean;
+}
+
 export interface UpdateTaskRequest {
 	title?: string;
 	description?: string;

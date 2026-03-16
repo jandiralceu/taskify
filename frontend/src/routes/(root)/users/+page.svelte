@@ -7,10 +7,17 @@
 		X,
 		ShieldCheck,
 		User,
-		FilterX
+		FilterX,
+		Pencil,
+		Trash2,
+		TriangleAlert
 	} from '@lucide/svelte';
-	import { getUsersQuery } from '$lib/state/user.svelte';
-	import type { UserRole } from '$lib/api/types';
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
+	import { Dialog, Portal } from '@skeletonlabs/skeleton-svelte';
+	import { getUsersQuery, deleteUserMutation } from '$lib/state/user.svelte';
+	import { toaster } from '$lib/state/toast.svelte';
+	import type { UserRole, UserResponse } from '$lib/api/types';
 
 	const PAGE_SIZE = 10;
 
@@ -88,6 +95,35 @@
 		if (current < total - 2) pages.push('...');
 		pages.push(total);
 		return pages;
+	}
+
+	// Delete confirmation
+	const deleteUser = deleteUserMutation();
+	let userToDelete = $state<UserResponse | null>(null);
+	let isConfirmOpen = $state(false);
+
+	function openDeleteConfirm(user: UserResponse) {
+		userToDelete = user;
+		isConfirmOpen = true;
+	}
+
+	async function confirmDelete() {
+		if (!userToDelete) return;
+		const name = `${userToDelete.firstName} ${userToDelete.lastName}`;
+		try {
+			await deleteUser.mutateAsync(userToDelete.id);
+			isConfirmOpen = false;
+			userToDelete = null;
+			toaster.success({
+				title: 'User Deleted',
+				description: `${name} has been removed from the system.`
+			});
+		} catch {
+			toaster.error({
+				title: 'Delete Failed',
+				description: `Could not delete ${name}. Please try again.`
+			});
+		}
 	}
 </script>
 
@@ -242,6 +278,9 @@
 										{/if}
 									</span>
 								</th>
+								<th class="px-6 py-3.5 text-xs font-semibold text-surface-500 uppercase tracking-wide text-right">
+									Actions
+								</th>
 							</tr>
 						</thead>
 						<tbody class="divide-y divide-surface-50">
@@ -310,6 +349,26 @@
 									<td class="px-6 py-4">
 										<span class="text-sm text-surface-500">{formatDate(user.createdAt)}</span>
 									</td>
+
+									<!-- Actions -->
+									<td class="px-6 py-4">
+										<div class="flex items-center justify-end gap-1">
+											<button
+												onclick={() => goto(resolve(`/users/${user.id}/edit`))}
+												class="p-2 rounded-lg text-surface-400 hover:text-primary-500 hover:bg-primary-50 transition-all"
+												title="Edit user"
+											>
+												<Pencil size={15} />
+											</button>
+										<button
+											onclick={() => openDeleteConfirm(user)}
+											class="p-2 rounded-lg text-surface-400 hover:text-rose-500 hover:bg-rose-50 transition-all"
+											title="Delete user"
+										>
+											<Trash2 size={15} />
+										</button>
+										</div>
+									</td>
 								</tr>
 							{/each}
 						</tbody>
@@ -366,3 +425,58 @@
 		{/if}
 	</div>
 </div>
+
+<!-- Delete Confirmation Dialog -->
+<Dialog
+	role="alertdialog"
+	open={isConfirmOpen}
+	onOpenChange={(e) => { if (!e.open) { isConfirmOpen = false; userToDelete = null; } }}
+>
+	<Portal>
+		<Dialog.Backdrop class="fixed inset-0 z-50 bg-surface-950/40 backdrop-blur-sm" />
+		<Dialog.Positioner class="fixed inset-0 z-50 flex items-center justify-center p-4">
+			<Dialog.Content class="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-surface-100 p-6 space-y-4">
+				<div class="flex items-start gap-4">
+					<div class="shrink-0 size-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-500">
+						<TriangleAlert size={20} />
+					</div>
+					<div>
+						<Dialog.Title class="text-base font-bold text-surface-900">
+							Delete User
+						</Dialog.Title>
+						<Dialog.Description class="text-sm text-surface-500 mt-1">
+							Are you sure you want to delete
+							<span class="font-semibold text-surface-700">
+								{userToDelete?.firstName} {userToDelete?.lastName}
+							</span>?
+							This action cannot be undone.
+						</Dialog.Description>
+					</div>
+				</div>
+
+				<div class="flex items-center justify-end gap-3 pt-2">
+					<Dialog.CloseTrigger
+						type="button"
+						class="px-5 py-2.5 rounded-xl text-sm font-medium text-surface-500 hover:text-surface-900 hover:bg-surface-50 transition-all"
+					>
+						Cancel
+					</Dialog.CloseTrigger>
+					<button
+						type="button"
+						onclick={confirmDelete}
+						disabled={deleteUser.isPending}
+						class="px-5 py-2.5 rounded-xl text-sm font-bold bg-rose-500 hover:bg-rose-600 text-white transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+					>
+						{#if deleteUser.isPending}
+							<LoaderCircle size={15} class="animate-spin" />
+							Deleting...
+						{:else}
+							<Trash2 size={15} />
+							Delete
+						{/if}
+					</button>
+				</div>
+			</Dialog.Content>
+		</Dialog.Positioner>
+	</Portal>
+</Dialog>

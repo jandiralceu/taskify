@@ -76,6 +76,7 @@ func Setup(routeConfig *RouteConfig, config *config.Config, jwtManager *pkg.JWTM
 				users.GET("/:id", routeConfig.UserHandler.FindUserByID)
 				users.PATCH("/profile", routeConfig.UserHandler.UpdateUser)
 				users.PATCH("/change-password", middleware.RateLimiter(cacheManager, "pass-change", config.RateLimitAuth), routeConfig.UserHandler.ChangePassword)
+				users.PATCH("/:id", routeConfig.UserHandler.UpdateUserByID)
 				users.POST("/avatar", routeConfig.UserHandler.UpdateAvatar)
 				users.DELETE("/:id", routeConfig.UserHandler.DeleteUser)
 			}

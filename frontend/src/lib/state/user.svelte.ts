@@ -1,7 +1,8 @@
-import { createQuery } from '@tanstack/svelte-query';
+import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
 import { userService } from '$lib/api/user.service';
 import { storage, AUTH_KEYS } from '$lib/utils/storage';
-import type { GetUsersParams } from '$lib/api/types';
+import { TASKS_QUERY_KEY } from '$lib/state/tasks.svelte';
+import type { GetUsersParams, UpdateUserRequest, UserResponse } from '$lib/api/types';
 
 export const PROFILE_QUERY_KEY = ['profile'] as const;
 export const PERMISSIONS_QUERY_KEY = ['permissions'] as const;
@@ -42,6 +43,30 @@ export function createUserQuery(userId: () => string | undefined) {
 }
 
 export const USERS_QUERY_KEY = ['users'] as const;
+
+export function updateUserMutation() {
+	const queryClient = useQueryClient();
+
+	return createMutation<UserResponse, Error, { id: string; data: UpdateUserRequest }>(() => ({
+		mutationFn: ({ id, data }) => userService.updateUser(id, data),
+		onSuccess: (updated) => {
+			queryClient.invalidateQueries({ queryKey: USERS_QUERY_KEY });
+			queryClient.invalidateQueries({ queryKey: ['user', updated.id] });
+		}
+	}));
+}
+
+export function deleteUserMutation() {
+	const queryClient = useQueryClient();
+
+	return createMutation<void, Error, string>(() => ({
+		mutationFn: (id) => userService.deleteUser(id),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: USERS_QUERY_KEY });
+			queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
+		}
+	}));
+}
 
 export function getUsersQuery(paramsGetter: () => GetUsersParams = () => ({})) {
 	return createQuery(() => {
