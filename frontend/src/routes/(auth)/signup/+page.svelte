@@ -6,6 +6,7 @@
 	import { resolve } from '$app/paths';
 	import Input from '$lib/components/Input.svelte';
 	import logo from '$lib/assets/logo.webp';
+	import { toaster } from '$lib/state/toast.svelte';
 	import { authService } from '$lib/api/auth.service';
 	import type { CreateUserRequest } from '$lib/api/types';
 
@@ -29,11 +30,29 @@
 	const signupMutation = createMutation(() => ({
 		mutationFn: (data: CreateUserRequest) => authService.signup(data),
 		onSuccess: () => {
-			console.log('Signup successful!');
-			// Example: goto('/signin');
+			toaster.success({
+				title: 'Account Created!',
+				description: 'Your account has been successfully created. You can now sign in.'
+			});
+			
+			// Clear fields
+			firstName = '';
+			lastName = '';
+			email = '';
+			password = '';
+			role = 'employee';
+			submitted = false;
 		},
 		onError: (error: Error) => {
 			console.error('Signup failed:', error);
+			const message =
+				(error as { response?: { data?: { message?: string } } }).response?.data?.message ||
+				error.message ||
+				'Something went wrong. Please try again.';
+			toaster.error({
+				title: 'Registration Failed',
+				description: message
+			});
 		}
 	}));
 

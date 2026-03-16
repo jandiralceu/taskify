@@ -1,7 +1,8 @@
 <script lang="ts">
-	import { Ellipsis, Eye, Pencil, ShieldBan, Trash2, Flag, MessageCircle, Paperclip, User } from '@lucide/svelte';
+	import { Ellipsis, Eye, Pencil, ShieldBan, ShieldCheck, Trash2, Flag, MessageCircle, Paperclip } from '@lucide/svelte';
 	import { Popover, Portal } from '@skeletonlabs/skeleton-svelte';
-	import type { TaskResponse, TaskPriority } from '$lib/api/types';
+	import type { TaskResponse } from '$lib/api/types';
+	import { priorityConfig } from '$lib/utils/task';
 
 	interface Props {
 		task: TaskResponse;
@@ -9,16 +10,11 @@
 		onDragStart: (e: DragEvent) => void;
 		onDragEnd: () => void;
 		onDelete?: (taskId: string) => void;
+		onToggleBlock?: (taskId: string, blocked: boolean) => void;
 	}
 
-	let { task, isDragging = false, onDragStart, onDragEnd, onDelete }: Props = $props();
-
-	const priorityConfig: Record<TaskPriority, { label: string; class: string }> = {
-		low:      { label: 'Low',      class: 'bg-indigo-50 text-indigo-700' },
-		medium:   { label: 'Medium',   class: 'bg-blue-50 text-blue-700' },
-		high:     { label: 'High',     class: 'bg-orange-50 text-orange-700' },
-		critical: { label: 'Critical', class: 'bg-rose-50 text-rose-700' }
-	};
+	let { task, isDragging = false, onDragStart, onDragEnd, onDelete, onToggleBlock }: Props = $props();
+	let isMenuOpen = $state(false);
 
 	function formatDate(dateStr: string) {
 		return new Intl.DateTimeFormat('en-GB', {
@@ -28,43 +24,83 @@
 		}).format(new Date(dateStr));
 	}
 
+	function handleDragStart(e: DragEvent) {
+		if (task.isBlocked) {
+			e.preventDefault();
+			return;
+		}
+		onDragStart(e);
+	}
+
 	const priority = $derived(priorityConfig[task.priority]);
 </script>
 
 <div
 	role="listitem"
-	draggable="true"
-	ondragstart={onDragStart}
+	draggable={!task.isBlocked}
+	ondragstart={handleDragStart}
 	ondragend={onDragEnd}
-	class="bg-white rounded-2xl p-5 border border-gray-200 border-1 border-solid hover:shadow-md transition-all cursor-grab active:cursor-grabbing {isDragging ? 'opacity-40 scale-95' : ''}"
+	class="bg-white rounded-2xl p-5 border border-1 border-solid transition-all {task.isBlocked ? 'border-rose-200 cursor-not-allowed opacity-60 bg-surface-50' : 'border-gray-200 hover:shadow-md cursor-grab active:cursor-grabbing'} {isDragging ? 'opacity-40 scale-95' : ''}"
 >
-	<!-- Header: Priority + Menu -->
+	<!-- Header: Priority + Blocked Badge + Menu -->
 	<div class="flex justify-between items-center mb-3">
-		<span class="inline-flex items-center px-3 py-1 rounded-full text-[12px] font-semibold {priority.class}">
-			{priority.label}
-		</span>
-		<Popover positioning={{ placement: 'bottom-end' }}>
+		<div class="flex items-center gap-1.5">
+			<span class="inline-flex items-center px-3 py-1 rounded-full text-[12px] font-semibold {priority.class}">
+				{priority.label}
+			</span>
+			{#if task.isBlocked}
+				<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] font-semibold bg-rose-50 text-rose-600">
+					<ShieldBan size={12} />
+					Blocked
+				</span>
+			{/if}
+		</div>
+		<Popover
+			open={isMenuOpen}
+			onOpenChange={(e) => (isMenuOpen = e.open)}
+			positioning={{ placement: 'bottom-end' }}
+		>
 			<Popover.Trigger class="text-surface-400 hover:text-surface-600 transition-colors cursor-pointer p-1 rounded-md hover:bg-surface-100">
 				<Ellipsis size={18} />
 			</Popover.Trigger>
 			<Portal>
 				<Popover.Positioner>
 					<Popover.Content class="bg-white rounded-xl shadow-lg border border-surface-200 py-1 w-44 z-50">
-						<button class="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-surface-700 hover:bg-surface-50 transition-colors cursor-pointer">
+						<button
+							onclick={() => (isMenuOpen = false)}
+							class="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-surface-700 hover:bg-surface-50 transition-colors cursor-pointer"
+						>
 							<Eye size={15} class="text-surface-400" />
 							<span>View Details</span>
 						</button>
-						<button class="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-surface-700 hover:bg-surface-50 transition-colors cursor-pointer">
+						<button
+							onclick={() => (isMenuOpen = false)}
+							class="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-surface-700 hover:bg-surface-50 transition-colors cursor-pointer"
+						>
 							<Pencil size={15} class="text-surface-400" />
 							<span>Edit</span>
 						</button>
-						<button class="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-surface-700 hover:bg-surface-50 transition-colors cursor-pointer">
-							<ShieldBan size={15} class="text-surface-400" />
-							<span>Block</span>
+						<button
+							onclick={() => {
+								onToggleBlock?.(task.id, !task.isBlocked);
+								isMenuOpen = false;
+							}}
+							class="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-surface-700 hover:bg-surface-50 transition-colors cursor-pointer"
+						>
+							{#if task.isBlocked}
+								<ShieldCheck size={15} class="text-emerald-500" />
+								<span>Unblock</span>
+							{:else}
+								<ShieldBan size={15} class="text-surface-400" />
+								<span>Block</span>
+							{/if}
 						</button>
 						<hr class="my-1 border-surface-100" />
 						<button
-							onclick={() => onDelete?.(task.id)}
+							onclick={() => {
+								onDelete?.(task.id);
+								isMenuOpen = false;
+							}}
 							class="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
 						>
 							<Trash2 size={15} />
@@ -77,33 +113,27 @@
 	</div>
 
 	<!-- Title -->
-	<h4 class="font-medium leading-snug mb-2">{task.title}</h4>
+	<h4 class="font-light leading-snug mb-2">{task.title}</h4>
 
 	<!-- Assignees -->
 	<div class="flex items-center justify-between mb-4">
-		<span class="text-[13px] font-medium text-surface-500">Assignees :</span>
+		<span class="text-xs font-medium text-surface-700">Assignees :</span>
 		<div class="flex -space-x-2">
-			{#if task.assignee}
-				{#if task.assignee.avatarUrl}
-					<div 
-						class="size-7 rounded-full bg-surface-100 border-2 border-white flex items-center justify-center overflow-hidden"
-						title="{task.assignee.firstName} {task.assignee.lastName}"
-					>
-						<img src={task.assignee.avatarUrl} alt="{task.assignee.firstName}" class="size-full object-cover" />
-					</div>
-				{:else}
-					<div 
-						class="size-7 rounded-full bg-indigo-100 border-2 border-white flex items-center justify-center"
-						title="{task.assignee.firstName} {task.assignee.lastName}"
-					>
-						<span class="text-[10px] font-bold text-indigo-700">
-							{task.assignee.firstName[0]}{task.assignee.lastName[0]}
-						</span>
-					</div>
-				{/if}
+			{#if task.assignee.avatarUrl}
+				<div 
+					class="size-7 rounded-full bg-surface-100 border-2 border-white flex items-center justify-center overflow-hidden"
+					title="{task.assignee.firstName} {task.assignee.lastName}"
+				>
+					<img src={task.assignee.avatarUrl} alt="{task.assignee.firstName}" class="size-full object-cover" />
+				</div>
 			{:else}
-				<div class="size-7 rounded-full bg-surface-100 border-2 border-white flex items-center justify-center text-surface-400">
-					<User size={14} />
+				<div 
+					class="size-7 rounded-full bg-indigo-100 border-2 border-white flex items-center justify-center"
+					title="{task.assignee.firstName} {task.assignee.lastName}"
+				>
+					<span class="text-[10px] font-bold text-indigo-700">
+						{task.assignee.firstName[0]}{task.assignee.lastName[0]}
+					</span>
 				</div>
 			{/if}
 		</div>
@@ -119,7 +149,9 @@
 		{/if}
 	</div>
 
-	<!-- Footer: Comments, Links, Files -->
+	<hr class="border-surface-400" />
+
+	<!-- Footer: Comments, Files -->
 	<div class="flex items-center justify-between pt-3 border-t border-surface-100 text-surface-700 text-xs">
 		<div class="flex items-center gap-1.5">
 			<Paperclip size={14} />

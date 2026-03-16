@@ -127,6 +127,10 @@
 	async function handleDeleteTask(taskId: string) {
 		await deleteTask.mutateAsync(taskId);
 	}
+
+	async function handleToggleBlock(taskId: string, blocked: boolean) {
+		await updateTask.mutateAsync({ id: taskId, data: { isBlocked: blocked } });
+	}
 </script>
 
 <div class="h-full flex flex-col pt-8">
@@ -201,6 +205,7 @@
 									onDragStart={(e) => onDragStart(e, task.id)}
 									{onDragEnd}
 									onDelete={handleDeleteTask}
+									onToggleBlock={handleToggleBlock}
 								/>
 							{/each}
 						{/if}

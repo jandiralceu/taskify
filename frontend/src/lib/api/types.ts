@@ -53,7 +53,7 @@ export interface TaskResponse {
 	isBlocked: boolean;
 	createdBy: string;
 	assignedTo?: string;
-	assignee?: UserResponse;
+	assignee: UserResponse;
 	dueDate?: string;
 	completedAt?: string;
 	estimatedHours?: number;
