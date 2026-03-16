@@ -2,7 +2,7 @@
 	import { Plus, Ellipsis, LoaderCircle } from '@lucide/svelte';
 	import TaskCard from '$lib/components/TaskCard.svelte';
 	import { createProfileQuery } from '$lib/state/user.svelte';
-	import { getTasksQuery, updateTaskMutation } from '$lib/state/tasks.svelte';
+	import { getTasksQuery, updateTaskMutation, deleteTaskMutation } from '$lib/state/tasks.svelte';
 	import AddTaskModal from '$lib/components/AddTaskModal.svelte';
 	import type { TaskStatus, UserRole } from '$lib/api/types';
 
@@ -11,6 +11,7 @@
 	const profileQuery = createProfileQuery();
 	const tasksQuery = getTasksQuery();
 	const updateTask = updateTaskMutation();
+	const deleteTask = deleteTaskMutation();
 
 	const columns: { id: TaskStatus; title: string }[] = [
 		{ id: 'pending', title: 'Pending' },
@@ -122,6 +123,10 @@
 
 		await updateTask.mutateAsync({ id: taskId, data: { status: targetStatus } });
 	}
+
+	async function handleDeleteTask(taskId: string) {
+		await deleteTask.mutateAsync(taskId);
+	}
 </script>
 
 <div class="h-full flex flex-col pt-8">
@@ -195,6 +200,7 @@
 									isDragging={draggingTaskId === task.id}
 									onDragStart={(e) => onDragStart(e, task.id)}
 									{onDragEnd}
+									onDelete={handleDeleteTask}
 								/>
 							{/each}
 						{/if}

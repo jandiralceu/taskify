@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Ellipsis, Flag, MessageCircle, Paperclip, User } from '@lucide/svelte';
+	import { Ellipsis, Eye, Pencil, ShieldBan, Trash2, Flag, MessageCircle, Paperclip, User } from '@lucide/svelte';
+	import { Popover, Portal } from '@skeletonlabs/skeleton-svelte';
 	import type { TaskResponse, TaskPriority } from '$lib/api/types';
 
 	interface Props {
@@ -7,9 +8,10 @@
 		isDragging?: boolean;
 		onDragStart: (e: DragEvent) => void;
 		onDragEnd: () => void;
+		onDelete?: (taskId: string) => void;
 	}
 
-	let { task, isDragging = false, onDragStart, onDragEnd }: Props = $props();
+	let { task, isDragging = false, onDragStart, onDragEnd, onDelete }: Props = $props();
 
 	const priorityConfig: Record<TaskPriority, { label: string; class: string }> = {
 		low:      { label: 'Low',      class: 'bg-indigo-50 text-indigo-700' },
@@ -41,9 +43,37 @@
 		<span class="inline-flex items-center px-3 py-1 rounded-full text-[12px] font-semibold {priority.class}">
 			{priority.label}
 		</span>
-		<button class="text-surface-400 hover:text-surface-600 transition-colors">
-			<Ellipsis size={18} />
-		</button>
+		<Popover positioning={{ placement: 'bottom-end' }}>
+			<Popover.Trigger class="text-surface-400 hover:text-surface-600 transition-colors cursor-pointer p-1 rounded-md hover:bg-surface-100">
+				<Ellipsis size={18} />
+			</Popover.Trigger>
+			<Portal>
+				<Popover.Positioner>
+					<Popover.Content class="bg-white rounded-xl shadow-lg border border-surface-200 py-1 w-44 z-50">
+						<button class="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-surface-700 hover:bg-surface-50 transition-colors cursor-pointer">
+							<Eye size={15} class="text-surface-400" />
+							<span>View Details</span>
+						</button>
+						<button class="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-surface-700 hover:bg-surface-50 transition-colors cursor-pointer">
+							<Pencil size={15} class="text-surface-400" />
+							<span>Edit</span>
+						</button>
+						<button class="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-surface-700 hover:bg-surface-50 transition-colors cursor-pointer">
+							<ShieldBan size={15} class="text-surface-400" />
+							<span>Block</span>
+						</button>
+						<hr class="my-1 border-surface-100" />
+						<button
+							onclick={() => onDelete?.(task.id)}
+							class="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+						>
+							<Trash2 size={15} />
+							<span>Delete</span>
+						</button>
+					</Popover.Content>
+				</Popover.Positioner>
+			</Portal>
+		</Popover>
 	</div>
 
 	<!-- Title -->

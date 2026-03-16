@@ -114,12 +114,14 @@ func TestCreateTask_Success(t *testing.T) {
 	handler := NewTaskHandler(mockService)
 
 	userID := uuid.New()
-	req := dto.CreateTaskRequest{
-		Title: "New Task",
+	// Handler will auto-fill AssignedTo with userID when not provided.
+	expectedReq := dto.CreateTaskRequest{
+		Title:      "New Task",
+		AssignedTo: &userID,
 	}
-	resTask := &models.Task{ID: uuid.New(), Title: req.Title, CreatedBy: userID}
+	resTask := &models.Task{ID: uuid.New(), Title: expectedReq.Title, CreatedBy: userID, AssignedTo: &userID}
 
-	mockService.On("Create", mock.Anything, userID, req).Return(resTask, nil)
+	mockService.On("Create", mock.Anything, userID, expectedReq).Return(resTask, nil)
 
 	router := setupRouter()
 	router.POST("/tasks", func(c *gin.Context) {
@@ -127,12 +129,43 @@ func TestCreateTask_Success(t *testing.T) {
 		handler.CreateTask(c)
 	})
 
-	w := performRequest(router, "POST", "/tasks", req)
+	// Send request WITHOUT assignedTo — handler should default it to userID.
+	w := performRequest(router, "POST", "/tasks", map[string]any{"title": "New Task"})
 
 	assert.Equal(t, http.StatusCreated, w.Code)
 	var actualTask models.Task
 	json.Unmarshal(w.Body.Bytes(), &actualTask)
 	assert.Equal(t, resTask.ID, actualTask.ID)
+	mockService.AssertExpectations(t)
+}
+
+func TestCreateTask_ExplicitAssignedTo(t *testing.T) {
+	mockService := new(MockTaskService)
+	handler := NewTaskHandler(mockService)
+
+	userID := uuid.New()
+	otherUserID := uuid.New()
+
+	expectedReq := dto.CreateTaskRequest{
+		Title:      "Task for another user",
+		AssignedTo: &otherUserID,
+	}
+	resTask := &models.Task{ID: uuid.New(), Title: expectedReq.Title, CreatedBy: userID, AssignedTo: &otherUserID}
+
+	mockService.On("Create", mock.Anything, userID, expectedReq).Return(resTask, nil)
+
+	router := setupRouter()
+	router.POST("/tasks", func(c *gin.Context) {
+		c.Set(middleware.UserIDKey, userID)
+		handler.CreateTask(c)
+	})
+
+	w := performRequest(router, "POST", "/tasks", map[string]any{
+		"title":      "Task for another user",
+		"assignedTo": otherUserID.String(),
+	})
+
+	assert.Equal(t, http.StatusCreated, w.Code)
 	mockService.AssertExpectations(t)
 }
 
@@ -259,6 +292,57 @@ func TestListTasks_Success(t *testing.T) {
 
 	router := setupRouter()
 	router.GET("/tasks", handler.ListTasks)
+
+	w := performRequest(router, "GET", "/tasks", nil)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestListTasks_EmployeeScopedToOwnTasks(t *testing.T) {
+	mockService := new(MockTaskService)
+	handler := NewTaskHandler(mockService)
+
+	userID := uuid.New()
+	expectedReq := dto.GetTaskListRequest{
+		AssignedTo: &userID,
+	}
+
+	res := []models.Task{{ID: uuid.New(), Title: "My Task", AssignedTo: &userID}}
+
+	mockService.On("GetAll", mock.Anything, expectedReq).Return(res, nil)
+
+	router := setupRouter()
+	router.GET("/tasks", func(c *gin.Context) {
+		c.Set(middleware.UserIDKey, userID)
+		c.Set(middleware.UserRoleKey, string(models.RoleEmployee))
+		handler.ListTasks(c)
+	})
+
+	w := performRequest(router, "GET", "/tasks", nil)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	mockService.AssertExpectations(t)
+}
+
+func TestListTasks_AdminSeesAllTasks(t *testing.T) {
+	mockService := new(MockTaskService)
+	handler := NewTaskHandler(mockService)
+
+	userID := uuid.New()
+
+	res := []models.Task{
+		{ID: uuid.New(), Title: "Task 1"},
+		{ID: uuid.New(), Title: "Task 2"},
+	}
+
+	mockService.On("GetAll", mock.Anything, mock.AnythingOfType("dto.GetTaskListRequest")).Return(res, nil)
+
+	router := setupRouter()
+	router.GET("/tasks", func(c *gin.Context) {
+		c.Set(middleware.UserIDKey, userID)
+		c.Set(middleware.UserRoleKey, string(models.RoleAdmin))
+		handler.ListTasks(c)
+	})
 
 	w := performRequest(router, "GET", "/tasks", nil)
 

@@ -8,6 +8,7 @@ import (
 	"github.com/jandiralceu/taskify/internal/apperrors"
 	"github.com/jandiralceu/taskify/internal/dto"
 	"github.com/jandiralceu/taskify/internal/middleware"
+	"github.com/jandiralceu/taskify/internal/models"
 	"github.com/jandiralceu/taskify/internal/service"
 )
 
@@ -39,6 +40,12 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 	}
 
 	userID := middleware.GetUserID(c)
+
+	// Default AssignedTo to the logged-in user when not provided.
+	if req.AssignedTo == nil {
+		req.AssignedTo = &userID
+	}
+
 	task, err := h.taskService.Create(c.Request.Context(), userID, req)
 	if err != nil {
 		RespondWithError(c, err)
@@ -157,6 +164,12 @@ func (h *TaskHandler) ListTasks(c *gin.Context) {
 	if err := c.ShouldBindQuery(&req); err != nil {
 		RespondWithError(c, ParseValidationError(err))
 		return
+	}
+
+	// Employees can only see tasks assigned to them.
+	if middleware.GetUserRole(c) == string(models.RoleEmployee) {
+		userID := middleware.GetUserID(c)
+		req.AssignedTo = &userID
 	}
 
 	tasks, err := h.taskService.GetAll(c.Request.Context(), req)

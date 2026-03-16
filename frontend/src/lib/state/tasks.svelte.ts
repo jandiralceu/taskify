@@ -44,3 +44,14 @@ export function createTaskMutation() {
 		}
 	}));
 }
+
+export function deleteTaskMutation() {
+	const queryClient = useQueryClient();
+
+	return createMutation<void, Error, string>(() => ({
+		mutationFn: (id) => tasksService.deleteTask(id),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
+		}
+	}));
+}
