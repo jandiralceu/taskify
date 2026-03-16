@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { Ellipsis, Pencil, ShieldBan, ShieldCheck, Trash2, Flag, MessageCircle, Paperclip, TriangleAlert } from '@lucide/svelte';
 	import { Popover, Portal, Dialog } from '@skeletonlabs/skeleton-svelte';
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import type { TaskResponse } from '$lib/api/types';
 	import { priorityConfig } from '$lib/utils/task';
 
@@ -33,7 +35,8 @@
 		return new Intl.DateTimeFormat('en-GB', {
 			day: '2-digit',
 			month: 'short',
-			year: 'numeric'
+			year: 'numeric',
+			timeZone: 'UTC'
 		}).format(new Date(dateStr));
 	}
 
@@ -85,13 +88,13 @@
 			<Portal>
 				<Popover.Positioner>
 					<Popover.Content class="bg-white rounded-xl shadow-lg border border-surface-200 py-1 w-44 z-50">
-						<button
-							onclick={(e) => { e.stopPropagation(); isMenuOpen = false; }}
-							class="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-surface-700 hover:bg-surface-50 transition-colors cursor-pointer"
-						>
-							<Pencil size={15} class="text-surface-400" />
-							<span>Edit</span>
-						</button>
+					<button
+						onclick={(e) => { e.stopPropagation(); isMenuOpen = false; goto(resolve(`/tasks/${task.id}/edit`)); }}
+						class="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-surface-700 hover:bg-surface-50 transition-colors cursor-pointer"
+					>
+						<Pencil size={15} class="text-surface-400" />
+						<span>Edit</span>
+					</button>
 						<button
 							onclick={(e) => {
 								e.stopPropagation();

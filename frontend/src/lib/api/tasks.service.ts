@@ -29,6 +29,10 @@ class TasksService {
 		return api.get('tasks', { searchParams }).json<TaskResponse[]>();
 	}
 
+	async getTask(id: string) {
+		return api.get(`tasks/${id}`).json<TaskResponse>();
+	}
+
 	async createTask(data: CreateTaskRequest) {
 		return api.post('tasks', { json: data }).json<TaskResponse>();
 	}

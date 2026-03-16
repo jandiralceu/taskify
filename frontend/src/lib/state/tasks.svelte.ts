@@ -14,6 +14,17 @@ export function getTasksQuery(paramsGetter: () => GetTasksParams = () => ({})) {
 	});
 }
 
+export function getTaskQuery(idGetter: () => string) {
+	return createQuery(() => {
+		const id = idGetter();
+		return {
+			queryKey: [...TASKS_QUERY_KEY, id],
+			queryFn: () => tasksService.getTask(id),
+			enabled: !!id
+		};
+	});
+}
+
 /**
  * Mutation for updating an existing task.
  *
