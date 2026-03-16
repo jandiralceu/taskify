@@ -12,6 +12,7 @@
 
 	// Filter & sort state
 	let filterSearch = $state('');
+	let debouncedSearch = $state('');
 	let filterPriority = $state<TaskPriority | ''>('');
 	let filterBlocked = $state(false);
 	let sortField = $state('createdAt');
@@ -20,7 +21,7 @@
 	const profileQuery = createProfileQuery();
 	
 	const tasksQuery = getTasksQuery(() => ({
-		search: filterSearch || undefined,
+		search: debouncedSearch || undefined,
 		priority: (filterPriority as TaskPriority) || undefined,
 		isBlocked: filterBlocked || undefined,
 		sort: sortField,
@@ -47,9 +48,19 @@
 
 	function clearFilters() {
 		filterSearch = '';
+		debouncedSearch = '';
 		filterPriority = '';
 		filterBlocked = false;
 	}
+
+	$effect(() => {
+		const query = filterSearch; // Read synchronously to track as dependency
+		const handler = setTimeout(() => {
+			debouncedSearch = query;
+		}, 300);
+
+		return () => clearTimeout(handler);
+	});
 
 	/**
 	 * Drag-and-drop state.
