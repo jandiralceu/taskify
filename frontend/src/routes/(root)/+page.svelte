@@ -1,17 +1,32 @@
 <script lang="ts">
-	import { Plus, Ellipsis, LoaderCircle } from '@lucide/svelte';
+	import { Plus, Ellipsis, LoaderCircle, Search, ArrowUp, ArrowDown, Ban, X, FilterX } from '@lucide/svelte';
 	import TaskCard from '$lib/components/TaskCard.svelte';
 	import TaskDetailDrawer from '$lib/components/TaskDetailDrawer.svelte';
 	import { createProfileQuery } from '$lib/state/user.svelte';
 	import { getTasksQuery, updateTaskMutation, deleteTaskMutation } from '$lib/state/tasks.svelte';
 	import AddTaskModal from '$lib/components/AddTaskModal.svelte';
 	import UserDetailDrawer from '$lib/components/UserDetailDrawer.svelte';
-	import type { TaskResponse, TaskStatus, UserRole } from '$lib/api/types';
+	import type { TaskResponse, TaskStatus, TaskPriority, UserRole } from '$lib/api/types';
 
 	const ADMIN: UserRole = 'admin';
 
+	// Filter & sort state
+	let filterSearch = $state('');
+	let filterPriority = $state<TaskPriority | ''>('');
+	let filterBlocked = $state(false);
+	let sortField = $state('createdAt');
+	let sortOrder = $state<'asc' | 'desc'>('desc');
+
 	const profileQuery = createProfileQuery();
-	const tasksQuery = getTasksQuery();
+	
+	const tasksQuery = getTasksQuery(() => ({
+		search: filterSearch || undefined,
+		priority: (filterPriority as TaskPriority) || undefined,
+		isBlocked: filterBlocked || undefined,
+		sort: sortField,
+		order: sortOrder
+	}));
+
 	const updateTask = updateTaskMutation();
 	const deleteTask = deleteTaskMutation();
 
@@ -27,6 +42,14 @@
 	let isDrawerOpen = $state(false);
 	let selectedUserId = $state<string | undefined>(undefined);
 	let isUserDrawerOpen = $state(false);
+
+	const hasActiveFilters = $derived(filterSearch !== '' || filterPriority !== '' || filterBlocked);
+
+	function clearFilters() {
+		filterSearch = '';
+		filterPriority = '';
+		filterBlocked = false;
+	}
 
 	/**
 	 * Drag-and-drop state.
@@ -172,16 +195,93 @@
 		</div>
 	</header>
 
-	<div class="sticky top-0 z-20 bg-[#F7F3F9]/95 backdrop-blur-sm px-16 py-6 flex items-center justify-between mb-4 border-b border-transparent transition-all">
-		<h3 class="text-3xl font-light text-surface-900 tracking-tight">Tasks</h3>
-		<button 
-			onclick={handleAddTask}
-			type="button"
-			class="bg-primary-500 hover:bg-primary-700 text-white px-5 py-2 rounded-xl font-medium transition-all active:scale-95 flex items-center gap-2"
-		>
-			<Plus size={18} />
-			Add Task
-		</button>
+	<div class="sticky top-0 z-20 bg-[#F7F3F9]/95 backdrop-blur-sm px-16 py-5 mb-4 border-b border-surface-100/50 transition-all space-y-4">
+		<div class="flex items-center justify-between">
+			<h3 class="text-3xl font-light text-surface-900 tracking-tight">Tasks</h3>
+			<button
+				onclick={handleAddTask}
+				type="button"
+				class="bg-primary-500 hover:bg-primary-700 text-white px-5 py-2 rounded-xl font-medium transition-all active:scale-95 flex items-center gap-2"
+			>
+				<Plus size={18} />
+				Add Task
+			</button>
+		</div>
+
+		<!-- Filter Bar -->
+		<div class="flex items-center gap-3 flex-wrap">
+			<!-- Search -->
+			<div class="relative flex-1 max-w-xs">
+				<Search size={16} class="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400 pointer-events-none" />
+				<input
+					type="text"
+					placeholder="Search tasks..."
+					bind:value={filterSearch}
+					class="filter-input w-full pl-9 pr-3 py-2"
+				/>
+			</div>
+
+			<!-- Priority Filter -->
+			<select bind:value={filterPriority} class="filter-input filter-select">
+				<option value="">All Priorities</option>
+				<option value="low">🟢 Low</option>
+				<option value="medium">🟡 Medium</option>
+				<option value="high">🟠 High</option>
+				<option value="critical">🔴 Critical</option>
+			</select>
+
+			<!-- Blocked Toggle -->
+			<button
+				onclick={() => (filterBlocked = !filterBlocked)}
+				type="button"
+				class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-xl border transition-all {filterBlocked
+					? 'bg-red-50 border-red-300 text-red-700 shadow-sm shadow-red-100'
+					: 'bg-white border-surface-200 text-surface-600 hover:border-surface-300'}"
+			>
+				<Ban size={14} />
+				Blocked
+			</button>
+
+			<!-- Divider -->
+			<div class="w-px h-6 bg-surface-200"></div>
+
+			<!-- Sort Field -->
+			<select bind:value={sortField} class="filter-input filter-select">
+				<option value="createdAt">Sort: Date Created</option>
+				<option value="title">Sort: Title</option>
+				<option value="priority">Sort: Priority</option>
+				<option value="dueDate">Sort: Due Date</option>
+			</select>
+
+			<!-- Sort Order Toggle -->
+			<button
+				onclick={() => (sortOrder = sortOrder === 'asc' ? 'desc' : 'asc')}
+				type="button"
+				class="p-2 bg-white border border-surface-200 rounded-xl hover:border-surface-300 text-surface-600 transition-all"
+				title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
+			>
+				{#if sortOrder === 'asc'}
+					<ArrowUp size={16} />
+				{:else}
+					<ArrowDown size={16} />
+				{/if}
+			</button>
+
+			<!-- Clear Filters -->
+			{#if hasActiveFilters}
+				<span class="text-xs text-surface-400 tabular-nums">
+					{tasksQuery.data?.length ?? 0} matches
+				</span>
+				<button
+					onclick={clearFilters}
+					type="button"
+					class="inline-flex items-center gap-1 px-3 py-2 text-sm font-medium text-primary-600 hover:text-primary-800 hover:bg-primary-50 rounded-xl transition-all"
+				>
+					<X size={14} />
+					Clear
+				</button>
+			{/if}
+		</div>
 	</div>
 
 	<!-- Board Content -->
@@ -227,6 +327,16 @@
 										onViewDetails={handleViewDetails}
 										onViewUser={handleViewUser}
 									/>
+								{:else}
+									{#if hasActiveFilters}
+										<div class="flex flex-col items-center justify-center py-12 px-4 text-center bg-white/50 rounded-2xl border-2 border-dashed border-surface-200 animate-in fade-in zoom-in duration-300">
+											<div class="p-3 bg-surface-100 rounded-full mb-3 text-surface-400">
+												<FilterX size={20} />
+											</div>
+											<p class="text-sm font-medium text-surface-600">No matches found</p>
+											<p class="text-xs text-surface-400 mt-1">Refine your search parameters</p>
+										</div>
+									{/if}
 								{/each}
 							{/if}
 
@@ -277,5 +387,32 @@
 	.custom-scrollbar-h::-webkit-scrollbar-thumb {
 		background: #e2e8f0;
 		border-radius: 20px;
+	}
+
+	/* Filter inputs */
+	.filter-input {
+		font-size: 0.875rem;
+		background: white;
+		border: 1px solid var(--color-surface-200, #e2e8f0);
+		border-radius: 0.75rem;
+		outline: none;
+		transition: all 0.15s ease;
+		color: var(--color-surface-700, #334155);
+	}
+	.filter-input::placeholder {
+		color: var(--color-surface-400, #94a3b8);
+	}
+	.filter-input:focus {
+		border-color: var(--color-primary-400, #a78bfa);
+		box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+	}
+	.filter-select {
+		padding: 0.5rem 2rem 0.5rem 0.75rem;
+		cursor: pointer;
+		appearance: none;
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+		background-repeat: no-repeat;
+		background-position: right 0.5rem center;
+		background-size: 1rem;
 	}
 </style>

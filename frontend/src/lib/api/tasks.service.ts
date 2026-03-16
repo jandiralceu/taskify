@@ -13,6 +13,7 @@ export interface GetTasksParams {
 	search?: string;
 	sort?: string;
 	order?: 'asc' | 'desc';
+	isBlocked?: boolean;
 }
 
 class TasksService {
@@ -23,6 +24,7 @@ class TasksService {
 		if (params.search) searchParams.set('search', params.search);
 		if (params.sort) searchParams.set('sort', params.sort);
 		if (params.order) searchParams.set('order', params.order);
+		if (params.isBlocked !== undefined) searchParams.set('isBlocked', String(params.isBlocked));
 
 		return api.get('tasks', { searchParams }).json<TaskResponse[]>();
 	}

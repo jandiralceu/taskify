@@ -4,11 +4,14 @@ import type { CreateTaskRequest, UpdateTaskRequest, TaskResponse } from '$lib/ap
 
 export const TASKS_QUERY_KEY = ['tasks'];
 
-export function getTasksQuery(params: GetTasksParams = {}) {
-	return createQuery(() => ({
-		queryKey: [...TASKS_QUERY_KEY, params],
-		queryFn: () => tasksService.getTasks(params)
-	}));
+export function getTasksQuery(paramsGetter: () => GetTasksParams = () => ({})) {
+	return createQuery(() => {
+		const params = paramsGetter();
+		return {
+			queryKey: [...TASKS_QUERY_KEY, params],
+			queryFn: () => tasksService.getTasks(params)
+		};
+	});
 }
 
 /**
