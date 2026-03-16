@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/casbin/casbin/v3"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jandiralceu/taskify/internal/apperrors"
@@ -23,7 +24,7 @@ import (
 
 func TestFindAllUsersSuccess(t *testing.T) {
 	mockService := new(MockUserService)
-	handler := NewUserHandler(mockService)
+	handler := NewUserHandler(mockService, nil)
 
 	users := []models.User{
 		{ID: uuid.New(), FirstName: "User", LastName: "1", Email: "user1@example.com", Role: models.RoleEmployee},
@@ -59,7 +60,7 @@ func TestFindAllUsersSuccess(t *testing.T) {
 
 func TestFindAllUsersServiceError(t *testing.T) {
 	mockService := new(MockUserService)
-	handler := NewUserHandler(mockService)
+	handler := NewUserHandler(mockService, nil)
 
 	mockService.On("FindAll", mock.Anything, mock.AnythingOfType("dto.GetUserListRequest")).
 		Return(nil, errors.New("database error"))
@@ -79,7 +80,7 @@ func TestFindAllUsersServiceError(t *testing.T) {
 
 func TestFindUserByIDSuccess(t *testing.T) {
 	mockService := new(MockUserService)
-	handler := NewUserHandler(mockService)
+	handler := NewUserHandler(mockService, nil)
 
 	userID := uuid.New()
 	user := &models.User{ID: userID, FirstName: "John", LastName: "Doe", Email: "john@example.com", Role: models.RoleAdmin}
@@ -103,7 +104,7 @@ func TestFindUserByIDSuccess(t *testing.T) {
 
 func TestFindUserByIDInvalidID(t *testing.T) {
 	mockService := new(MockUserService)
-	handler := NewUserHandler(mockService)
+	handler := NewUserHandler(mockService, nil)
 
 	router := setupRouter()
 	router.GET("/users/:id", handler.FindUserByID)
@@ -116,7 +117,7 @@ func TestFindUserByIDInvalidID(t *testing.T) {
 
 func TestFindUserByIDNotFound(t *testing.T) {
 	mockService := new(MockUserService)
-	handler := NewUserHandler(mockService)
+	handler := NewUserHandler(mockService, nil)
 
 	userID := uuid.New()
 	mockService.On("FindByID", mock.Anything, userID).Return(nil, apperrors.ErrNotFound)
@@ -135,7 +136,7 @@ func TestFindUserByIDNotFound(t *testing.T) {
 
 func TestDeleteUserSuccess(t *testing.T) {
 	mockService := new(MockUserService)
-	handler := NewUserHandler(mockService)
+	handler := NewUserHandler(mockService, nil)
 
 	userID := uuid.New()
 	mockService.On("Delete", mock.Anything, userID).Return(nil)
@@ -151,7 +152,7 @@ func TestDeleteUserSuccess(t *testing.T) {
 
 func TestDeleteUserNotFound(t *testing.T) {
 	mockService := new(MockUserService)
-	handler := NewUserHandler(mockService)
+	handler := NewUserHandler(mockService, nil)
 
 	userID := uuid.New()
 	mockService.On("Delete", mock.Anything, userID).Return(apperrors.ErrNotFound)
@@ -170,7 +171,7 @@ func TestDeleteUserNotFound(t *testing.T) {
 
 func TestChangePasswordSuccess(t *testing.T) {
 	mockService := new(MockUserService)
-	handler := NewUserHandler(mockService)
+	handler := NewUserHandler(mockService, nil)
 
 	userID := uuid.New()
 	req := dto.ChangePasswordRequest{
@@ -194,7 +195,7 @@ func TestChangePasswordSuccess(t *testing.T) {
 
 func TestChangePasswordUnauthorized(t *testing.T) {
 	mockService := new(MockUserService)
-	handler := NewUserHandler(mockService)
+	handler := NewUserHandler(mockService, nil)
 
 	router := setupRouter()
 	router.PATCH("/users/change-password", handler.ChangePassword)
@@ -211,7 +212,7 @@ func TestChangePasswordUnauthorized(t *testing.T) {
 
 func TestChangePasswordBadRequest(t *testing.T) {
 	mockService := new(MockUserService)
-	handler := NewUserHandler(mockService)
+	handler := NewUserHandler(mockService, nil)
 
 	router := setupRouter()
 	router.PATCH("/users/change-password", handler.ChangePassword)
@@ -232,7 +233,7 @@ func TestChangePasswordBadRequest(t *testing.T) {
 
 func TestUpdateUserSuccess(t *testing.T) {
 	mockService := new(MockUserService)
-	handler := NewUserHandler(mockService)
+	handler := NewUserHandler(mockService, nil)
 
 	userID := uuid.New()
 	newName := "John Updated"
@@ -267,7 +268,7 @@ func TestUpdateUserSuccess(t *testing.T) {
 
 func TestUpdateAvatarSuccess(t *testing.T) {
 	mockService := new(MockUserService)
-	handler := NewUserHandler(mockService)
+	handler := NewUserHandler(mockService, nil)
 
 	userID := uuid.New()
 	avatarPath := "/uploads/avatars/avatar.png"
@@ -295,7 +296,7 @@ func TestUpdateAvatarSuccess(t *testing.T) {
 
 func TestUpdateAvatarNoFile(t *testing.T) {
 	mockService := new(MockUserService)
-	handler := NewUserHandler(mockService)
+	handler := NewUserHandler(mockService, nil)
 
 	router := setupRouter()
 	router.POST("/users/avatar", handler.UpdateAvatar)
@@ -307,7 +308,7 @@ func TestUpdateAvatarNoFile(t *testing.T) {
 
 func TestUpdateAvatarServiceError(t *testing.T) {
 	mockService := new(MockUserService)
-	handler := NewUserHandler(mockService)
+	handler := NewUserHandler(mockService, nil)
 
 	userID := uuid.New()
 	mockService.On("UpdateAvatar", mock.Anything, userID, mock.Anything, "avatar.png").
@@ -323,4 +324,39 @@ func TestUpdateAvatarServiceError(t *testing.T) {
 	w := performRequestWithContentType(router, "POST", "/users/avatar", body, contentType)
 
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
+}
+
+// =====================
+// GetPermissions Tests
+// =====================
+
+func TestGetPermissionsSuccess(t *testing.T) {
+	mockService := new(MockUserService)
+	// Create a real enforcer with dummy data for testing
+	// In a more complex setup, we might want to mock the enforcer, but for now, nil won't work if called.
+	// Since GetPermissions uses h.enforcer, we need a real one or a mock.
+	enforcer, _ := casbin.NewEnforcer("../../model.conf", "../../policy.csv")
+
+	handler := NewUserHandler(mockService, enforcer)
+
+	router := setupRouter()
+	router.GET("/users/permissions", func(c *gin.Context) {
+		c.Set(middleware.UserRoleKey, "employee")
+		handler.GetPermissions(c)
+	})
+
+	w := performRequest(router, "GET", "/users/permissions", nil)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var resp map[string]interface{}
+	err := json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.NoError(t, err)
+
+	assert.Equal(t, "employee", resp["role"])
+	assert.NotNil(t, resp["permissions"])
+
+	permissions := resp["permissions"].(map[string]interface{})
+	// Based on policy.csv, employee has access to /api/v1/users/profile
+	assert.Contains(t, permissions, "/api/v1/users/profile")
 }

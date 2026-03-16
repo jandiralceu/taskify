@@ -1,6 +1,7 @@
 p, admin, /api/v1/*, *
 p, employee, /api/v1/auth/signout, POST
 p, employee, /api/v1/auth/refresh, POST
+p, employee, /api/v1/users/permissions, GET
 p, employee, /api/v1/users/profile, GET
 p, employee, /api/v1/users/change-password, PATCH
 p, employee, /api/v1/users/avatar, POST

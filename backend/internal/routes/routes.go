@@ -70,6 +70,7 @@ func Setup(routeConfig *RouteConfig, config *config.Config, jwtManager *pkg.JWTM
 		{
 			users := protected.Group("/users")
 			{
+				users.GET("/permissions", routeConfig.UserHandler.GetPermissions)
 				users.GET("/profile", routeConfig.UserHandler.GetProfile)
 				users.GET("", routeConfig.UserHandler.FindAllUsers)
 				users.GET("/:id", routeConfig.UserHandler.FindUserByID)
