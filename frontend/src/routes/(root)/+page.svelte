@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { Plus, Ellipsis, LoaderCircle } from '@lucide/svelte';
 	import TaskCard from '$lib/components/TaskCard.svelte';
+	import TaskDetailDrawer from '$lib/components/TaskDetailDrawer.svelte';
 	import { createProfileQuery } from '$lib/state/user.svelte';
 	import { getTasksQuery, updateTaskMutation, deleteTaskMutation } from '$lib/state/tasks.svelte';
 	import AddTaskModal from '$lib/components/AddTaskModal.svelte';
-	import type { TaskStatus, UserRole } from '$lib/api/types';
+	import type { TaskResponse, TaskStatus, UserRole } from '$lib/api/types';
 
 	const ADMIN: UserRole = 'admin';
 
@@ -21,6 +22,8 @@
 	];
 
 	let isModalOpen = $state(false);
+	let selectedTask = $state<TaskResponse | null>(null);
+	let isDrawerOpen = $state(false);
 
 	/**
 	 * Drag-and-drop state.
@@ -131,6 +134,11 @@
 	async function handleToggleBlock(taskId: string, blocked: boolean) {
 		await updateTask.mutateAsync({ id: taskId, data: { isBlocked: blocked } });
 	}
+
+	function handleViewDetails(task: TaskResponse) {
+		selectedTask = task;
+		isDrawerOpen = true;
+	}
 </script>
 
 <div class="min-h-full flex flex-col">
@@ -160,7 +168,8 @@
 		<h3 class="text-3xl font-light text-surface-900 tracking-tight">Tasks</h3>
 		<button 
 			onclick={handleAddTask}
-			class="bg-primary-500 hover:bg-primary-700 text-white px-6 py-2.5 rounded-xl font-medium transition-all active:scale-95 flex items-center gap-2"
+			type="button"
+			class="bg-primary-500 hover:bg-primary-700 text-white px-5 py-2 rounded-xl font-medium transition-all active:scale-95 flex items-center gap-2"
 		>
 			<Plus size={18} />
 			Add Task
@@ -207,6 +216,7 @@
 										{onDragEnd}
 										onDelete={handleDeleteTask}
 										onToggleBlock={handleToggleBlock}
+										onViewDetails={handleViewDetails}
 									/>
 								{/each}
 							{/if}
@@ -232,6 +242,7 @@
 </div>
 
 <AddTaskModal isOpen={isModalOpen} onClose={() => isModalOpen = false} />
+<TaskDetailDrawer task={selectedTask} isOpen={isDrawerOpen} onClose={() => { isDrawerOpen = false; selectedTask = null; }} />
 
 <style>
 	/* Vertical Scrollbar */

@@ -10,12 +10,19 @@
 	import { resolve } from '$app/paths';
 	import logoWhite from '$lib/assets/logo_white.webp';
 	import { authService } from '$lib/api/auth.service';
-	import { createProfileQuery, PROFILE_QUERY_KEY, authState } from '$lib/state/user.svelte';
+	import { 
+		createProfileQuery, 
+		createPermissionsQuery, 
+		PROFILE_QUERY_KEY, 
+		PERMISSIONS_QUERY_KEY, 
+		authState 
+	} from '$lib/state/user.svelte';
 	import { useQueryClient } from '@tanstack/svelte-query';
 
 	let { children } = $props();
 	const queryClient = useQueryClient();
 	const profileQuery = createProfileQuery();
+	const permissionsQuery = createPermissionsQuery();
 
 	async function handleLogout() {
 		const refreshToken = storage.get(AUTH_KEYS.REFRESH_TOKEN);
@@ -33,14 +40,21 @@
 		authState.token = null;
 		queryClient.setQueryData(PROFILE_QUERY_KEY, null);
 		queryClient.removeQueries({ queryKey: PROFILE_QUERY_KEY });
+		queryClient.setQueryData(PERMISSIONS_QUERY_KEY, null);
+		queryClient.removeQueries({ queryKey: PERMISSIONS_QUERY_KEY });
 		
 		goto(resolve('/signin'));
 	}
 
-	const navItems = [
-		{ icon: ListTodo, label: 'Tasks', href: '/' },
-		{ icon: Users, label: 'Users', href: '/users' },
+	const baseNavItems = [
+		{ icon: ListTodo, label: 'Tasks', href: '/', adminOnly: false },
+		{ icon: Users, label: 'Users', href: '/users', adminOnly: true },
 	] as const;
+
+	let navItems = $derived.by(() => {
+		const isAdmin = permissionsQuery.data?.permissions.admin_area ?? false;
+		return baseNavItems.filter(item => !item.adminOnly || isAdmin);
+	});
 
 	let activeRoute = $derived(page.url.pathname);
 

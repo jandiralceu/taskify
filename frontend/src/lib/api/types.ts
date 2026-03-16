@@ -18,6 +18,15 @@ export interface UserResponse {
 	createdAt: string;
 }
 
+export interface PermissionsResponse {
+	role: UserRole;
+	permissions: {
+		tasks: string[];
+		users: string[];
+		admin_area: boolean;
+	};
+}
+
 export interface SignInRequest {
 	email: string;
 	password: string;

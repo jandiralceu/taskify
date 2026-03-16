@@ -11,9 +11,10 @@
 		onDragEnd: () => void;
 		onDelete?: (taskId: string) => void;
 		onToggleBlock?: (taskId: string, blocked: boolean) => void;
+		onViewDetails?: (task: TaskResponse) => void;
 	}
 
-	let { task, isDragging = false, onDragStart, onDragEnd, onDelete, onToggleBlock }: Props = $props();
+	let { task, isDragging = false, onDragStart, onDragEnd, onDelete, onToggleBlock, onViewDetails }: Props = $props();
 	let isMenuOpen = $state(false);
 
 	function formatDate(dateStr: string) {
@@ -36,11 +37,14 @@
 </script>
 
 <div
-	role="listitem"
+	role="button"
+	tabindex="0"
 	draggable={!task.isBlocked}
 	ondragstart={handleDragStart}
 	ondragend={onDragEnd}
-	class="bg-white rounded-2xl p-5 border border-1 border-solid transition-all {task.isBlocked ? 'border-rose-200 cursor-not-allowed opacity-60 bg-surface-50' : 'border-gray-200 hover:shadow-md cursor-grab active:cursor-grabbing'} {isDragging ? 'opacity-40 scale-95' : ''}"
+	onclick={() => onViewDetails?.(task)}
+	onkeydown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onViewDetails?.(task); } }}
+	class="bg-white rounded-2xl p-5 border border-1 border-solid transition-all {task.isBlocked ? 'border-rose-200 cursor-not-allowed opacity-60 bg-surface-50' : 'border-gray-200 hover:shadow-md cursor-pointer active:cursor-grabbing'} {isDragging ? 'opacity-40 scale-95' : ''}"
 >
 	<!-- Header: Priority + Blocked Badge + Menu -->
 	<div class="flex justify-between items-center mb-3">
@@ -67,21 +71,22 @@
 				<Popover.Positioner>
 					<Popover.Content class="bg-white rounded-xl shadow-lg border border-surface-200 py-1 w-44 z-50">
 						<button
-							onclick={() => (isMenuOpen = false)}
+							onclick={(e) => { e.stopPropagation(); isMenuOpen = false; onViewDetails?.(task); }}
 							class="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-surface-700 hover:bg-surface-50 transition-colors cursor-pointer"
 						>
 							<Eye size={15} class="text-surface-400" />
 							<span>View Details</span>
 						</button>
 						<button
-							onclick={() => (isMenuOpen = false)}
+							onclick={(e) => { e.stopPropagation(); isMenuOpen = false; }}
 							class="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-surface-700 hover:bg-surface-50 transition-colors cursor-pointer"
 						>
 							<Pencil size={15} class="text-surface-400" />
 							<span>Edit</span>
 						</button>
 						<button
-							onclick={() => {
+							onclick={(e) => {
+								e.stopPropagation();
 								onToggleBlock?.(task.id, !task.isBlocked);
 								isMenuOpen = false;
 							}}
@@ -97,7 +102,8 @@
 						</button>
 						<hr class="my-1 border-surface-100" />
 						<button
-							onclick={() => {
+							onclick={(e) => {
+								e.stopPropagation();
 								onDelete?.(task.id);
 								isMenuOpen = false;
 							}}
