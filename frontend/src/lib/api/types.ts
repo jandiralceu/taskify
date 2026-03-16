@@ -19,6 +19,25 @@ export interface UserResponse {
 	createdAt: string;
 }
 
+export interface PaginatedResponse<T> {
+	data: T[];
+	total: number;
+	page: number;
+	limit: number;
+	totalPages: number;
+}
+
+export interface GetUsersParams {
+	page?: number;
+	limit?: number;
+	firstName?: string;
+	lastName?: string;
+	email?: string;
+	role?: UserRole;
+	sort?: string;
+	order?: 'asc' | 'desc';
+}
+
 export interface PermissionsResponse {
 	role: UserRole;
 	permissions: {

@@ -1,6 +1,7 @@
 import { createQuery } from '@tanstack/svelte-query';
 import { userService } from '$lib/api/user.service';
 import { storage, AUTH_KEYS } from '$lib/utils/storage';
+import type { GetUsersParams } from '$lib/api/types';
 
 export const PROFILE_QUERY_KEY = ['profile'] as const;
 export const PERMISSIONS_QUERY_KEY = ['permissions'] as const;
@@ -38,4 +39,19 @@ export function createUserQuery(userId: () => string | undefined) {
 		staleTime: 1000 * 60 * 5,
 		retry: 1
 	}));
+}
+
+export const USERS_QUERY_KEY = ['users'] as const;
+
+export function getUsersQuery(paramsGetter: () => GetUsersParams = () => ({})) {
+	return createQuery(() => {
+		const params = paramsGetter();
+		return {
+			queryKey: [...USERS_QUERY_KEY, params],
+			queryFn: () => userService.getUsers(params),
+			enabled: !!authState.token,
+			staleTime: 1000 * 60 * 2,
+			retry: 1
+		};
+	});
 }

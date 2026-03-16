@@ -1,5 +1,5 @@
 import { api } from './client';
-import type { UserResponse, PermissionsResponse } from './types';
+import type { UserResponse, PermissionsResponse, PaginatedResponse, GetUsersParams } from './types';
 
 export const userService = {
 	async getProfile(): Promise<UserResponse> {
@@ -10,5 +10,17 @@ export const userService = {
 	},
 	async getUserById(id: string): Promise<UserResponse> {
 		return api.get(`users/${id}`).json();
+	},
+	async getUsers(params: GetUsersParams = {}): Promise<PaginatedResponse<UserResponse>> {
+		const searchParams = new URLSearchParams();
+		if (params.page) searchParams.set('page', String(params.page));
+		if (params.limit) searchParams.set('limit', String(params.limit));
+		if (params.firstName) searchParams.set('firstName', params.firstName);
+		if (params.lastName) searchParams.set('lastName', params.lastName);
+		if (params.email) searchParams.set('email', params.email);
+		if (params.role) searchParams.set('role', params.role);
+		if (params.sort) searchParams.set('sort', params.sort);
+		if (params.order) searchParams.set('order', params.order);
+		return api.get('users', { searchParams }).json();
 	}
 };
