@@ -109,8 +109,8 @@
 	<div class="flex-1 flex flex-col min-w-0 relative">
 		
 		<!-- Page Content Area -->
-		<main class="flex-1 overflow-x-auto overflow-y-hidden custom-scrollbar">
-			<div class="h-full min-w-max p-8">
+		<main class="flex-1 overflow-x-auto overflow-y-auto custom-scrollbar">
+			<div class="h-full min-w-max">
 				{@render children()}
 			</div>
 		</main>

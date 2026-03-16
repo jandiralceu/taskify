@@ -133,9 +133,9 @@
 	}
 </script>
 
-<div class="h-full flex flex-col pt-8">
+<div class="min-h-full flex flex-col">
 	<!-- Project Header -->
-	<header class="px-8 pb-12">
+	<header class="px-16 pt-12 pb-10">
 		<div class="flex items-end justify-between">
 			<div class="space-y-2">
 				<h2 class="text-4xl text-surface-900 tracking-tight leading-tight">
@@ -156,7 +156,7 @@
 		</div>
 	</header>
 
-	<div class="px-8 flex items-center justify-between mb-16">
+	<div class="sticky top-0 z-20 bg-[#F7F3F9]/95 backdrop-blur-sm px-16 py-6 flex items-center justify-between mb-4 border-b border-transparent transition-all">
 		<h3 class="text-3xl font-light text-surface-900 tracking-tight">Tasks</h3>
 		<button 
 			onclick={handleAddTask}
@@ -168,8 +168,8 @@
 	</div>
 
 	<!-- Board Content -->
-	<div class="flex-1 overflow-x-auto custom-scrollbar-h">
-		<div class="inline-flex h-full pl-3 pr-8 pb-8">
+	<div class="flex-1 overflow-x-auto overflow-y-hidden custom-scrollbar-h">
+		<div class="inline-flex h-[calc(100vh-100px)] pl-11 pr-16 pb-8">
 			{#each columns as column (column.id)}
 				<div class="w-[340px] flex flex-col gap-6 shrink-0 border-r border-slate-300/50 last:border-r-0 px-5">
 					<!-- Column Header -->
@@ -181,45 +181,49 @@
 					</div>
 
 					<!-- Cards Area (drop zone) -->
-					<div
-						class="flex-1 overflow-y-auto pr-2 space-y-4 custom-scrollbar rounded-xl transition-colors {dragOverColumn === column.id ? 'bg-primary-500/5 ring-2 ring-primary-500/20' : ''}"
-						ondragover={(e) => onDragOver(e, column.id)}
-						ondragleave={(e) => onDragLeave(e, column.id)}
-						ondrop={(e) => onDrop(e, column.id)}
-						role="list"
-					>
-						{#if tasksQuery.isPending}
-							<div class="flex flex-col items-center justify-center py-12 text-surface-400">
-								<LoaderCircle size={24} class="animate-spin mb-2" />
-								<span class="text-xs font-medium">Loading tasks...</span>
-							</div>
-						{:else if tasksQuery.isError}
-							<div class="p-4 bg-red-50 text-red-600 rounded-xl text-xs font-medium text-center">
-								Failed to load tasks
-							</div>
-						{:else if tasksQuery.data}
-							{#each tasksQuery.data.filter(t => t.status === column.id) as task (task.id)}
-								<TaskCard
-									{task}
-									isDragging={draggingTaskId === task.id}
-									onDragStart={(e) => onDragStart(e, task.id)}
-									{onDragEnd}
-									onDelete={handleDeleteTask}
-									onToggleBlock={handleToggleBlock}
-								/>
-							{/each}
-						{/if}
+					<div class="relative flex-1 flex flex-col min-h-0">
+						<div
+							class="flex-1 overflow-y-auto pr-2 space-y-4 custom-scrollbar rounded-xl transition-colors pb-16 {dragOverColumn === column.id ? 'bg-primary-500/5 ring-2 ring-primary-500/20' : ''}"
+							ondragover={(e) => onDragOver(e, column.id)}
+							ondragleave={(e) => onDragLeave(e, column.id)}
+							ondrop={(e) => onDrop(e, column.id)}
+							role="list"
+						>
+							{#if tasksQuery.isPending}
+								<div class="flex flex-col items-center justify-center py-12 text-surface-400">
+									<LoaderCircle size={24} class="animate-spin mb-2" />
+									<span class="text-xs font-medium">Loading tasks...</span>
+								</div>
+							{:else if tasksQuery.isError}
+								<div class="p-4 bg-red-50 text-red-600 rounded-xl text-xs font-medium text-center">
+									Failed to load tasks
+								</div>
+							{:else if tasksQuery.data}
+								{#each tasksQuery.data.filter(t => t.status === column.id) as task (task.id)}
+									<TaskCard
+										{task}
+										isDragging={draggingTaskId === task.id}
+										onDragStart={(e) => onDragStart(e, task.id)}
+										{onDragEnd}
+										onDelete={handleDeleteTask}
+										onToggleBlock={handleToggleBlock}
+									/>
+								{/each}
+							{/if}
 
-						<!-- Plus Button only on Pending column -->
-						{#if column.id === 'pending'}
-							<button
-								onclick={handleAddTask}
-								class="w-full py-3 rounded-xl border-2 border-dashed border-primary-500/30 text-primary-500/60 hover:text-primary-500 hover:border-primary-500 hover:bg-primary-500/5 transition-all flex items-center justify-center gap-2 font-medium text-sm"
-							>
-								<Plus size={16} />
-								Add task
-							</button>
-						{/if}
+							<!-- Plus Button only on Pending column -->
+							{#if column.id === 'pending'}
+								<button
+									onclick={handleAddTask}
+									class="w-full py-3 rounded-xl border-2 border-dashed border-primary-500/30 text-primary-500/60 hover:text-primary-500 hover:border-primary-500 hover:bg-primary-500/5 transition-all flex items-center justify-center gap-2 font-medium text-sm"
+								>
+									<Plus size={16} />
+									Add task
+								</button>
+							{/if}
+						</div>
+						<!-- Bottom Fade Overlay -->
+						<div class="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-[#F7F3F9] to-transparent pointer-events-none z-10 rounded-b-xl"></div>
 					</div>
 				</div>
 			{/each}
