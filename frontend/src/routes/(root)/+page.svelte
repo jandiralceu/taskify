@@ -5,6 +5,7 @@
 	import { createProfileQuery } from '$lib/state/user.svelte';
 	import { getTasksQuery, updateTaskMutation, deleteTaskMutation } from '$lib/state/tasks.svelte';
 	import AddTaskModal from '$lib/components/AddTaskModal.svelte';
+	import UserDetailDrawer from '$lib/components/UserDetailDrawer.svelte';
 	import type { TaskResponse, TaskStatus, UserRole } from '$lib/api/types';
 
 	const ADMIN: UserRole = 'admin';
@@ -24,6 +25,8 @@
 	let isModalOpen = $state(false);
 	let selectedTask = $state<TaskResponse | null>(null);
 	let isDrawerOpen = $state(false);
+	let selectedUserId = $state<string | undefined>(undefined);
+	let isUserDrawerOpen = $state(false);
 
 	/**
 	 * Drag-and-drop state.
@@ -139,6 +142,11 @@
 		selectedTask = task;
 		isDrawerOpen = true;
 	}
+
+	function handleViewUser(userId: string) {
+		selectedUserId = userId;
+		isUserDrawerOpen = true;
+	}
 </script>
 
 <div class="min-h-full flex flex-col">
@@ -217,6 +225,7 @@
 										onDelete={handleDeleteTask}
 										onToggleBlock={handleToggleBlock}
 										onViewDetails={handleViewDetails}
+										onViewUser={handleViewUser}
 									/>
 								{/each}
 							{/if}
@@ -243,6 +252,7 @@
 
 <AddTaskModal isOpen={isModalOpen} onClose={() => isModalOpen = false} />
 <TaskDetailDrawer task={selectedTask} isOpen={isDrawerOpen} onClose={() => { isDrawerOpen = false; selectedTask = null; }} />
+<UserDetailDrawer userId={selectedUserId} open={isUserDrawerOpen} onOpenChange={(open) => isUserDrawerOpen = open} />
 
 <style>
 	/* Vertical Scrollbar */

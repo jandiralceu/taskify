@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Ellipsis, Eye, Pencil, ShieldBan, ShieldCheck, Trash2, Flag, MessageCircle, Paperclip } from '@lucide/svelte';
+	import { Ellipsis, Pencil, ShieldBan, ShieldCheck, Trash2, Flag, MessageCircle, Paperclip } from '@lucide/svelte';
 	import { Popover, Portal } from '@skeletonlabs/skeleton-svelte';
 	import type { TaskResponse } from '$lib/api/types';
 	import { priorityConfig } from '$lib/utils/task';
@@ -12,9 +12,10 @@
 		onDelete?: (taskId: string) => void;
 		onToggleBlock?: (taskId: string, blocked: boolean) => void;
 		onViewDetails?: (task: TaskResponse) => void;
+		onViewUser?: (userId: string) => void;
 	}
 
-	let { task, isDragging = false, onDragStart, onDragEnd, onDelete, onToggleBlock, onViewDetails }: Props = $props();
+	let { task, isDragging = false, onDragStart, onDragEnd, onDelete, onToggleBlock, onViewDetails, onViewUser }: Props = $props();
 	let isMenuOpen = $state(false);
 
 	function formatDate(dateStr: string) {
@@ -64,19 +65,15 @@
 			onOpenChange={(e) => (isMenuOpen = e.open)}
 			positioning={{ placement: 'bottom-end' }}
 		>
-			<Popover.Trigger class="text-surface-400 hover:text-surface-600 transition-colors cursor-pointer p-1 rounded-md hover:bg-surface-100">
+			<Popover.Trigger 
+				onclick={(e) => e.stopPropagation()}
+				class="text-surface-400 hover:text-surface-600 transition-colors cursor-pointer p-1 rounded-md hover:bg-surface-100"
+			>
 				<Ellipsis size={18} />
 			</Popover.Trigger>
 			<Portal>
 				<Popover.Positioner>
 					<Popover.Content class="bg-white rounded-xl shadow-lg border border-surface-200 py-1 w-44 z-50">
-						<button
-							onclick={(e) => { e.stopPropagation(); isMenuOpen = false; onViewDetails?.(task); }}
-							class="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-surface-700 hover:bg-surface-50 transition-colors cursor-pointer"
-						>
-							<Eye size={15} class="text-surface-400" />
-							<span>View Details</span>
-						</button>
 						<button
 							onclick={(e) => { e.stopPropagation(); isMenuOpen = false; }}
 							class="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-surface-700 hover:bg-surface-50 transition-colors cursor-pointer"
@@ -126,21 +123,25 @@
 		<span class="text-xs font-medium text-surface-700">Assignees :</span>
 		<div class="flex -space-x-2">
 			{#if task.assignee.avatarUrl}
-				<div 
-					class="size-7 rounded-full bg-surface-100 border-2 border-white flex items-center justify-center overflow-hidden"
+				<button 
+					type="button"
+					onclick={(e) => { e.stopPropagation(); onViewUser?.(task.assignee.id); }}
+					class="size-7 rounded-full bg-surface-100 border-2 border-white flex items-center justify-center overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary-500 transition-all"
 					title="{task.assignee.firstName} {task.assignee.lastName}"
 				>
 					<img src={task.assignee.avatarUrl} alt="{task.assignee.firstName}" class="size-full object-cover" />
-				</div>
+				</button>
 			{:else}
-				<div 
-					class="size-7 rounded-full bg-indigo-100 border-2 border-white flex items-center justify-center"
+				<button 
+					type="button"
+					onclick={(e) => { e.stopPropagation(); onViewUser?.(task.assignee.id); }}
+					class="size-7 rounded-full bg-indigo-100 border-2 border-white flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-primary-500 transition-all"
 					title="{task.assignee.firstName} {task.assignee.lastName}"
 				>
 					<span class="text-[10px] font-bold text-indigo-700">
 						{task.assignee.firstName[0]}{task.assignee.lastName[0]}
 					</span>
-				</div>
+				</button>
 			{/if}
 		</div>
 	</div>
@@ -155,17 +156,15 @@
 		{/if}
 	</div>
 
-	<hr class="border-surface-400" />
-
 	<!-- Footer: Comments, Files -->
-	<div class="flex items-center justify-between pt-3 border-t border-surface-100 text-surface-700 text-xs">
-		<div class="flex items-center gap-1.5">
+	<div class="flex items-center justify-between pt-3 border-t border-surface-100 text-surface-500 text-xs">
+		<div class="flex items-center gap-1.5 ">
 			<Paperclip size={14} />
-			<span>1 Attachments</span>
+			<span>{task.attachmentsCount} {task.attachmentsCount === 1 ? 'Attachment' : 'Attachments'}</span>
 		</div>
 		<div class="flex items-center gap-1.5">
 			<MessageCircle size={14} />
-			<span>12 Comments</span>
+			<span>{task.notesCount} {task.notesCount === 1 ? 'Comment' : 'Comments'}</span>
 		</div>
 	</div>
 </div>

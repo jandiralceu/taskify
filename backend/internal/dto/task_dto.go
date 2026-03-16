@@ -32,21 +32,23 @@ type UpdateTaskRequest struct {
 }
 
 type TaskResponse struct {
-	ID             uuid.UUID           `json:"id"`
-	Title          string              `json:"title"`
-	Description    string              `json:"description"`
-	Status         models.TaskStatus   `json:"status"`
-	Priority       models.TaskPriority `json:"priority"`
-	IsBlocked      bool                `json:"isBlocked"`
-	CreatedBy      uuid.UUID           `json:"createdBy"`
-	AssignedTo     *uuid.UUID          `json:"assignedTo"`
-	DueDate        *time.Time          `json:"dueDate"`
-	CompletedAt    *time.Time          `json:"completedAt"`
-	EstimatedHours *float64            `json:"estimatedHours"`
-	ActualHours    *float64            `json:"actualHours"`
-	IsArchived     bool                `json:"isArchived"`
-	CreatedAt      time.Time           `json:"createdAt"`
-	UpdatedAt      time.Time           `json:"updatedAt"`
+	ID               uuid.UUID           `json:"id"`
+	Title            string              `json:"title"`
+	Description      string              `json:"description"`
+	Status           models.TaskStatus   `json:"status"`
+	Priority         models.TaskPriority `json:"priority"`
+	IsBlocked        bool                `json:"isBlocked"`
+	CreatedBy        uuid.UUID           `json:"createdBy"`
+	AssignedTo       *uuid.UUID          `json:"assignedTo"`
+	DueDate          *time.Time          `json:"dueDate"`
+	CompletedAt      *time.Time          `json:"completedAt"`
+	EstimatedHours   *float64            `json:"estimatedHours"`
+	ActualHours      *float64            `json:"actualHours"`
+	IsArchived       bool                `json:"isArchived"`
+	CreatedAt        time.Time           `json:"createdAt"`
+	UpdatedAt        time.Time           `json:"updatedAt"`
+	NotesCount       int                 `json:"notesCount"`
+	AttachmentsCount int                 `json:"attachmentsCount"`
 }
 
 type CreateTaskNoteRequest struct {

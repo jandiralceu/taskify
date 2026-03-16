@@ -41,6 +41,10 @@ type Task struct {
 	CreatedAt      time.Time    `gorm:"type:timestamptz;not null;default:now()" json:"createdAt"`
 	UpdatedAt      time.Time    `gorm:"type:timestamptz;not null;default:now()" json:"updatedAt"`
 
+	// UI Fields (populated via subqueries)
+	NotesCount       int `gorm:"-" json:"notesCount"`
+	AttachmentsCount int `gorm:"-" json:"attachmentsCount"`
+
 	// Associations
 	Creator     User             `gorm:"foreignKey:CreatedBy" json:"-"`
 	Assignee    *User            `gorm:"foreignKey:AssignedTo" json:"assignee,omitempty"`

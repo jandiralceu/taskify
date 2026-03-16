@@ -30,3 +30,12 @@ export function createPermissionsQuery() {
 		retry: 1
 	}));
 }
+export function createUserQuery(userId: () => string | undefined) {
+	return createQuery(() => ({
+		queryKey: ['user', userId()],
+		queryFn: () => userService.getUserById(userId()!),
+		enabled: !!authState.token && !!userId(),
+		staleTime: 1000 * 60 * 5,
+		retry: 1
+	}));
+}

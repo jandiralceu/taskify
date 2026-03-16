@@ -135,6 +135,13 @@ func (r *taskRepository) Update(ctx context.Context, taskID uuid.UUID, params Up
 		return nil, mapDatabaseError(err)
 	}
 
+	// Set counts
+	var notesCount, attachmentsCount int64
+	r.db.WithContext(ctx).Model(&models.TaskNote{}).Where("task_id = ?", taskID).Count(&notesCount)
+	r.db.WithContext(ctx).Model(&models.TaskAttachment{}).Where("task_id = ?", taskID).Count(&attachmentsCount)
+	task.NotesCount = int(notesCount)
+	task.AttachmentsCount = int(attachmentsCount)
+
 	return &task, nil
 }
 
@@ -158,13 +165,21 @@ func (r *taskRepository) FindByID(ctx context.Context, taskID uuid.UUID) (*model
 		First(&task, "id = ?", taskID).Error; err != nil {
 		return nil, mapDatabaseError(err)
 	}
+
+	task.NotesCount = len(task.Notes)
+	task.AttachmentsCount = len(task.Attachments)
+
 	return &task, nil
 }
 
 func (r *taskRepository) FindAll(ctx context.Context, filter TaskListFilter) ([]models.Task, error) {
 	var tasks []models.Task
 
-	query := r.db.WithContext(ctx).Model(&models.Task{})
+	// Select all fields from tasks plus counts as virtual columns
+	query := r.db.WithContext(ctx).Model(&models.Task{}).
+		Select("tasks.*, " +
+			"(SELECT COUNT(*) FROM task_notes WHERE task_notes.task_id = tasks.id) AS notes_count, " +
+			"(SELECT COUNT(*) FROM task_attachments WHERE task_attachments.task_id = tasks.id) AS attachments_count")
 
 	if filter.Status != "" {
 		query = query.Where("status = ?", filter.Status)

@@ -14,6 +14,7 @@ export interface UserResponse {
 	lastName: string;
 	email: string;
 	role: UserRole;
+	isActive: boolean;
 	avatarUrl?: string;
 	createdAt: string;
 }
@@ -68,6 +69,8 @@ export interface TaskResponse {
 	estimatedHours?: number;
 	actualHours?: number;
 	isArchived: boolean;
+	notesCount: number;
+	attachmentsCount: number;
 	createdAt: string;
 	updatedAt: string;
 }

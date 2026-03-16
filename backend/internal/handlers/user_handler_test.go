@@ -357,6 +357,7 @@ func TestGetPermissionsSuccess(t *testing.T) {
 	assert.NotNil(t, resp["permissions"])
 
 	permissions := resp["permissions"].(map[string]interface{})
-	// Based on policy.csv, employee has access to /api/v1/users/profile
-	assert.Contains(t, permissions, "/api/v1/users/profile")
+	assert.Contains(t, permissions, "tasks")
+	assert.Contains(t, permissions, "users")
+	assert.Equal(t, false, permissions["admin_area"])
 }

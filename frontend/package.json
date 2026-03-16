@@ -53,6 +53,7 @@
 		"@lucide/svelte": "^0.577.0",
 		"@tanstack/svelte-query": "^6.1.0",
 		"ky": "^1.14.3",
+		"simplebar": "^6.3.3",
 		"zod": "^4.3.6"
 	}
 }
