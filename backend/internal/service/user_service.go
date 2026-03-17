@@ -35,17 +35,22 @@ type UserService interface {
 	UpdateAvatar(ctx context.Context, userID uuid.UUID, file io.Reader, filename string) (string, error)
 }
 
+// refreshTokenCacheKeyPrefix is the Redis key prefix used for refresh tokens.
+// Format: refresh_token:{userID}:{token}
+const refreshTokenCacheKeyPrefix = "refresh_token:"
+
 type userService struct {
 	userRepo   repository.UserRepository
 	hasher     pkg.PasswordHasher
 	uploadPath string
+	cache      pkg.CacheManager
 }
 
 var _ UserService = (*userService)(nil)
 
 // NewUserService initializes a UserService with its required repository and hasher dependencies.
-func NewUserService(userRepo repository.UserRepository, hasher pkg.PasswordHasher, uploadPath string) UserService {
-	return &userService{userRepo: userRepo, hasher: hasher, uploadPath: uploadPath}
+func NewUserService(userRepo repository.UserRepository, hasher pkg.PasswordHasher, uploadPath string, cache pkg.CacheManager) UserService {
+	return &userService{userRepo: userRepo, hasher: hasher, uploadPath: uploadPath, cache: cache}
 }
 
 // Create performs password hashing using the injected hasher before persisting the user through the repository.
@@ -92,9 +97,16 @@ func (s *userService) FindByEmail(ctx context.Context, email string) (*models.Us
 	return s.userRepo.FindByEmail(ctx, email)
 }
 
-// Delete removes the user record identified by the unique ID.
+// Delete removes the user record and invalidates all their active sessions in the cache.
 func (s *userService) Delete(ctx context.Context, userID uuid.UUID) error {
-	return s.userRepo.Delete(ctx, userID)
+	if err := s.userRepo.Delete(ctx, userID); err != nil {
+		return err
+	}
+
+	prefix := fmt.Sprintf("%s%s:", refreshTokenCacheKeyPrefix, userID.String())
+	_ = s.cache.DeletePrefix(ctx, prefix)
+
+	return nil
 }
 
 // Update handles partial updates to the user profile.

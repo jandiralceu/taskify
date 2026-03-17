@@ -2,7 +2,7 @@ import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-qu
 import { userService } from '$lib/api/user.service';
 import { storage, AUTH_KEYS } from '$lib/utils/storage';
 import { TASKS_QUERY_KEY } from '$lib/state/tasks.svelte';
-import type { GetUsersParams, UpdateUserRequest, UserResponse } from '$lib/api/types';
+import type { GetUsersParams, UpdateUserRequest, UserResponse, ChangePasswordRequest } from '$lib/api/types';
 
 export const PROFILE_QUERY_KEY = ['profile'] as const;
 export const PERMISSIONS_QUERY_KEY = ['permissions'] as const;
@@ -43,6 +43,38 @@ export function createUserQuery(userId: () => string | undefined) {
 }
 
 export const USERS_QUERY_KEY = ['users'] as const;
+
+export function updateProfileMutation() {
+	const queryClient = useQueryClient();
+
+	return createMutation<UserResponse, Error, UpdateUserRequest>(() => ({
+		mutationFn: (data) => userService.updateProfile(data),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY });
+			queryClient.invalidateQueries({ queryKey: USERS_QUERY_KEY });
+		}
+	}));
+}
+
+export function changePasswordMutation() {
+	return createMutation<void, Error, ChangePasswordRequest>(() => ({
+		mutationFn: (data) => userService.changePassword(data)
+	}));
+}
+
+export function deleteProfileMutation() {
+	const queryClient = useQueryClient();
+
+	return createMutation<void, Error, void>(() => ({
+		mutationFn: () => userService.deleteProfile(),
+		onSuccess: () => {
+			queryClient.clear();
+			authState.token = null;
+			storage.remove(AUTH_KEYS.ACCESS_TOKEN);
+			storage.remove(AUTH_KEYS.REFRESH_TOKEN);
+		}
+	}));
+}
 
 export function updateUserMutation() {
 	const queryClient = useQueryClient();

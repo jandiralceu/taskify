@@ -1,5 +1,5 @@
 import { api } from './client';
-import type { UserResponse, PermissionsResponse, PaginatedResponse, GetUsersParams, UpdateUserRequest } from './types';
+import type { UserResponse, PermissionsResponse, PaginatedResponse, GetUsersParams, UpdateUserRequest, ChangePasswordRequest } from './types';
 
 export const userService = {
 	async getProfile(): Promise<UserResponse> {
@@ -22,6 +22,15 @@ export const userService = {
 		if (params.sort) searchParams.set('sort', params.sort);
 		if (params.order) searchParams.set('order', params.order);
 		return api.get('users', { searchParams }).json();
+	},
+	async updateProfile(data: UpdateUserRequest): Promise<UserResponse> {
+		return api.patch('users/profile', { json: data }).json();
+	},
+	async changePassword(data: ChangePasswordRequest): Promise<void> {
+		await api.patch('users/change-password', { json: data });
+	},
+	async deleteProfile(): Promise<void> {
+		await api.delete('users/profile');
 	},
 	async updateUser(id: string, data: UpdateUserRequest): Promise<UserResponse> {
 		return api.patch(`users/${id}`, { json: data }).json();

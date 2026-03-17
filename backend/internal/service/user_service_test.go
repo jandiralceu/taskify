@@ -16,7 +16,7 @@ import (
 func TestCreateUser(t *testing.T) {
 	mockRepo := new(MockUserRepository)
 	mockHasher := new(MockPasswordHasher)
-	svc := NewUserService(mockRepo, mockHasher, "/tmp")
+	svc := NewUserService(mockRepo, mockHasher, "/tmp", nil)
 
 	ctx := context.Background()
 	user := &models.User{
@@ -41,7 +41,7 @@ func TestCreateUser(t *testing.T) {
 func TestFindAllUsers(t *testing.T) {
 	mockRepo := new(MockUserRepository)
 	mockHasher := new(MockPasswordHasher)
-	svc := NewUserService(mockRepo, mockHasher, "/tmp")
+	svc := NewUserService(mockRepo, mockHasher, "/tmp", nil)
 
 	ctx := context.Background()
 	req := dto.GetUserListRequest{
@@ -63,7 +63,7 @@ func TestFindAllUsers(t *testing.T) {
 func TestFindUserByID(t *testing.T) {
 	mockRepo := new(MockUserRepository)
 	mockHasher := new(MockPasswordHasher)
-	svc := NewUserService(mockRepo, mockHasher, "/tmp")
+	svc := NewUserService(mockRepo, mockHasher, "/tmp", nil)
 
 	ctx := context.Background()
 	userID := uuid.New()
@@ -81,24 +81,27 @@ func TestFindUserByID(t *testing.T) {
 func TestDeleteUser(t *testing.T) {
 	mockRepo := new(MockUserRepository)
 	mockHasher := new(MockPasswordHasher)
-	svc := NewUserService(mockRepo, mockHasher, "/tmp")
+	mockCache := new(MockCacheManager)
+	svc := NewUserService(mockRepo, mockHasher, "/tmp", mockCache)
 
 	ctx := context.Background()
 	userID := uuid.New()
 
 	mockRepo.On("Delete", ctx, userID).Return(nil)
+	mockCache.On("DeletePrefix", ctx, mock.AnythingOfType("string")).Return(nil)
 
 	err := svc.Delete(ctx, userID)
 
 	assert.NoError(t, err)
 	mockRepo.AssertExpectations(t)
+	mockCache.AssertExpectations(t)
 }
 
 func TestChangePassword(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		mockRepo := new(MockUserRepository)
 		mockHasher := new(MockPasswordHasher)
-		svc := NewUserService(mockRepo, mockHasher, "/tmp")
+		svc := NewUserService(mockRepo, mockHasher, "/tmp", nil)
 
 		ctx := context.Background()
 		userID := uuid.New()
@@ -124,7 +127,7 @@ func TestChangePassword(t *testing.T) {
 	t.Run("IncorrectOldPassword", func(t *testing.T) {
 		mockRepo := new(MockUserRepository)
 		mockHasher := new(MockPasswordHasher)
-		svc := NewUserService(mockRepo, mockHasher, "/tmp")
+		svc := NewUserService(mockRepo, mockHasher, "/tmp", nil)
 
 		ctx := context.Background()
 		userID := uuid.New()
@@ -148,7 +151,7 @@ func TestChangePassword(t *testing.T) {
 func TestUpdateUser(t *testing.T) {
 	mockRepo := new(MockUserRepository)
 	mockHasher := new(MockPasswordHasher)
-	svc := NewUserService(mockRepo, mockHasher, "/tmp")
+	svc := NewUserService(mockRepo, mockHasher, "/tmp", nil)
 
 	ctx := context.Background()
 	userID := uuid.New()

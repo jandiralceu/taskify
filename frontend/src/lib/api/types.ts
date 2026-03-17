@@ -111,6 +111,11 @@ export interface UpdateUserRequest {
 	isActive?: boolean;
 }
 
+export interface ChangePasswordRequest {
+	oldPassword: string;
+	newPassword: string;
+}
+
 export interface UpdateTaskRequest {
 	title?: string;
 	description?: string;

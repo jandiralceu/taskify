@@ -102,7 +102,7 @@ func main() {
 	userRepository := repository.NewUserRepository(db)
 	taskRepository := repository.NewTaskRepository(db)
 
-	userService := service.NewUserService(userRepository, hasher, cfg.UploadPath)
+	userService := service.NewUserService(userRepository, hasher, cfg.UploadPath, cacheManager)
 	taskService := service.NewTaskService(taskRepository, cfg.UploadPath)
 
 

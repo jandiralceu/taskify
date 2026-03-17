@@ -32,7 +32,7 @@
 
 <div class="w-full space-y-1">
 	{#if label}
-		<label for={id} class="block text-sm font-medium text-surface-700 dark:text-surface-300">
+		<label for={id} class="block text-sm font-medium text-surface-800 dark:text-surface-300">
 			{label}
 		</label>
 	{/if}

@@ -117,9 +117,9 @@ func setupAppCustom(t *testing.T, modifyConfig func(*config.Config)) (*httptest.
 	hasher := pkg.NewArgon2PasswordHasher()
 
 	userRepository := repository.NewUserRepository(db)
-	userService := service.NewUserService(userRepository, hasher, cfg.UploadPath)
+	userService := service.NewUserService(userRepository, hasher, cfg.UploadPath, cacheManager)
 	authHandler := handlers.NewAuthHandler(userService, jwtManager, cacheManager, hasher)
-	userHandler := handlers.NewUserHandler(userService)
+	userHandler := handlers.NewUserHandler(userService, nil)
 
 	// Initialize Casbin Enforcer for RBAC.
 	// We need to point to the files in the project root.

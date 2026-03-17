@@ -129,6 +129,31 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
+// DeleteOwnAccount godoc
+// @Summary      Delete own account
+// @Description  Permanently deletes the authenticated user's own account.
+// @Tags         users
+// @Produce      json
+// @Success      204 "No Content"
+// @Failure      401  {object}  ProblemDetails
+// @Failure      500  {object}  ProblemDetails
+// @Security     Bearer
+// @Router       /users/profile [delete]
+func (h *UserHandler) DeleteOwnAccount(c *gin.Context) {
+	userID := middleware.GetUserID(c)
+	if userID == uuid.Nil {
+		RespondWithError(c, apperrors.ErrUnauthorized)
+		return
+	}
+
+	if err := h.userService.Delete(c.Request.Context(), userID); err != nil {
+		RespondWithError(c, err)
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
+
 // ChangePassword godoc
 // @Summary      Change own password
 // @Description  Updates the authenticated user's password. Requires the old password for verification.

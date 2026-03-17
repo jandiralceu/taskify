@@ -73,7 +73,7 @@
 							<Dialog.Title class="text-2xl font-medium text-surface-900 tracking-tight">
 								Create New Task
 							</Dialog.Title>
-							<Dialog.Description class="text-sm text-surface-500 mt-1">
+							<Dialog.Description class="text-sm text-surface-800 mt-1">
 								Fill in the details for your new task.
 							</Dialog.Description>
 						</div>
@@ -98,7 +98,7 @@
 
 					<!-- Description -->
 					<div class="space-y-1">
-						<label for="description" class="block text-sm font-medium text-surface-700">
+						<label for="description" class="block text-sm font-medium text-surface-800">
 							Description
 						</label>
 						<textarea
@@ -111,7 +111,7 @@
 
 					<!-- Priority -->
 					<div class="space-y-1">
-						<label for="priority" class="block text-sm font-medium text-surface-700">
+						<label for="priority" class="block text-sm font-medium text-surface-800">
 							Priority
 						</label>
 						<div class="relative">
