@@ -192,15 +192,16 @@ func (s *taskService) AddAttachment(ctx context.Context, taskID, userID uuid.UUI
 	// 2. Generate unique filename to avoid collisions
 	ext := filepath.Ext(filename)
 	uniqueName := fmt.Sprintf("%s%s", uuid.New().String(), ext)
-	filePath := filepath.Join(s.uploadPath, uniqueName)
+	attachmentDir := filepath.Join(s.uploadPath, "attachments")
+	diskPath := filepath.Join(attachmentDir, uniqueName)
 
 	// 3. Ensure upload directory exists
-	if err := os.MkdirAll(s.uploadPath, os.ModePerm); err != nil {
+	if err := os.MkdirAll(attachmentDir, os.ModePerm); err != nil {
 		return nil, apperrors.ErrStorage
 	}
 
 	// 4. Create local file
-	dst, err := os.Create(filePath)
+	dst, err := os.Create(diskPath)
 	if err != nil {
 		return nil, apperrors.ErrStorage
 	}
@@ -210,8 +211,10 @@ func (s *taskService) AddAttachment(ctx context.Context, taskID, userID uuid.UUI
 		return nil, apperrors.ErrStorage
 	}
 
-	// 5. Build attachment record (save relative or absolute path, usually relative is better for portability)
-	// But for now we use what's configured
+	// 5. Build attachment record (save relative path from the root of static serving)
+	// The static handler is usually mounted at /uploads/ pointing to s.uploadPath
+	filePath := "/uploads/attachments/" + uniqueName
+
 	attachment := &models.TaskAttachment{
 		TaskID:   taskID,
 		UserID:   userID,
@@ -223,7 +226,7 @@ func (s *taskService) AddAttachment(ctx context.Context, taskID, userID uuid.UUI
 
 	if err := s.taskRepo.CreateAttachment(ctx, attachment); err != nil {
 		// Rollback: delete file if DB fails
-		os.Remove(filePath)
+		os.Remove(diskPath)
 		return nil, err
 	}
 
@@ -247,7 +250,8 @@ func (s *taskService) DeleteAttachment(ctx context.Context, attachmentID, userID
 	}
 
 	// 2. Delete from disk (best effort, don't fail if file is already gone)
-	_ = os.Remove(attachment.FilePath)
+	diskPath := filepath.Join(s.uploadPath, "attachments", filepath.Base(attachment.FilePath))
+	_ = os.Remove(diskPath)
 
 	return nil
 }
