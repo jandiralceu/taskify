@@ -1,28 +1,36 @@
-import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
-import { tasksService, type GetTasksParams } from '$lib/api/tasks.service';
-import type { CreateTaskRequest, UpdateTaskRequest, TaskResponse } from '$lib/api/types';
+import {
+  createQuery,
+  createMutation,
+  useQueryClient,
+} from '@tanstack/svelte-query'
+import { tasksService, type GetTasksParams } from '$lib/api/tasks.service'
+import type {
+  CreateTaskRequest,
+  UpdateTaskRequest,
+  TaskResponse,
+} from '$lib/api/types'
 
-export const TASKS_QUERY_KEY = ['tasks'];
+export const TASKS_QUERY_KEY = ['tasks']
 
 export function getTasksQuery(paramsGetter: () => GetTasksParams = () => ({})) {
-	return createQuery(() => {
-		const params = paramsGetter();
-		return {
-			queryKey: [...TASKS_QUERY_KEY, params],
-			queryFn: () => tasksService.getTasks(params)
-		};
-	});
+  return createQuery(() => {
+    const params = paramsGetter()
+    return {
+      queryKey: [...TASKS_QUERY_KEY, params],
+      queryFn: () => tasksService.getTasks(params),
+    }
+  })
 }
 
 export function getTaskQuery(idGetter: () => string) {
-	return createQuery(() => {
-		const id = idGetter();
-		return {
-			queryKey: [...TASKS_QUERY_KEY, id],
-			queryFn: () => tasksService.getTask(id),
-			enabled: !!id
-		};
-	});
+  return createQuery(() => {
+    const id = idGetter()
+    return {
+      queryKey: [...TASKS_QUERY_KEY, id],
+      queryFn: () => tasksService.getTask(id),
+      enabled: !!id,
+    }
+  })
 }
 
 /**
@@ -38,34 +46,38 @@ export function getTaskQuery(idGetter: () => string) {
  * await updateTask.mutateAsync({ id: task.id, data: { status: 'in_progress' } });
  */
 export function updateTaskMutation() {
-	const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
 
-	return createMutation<TaskResponse, Error, { id: string; data: UpdateTaskRequest }>(() => ({
-		mutationFn: ({ id, data }) => tasksService.updateTask(id, data),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
-		}
-	}));
+  return createMutation<
+    TaskResponse,
+    Error,
+    { id: string; data: UpdateTaskRequest }
+  >(() => ({
+    mutationFn: ({ id, data }) => tasksService.updateTask(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY })
+    },
+  }))
 }
 
 export function createTaskMutation() {
-	const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
 
-	return createMutation<TaskResponse, Error, CreateTaskRequest>(() => ({
-		mutationFn: (data) => tasksService.createTask(data),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
-		}
-	}));
+  return createMutation<TaskResponse, Error, CreateTaskRequest>(() => ({
+    mutationFn: data => tasksService.createTask(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY })
+    },
+  }))
 }
 
 export function deleteTaskMutation() {
-	const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
 
-	return createMutation<void, Error, string>(() => ({
-		mutationFn: (id) => tasksService.deleteTask(id),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY });
-		}
-	}));
+  return createMutation<void, Error, string>(() => ({
+    mutationFn: id => tasksService.deleteTask(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY })
+    },
+  }))
 }

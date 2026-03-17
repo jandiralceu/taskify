@@ -1,81 +1,81 @@
 [data-theme='roxo'] {
-	/* Core Tokens */
-	--spacing: 0.25rem;
-	--text-scaling: 1;
-	--base-font-family: 'Roboto Variable', ui-sans-serif, system-ui;
-	--radius-base: 0.5rem;
-	--radius-container: 1rem;
+  /* Core Tokens */
+  --spacing: 0.25rem;
+  --text-scaling: 1;
+  --base-font-family: 'Roboto Variable', ui-sans-serif, system-ui;
+  --radius-base: 0.5rem;
+  --radius-container: 1rem;
 
-	/* Primary: Purple (#820AD1) */
-	--color-primary-50: #f7efff;
-	--color-primary-100: #eddbfe;
-	--color-primary-200: #d6b1fb;
-	--color-primary-300: #b976f7;
-	--color-primary-400: #9c3bf2;
-	--color-primary-500: #820ad1;
-	--color-primary-600: #7509b5;
-	--color-primary-700: #5f0892;
-	--color-primary-800: #420566;
-	--color-primary-900: #29033f;
-	--color-primary-950: #1a0229;
+  /* Primary: Purple (#820AD1) */
+  --color-primary-50: #f7efff;
+  --color-primary-100: #eddbfe;
+  --color-primary-200: #d6b1fb;
+  --color-primary-300: #b976f7;
+  --color-primary-400: #9c3bf2;
+  --color-primary-500: #820ad1;
+  --color-primary-600: #7509b5;
+  --color-primary-700: #5f0892;
+  --color-primary-800: #420566;
+  --color-primary-900: #29033f;
+  --color-primary-950: #1a0229;
 
-	/* Text on Primary */
-	--color-primary-contrast-dark: var(--color-primary-950);
-	--color-primary-contrast-light: #ffffff;
-	--color-primary-contrast-50: var(--color-primary-contrast-dark);
-	--color-primary-contrast-100: var(--color-primary-contrast-dark);
-	--color-primary-contrast-200: var(--color-primary-contrast-dark);
-	--color-primary-contrast-300: var(--color-primary-contrast-dark);
-	--color-primary-contrast-400: var(--color-primary-contrast-light);
-	--color-primary-contrast-500: var(--color-primary-contrast-light);
-	--color-primary-contrast-600: var(--color-primary-contrast-light);
-	--color-primary-contrast-700: var(--color-primary-contrast-light);
-	--color-primary-contrast-800: var(--color-primary-contrast-light);
-	--color-primary-contrast-900: var(--color-primary-contrast-light);
-	--color-primary-contrast-950: var(--color-primary-contrast-light);
+  /* Text on Primary */
+  --color-primary-contrast-dark: var(--color-primary-950);
+  --color-primary-contrast-light: #ffffff;
+  --color-primary-contrast-50: var(--color-primary-contrast-dark);
+  --color-primary-contrast-100: var(--color-primary-contrast-dark);
+  --color-primary-contrast-200: var(--color-primary-contrast-dark);
+  --color-primary-contrast-300: var(--color-primary-contrast-dark);
+  --color-primary-contrast-400: var(--color-primary-contrast-light);
+  --color-primary-contrast-500: var(--color-primary-contrast-light);
+  --color-primary-contrast-600: var(--color-primary-contrast-light);
+  --color-primary-contrast-700: var(--color-primary-contrast-light);
+  --color-primary-contrast-800: var(--color-primary-contrast-light);
+  --color-primary-contrast-900: var(--color-primary-contrast-light);
+  --color-primary-contrast-950: var(--color-primary-contrast-light);
 
-	/* Secondary: Deep Gray/Charcoal (#2e2e2e) */
-	--color-secondary-50: #f5f5f5;
-	--color-secondary-100: #ebebeb;
-	--color-secondary-200: #d6d6d6;
-	--color-secondary-300: #b3b3b3;
-	--color-secondary-400: #8f8f8f;
-	--color-secondary-500: #2e2e2e;
-	--color-secondary-600: #262626;
-	--color-secondary-700: #1f1f1f;
-	--color-secondary-800: #171717;
-	--color-secondary-900: #0f0f0f;
-	--color-secondary-950: #080808;
+  /* Secondary: Deep Gray/Charcoal (#2e2e2e) */
+  --color-secondary-50: #f5f5f5;
+  --color-secondary-100: #ebebeb;
+  --color-secondary-200: #d6d6d6;
+  --color-secondary-300: #b3b3b3;
+  --color-secondary-400: #8f8f8f;
+  --color-secondary-500: #2e2e2e;
+  --color-secondary-600: #262626;
+  --color-secondary-700: #1f1f1f;
+  --color-secondary-800: #171717;
+  --color-secondary-900: #0f0f0f;
+  --color-secondary-950: #080808;
 
-	--color-secondary-contrast-dark: var(--color-secondary-950);
-	--color-secondary-contrast-light: #ffffff;
-	--color-secondary-contrast-500: var(--color-secondary-contrast-light);
+  --color-secondary-contrast-dark: var(--color-secondary-950);
+  --color-secondary-contrast-light: #ffffff;
+  --color-secondary-contrast-500: var(--color-secondary-contrast-light);
 
-	/* Tertiary: Pink (#f101ab) - used for accents */
-	--color-tertiary-500: #f101ab;
-	--color-tertiary-contrast-500: #ffffff;
+  /* Tertiary: Pink (#f101ab) - used for accents */
+  --color-tertiary-500: #f101ab;
+  --color-tertiary-contrast-500: #ffffff;
 
-	/* Success: Green (#24d138) */
-	--color-success-500: #24d138;
-	--color-success-contrast-500: #ffffff;
+  /* Success: Green (#24d138) */
+  --color-success-500: #24d138;
+  --color-success-contrast-500: #ffffff;
 
-	/* Error: Red (#ef4444) */
-	--color-error-500: #ef4444;
-	--color-error-contrast-500: #ffffff;
+  /* Error: Red (#ef4444) */
+  --color-error-500: #ef4444;
+  --color-error-contrast-500: #ffffff;
 
-	/* Surface: White/Dark Gray */
-	--color-surface-50: #ffffff;
-	--color-surface-100: #fcfcfc;
-	--color-surface-200: #f7f7f7;
-	--color-surface-300: #f0f0f0;
-	--color-surface-400: #e6e6e6;
-	--color-surface-500: #cccccc;
-	--color-surface-600: #999999;
-	--color-surface-700: #666666;
-	--color-surface-800: #333333;
-	--color-surface-900: #1a1a1a;
-	--color-surface-950: #121212;
+  /* Surface: White/Dark Gray */
+  --color-surface-50: #ffffff;
+  --color-surface-100: #fcfcfc;
+  --color-surface-200: #f7f7f7;
+  --color-surface-300: #f0f0f0;
+  --color-surface-400: #e6e6e6;
+  --color-surface-500: #cccccc;
+  --color-surface-600: #999999;
+  --color-surface-700: #666666;
+  --color-surface-800: #333333;
+  --color-surface-900: #1a1a1a;
+  --color-surface-950: #121212;
 
-	--color-surface-contrast-dark: #111111;
-	--color-surface-contrast-light: #ffffff;
+  --color-surface-contrast-dark: #111111;
+  --color-surface-contrast-light: #ffffff;
 }

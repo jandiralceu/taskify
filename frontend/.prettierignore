@@ -5,5 +5,30 @@ yarn.lock
 bun.lock
 bun.lockb
 
-# Miscellaneous
+# Environment Variables
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Build Output
+/dist/
+/build/
+
+# Node Modules
+node_modules
+
+# Static Files
 /static/
+
+# Playwright
+test-results/
+
+# Coverage
+coverage/
+coverage.html
+coverage.json
+coverage.lcov
+coverage.lcov.json
+coverage.lcov.html
+coverage.lcov.json
