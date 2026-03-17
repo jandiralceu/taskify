@@ -552,15 +552,30 @@
             <div class="space-y-3 border-t border-surface-100 pt-4">
               {#each taskQuery.data.notes as note (note.id)}
                 <div class="group flex gap-3">
-                  <div class="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-primary-50 text-[10px] font-bold text-primary-600">
-                    ?
-                  </div>
+                  {#if note.user?.avatarUrl}
+                    <div class="mt-0.5 size-7 overflow-hidden rounded-full border border-surface-100 bg-surface-100 shadow-sm">
+                      <img src={resolveAvatarUrl(note.user.avatarUrl) ?? ''} alt={note.user.firstName} class="size-full object-cover" />
+                    </div>
+                  {:else if note.user}
+                    <div class="mt-0.5 flex size-7 items-center justify-center rounded-full border border-surface-100 bg-indigo-100 text-[10px] font-bold text-indigo-700 shadow-sm">
+                      {note.user.firstName[0]}{note.user.lastName[0]}
+                    </div>
+                  {:else}
+                    <div class="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-primary-50 text-[10px] font-bold text-primary-600">
+                      ?
+                    </div>
+                  {/if}
                   <div class="min-w-0 flex-1 rounded-xl border border-surface-100 bg-surface-50 px-4 py-3">
-                    <p class="text-sm leading-relaxed text-surface-700">{note.content}</p>
-                    <div class="mt-1.5 flex items-center justify-between">
-                      <p class="text-[11px] text-surface-400">
+                    <div class="mb-1 flex items-center justify-between">
+                      <span class="text-xs font-semibold text-surface-900">
+                        {note.user ? `${note.user.firstName} ${note.user.lastName}` : 'Unknown User'}
+                      </span>
+                      <p class="text-[10px] text-surface-400">
                         {new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(note.createdAt))}
                       </p>
+                    </div>
+                    <p class="text-sm leading-relaxed text-surface-700">{note.content}</p>
+                    <div class="mt-1.5 flex items-center justify-end">
                       <button
                         type="button"
                         onclick={() => handleDeleteComment(note.id)}
