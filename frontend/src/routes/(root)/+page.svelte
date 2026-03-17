@@ -277,17 +277,17 @@
       <!-- Priority Filter -->
       <select bind:value={filterPriority} class="filter-input filter-select">
         <option value="">All Priorities</option>
-        <option value="low">🟢 Low</option>
-        <option value="medium">🟡 Medium</option>
-        <option value="high">🟠 High</option>
-        <option value="critical">🔴 Critical</option>
+        <option value="low">Low</option>
+        <option value="medium">Medium</option>
+        <option value="high">High</option>
+        <option value="critical">Critical</option>
       </select>
 
       <!-- Blocked Toggle -->
       <button
         onclick={() => (filterBlocked = !filterBlocked)}
         type="button"
-        class="inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-medium transition-all {filterBlocked
+        class="inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-normal transition-all {filterBlocked
           ? 'border-red-300 bg-red-50 text-red-700 shadow-sm shadow-red-100'
           : 'border-surface-200 bg-white text-surface-600 hover:border-surface-300'}"
       >

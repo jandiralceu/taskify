@@ -120,7 +120,7 @@
         {/if}
       </a>
     </nav>
-    <!-- bg-white text-primary-600 shadow-lg -->
+
     <button
       onclick={handleLogout}
       class="mt-auto p-4 text-white/70 transition-colors hover:text-white/90"
@@ -143,7 +143,7 @@
 
 <style>
   :global(body) {
-    background-color: #f7f3f9; /* Um tom lavanda bem sutil para alinhar com o roxo da marca */
+    background-color: #f7f3f9;
     margin: 0;
   }
 
