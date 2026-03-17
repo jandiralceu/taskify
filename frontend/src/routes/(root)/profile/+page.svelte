@@ -15,6 +15,7 @@
   import { Dialog, Portal } from '@skeletonlabs/skeleton-svelte'
   import {
     createProfileQuery,
+    uploadAvatarMutation,
     updateProfileMutation,
     changePasswordMutation,
     deleteProfileMutation,
@@ -23,9 +24,60 @@
   import Input from '$lib/components/Input.svelte'
 
   const profileQuery = createProfileQuery()
+  const uploadAvatar = uploadAvatarMutation()
   const updateProfile = updateProfileMutation()
   const changePassword = changePasswordMutation()
   const deleteProfile = deleteProfileMutation()
+
+  // Avatar upload
+  let fileInput = $state<HTMLInputElement>(null!)
+  let avatarPreview = $state<string | null>(null)
+  const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5 MB
+
+  function onAvatarClick() {
+    fileInput.click()
+  }
+
+  async function onFileSelected(e: Event) {
+    const file = (e.target as HTMLInputElement).files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      toaster.error({
+        title: 'Invalid File',
+        description: 'Please select an image file (JPEG, PNG or WebP).',
+      })
+      return
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      toaster.error({
+        title: 'File Too Large',
+        description: 'Avatar must be smaller than 5 MB.',
+      })
+      return
+    }
+
+    // Show local preview immediately
+    avatarPreview = URL.createObjectURL(file)
+
+    try {
+      await uploadAvatar.mutateAsync(file)
+      toaster.success({
+        title: 'Avatar Updated',
+        description: 'Your profile picture has been saved.',
+      })
+    } catch {
+      avatarPreview = null
+      toaster.error({
+        title: 'Upload Failed',
+        description: 'Could not upload your avatar. Please try again.',
+      })
+    } finally {
+      // Reset input so the same file can be re-selected if needed
+      fileInput.value = ''
+    }
+  }
 
   // Edit info state
   let firstName = $state('')
@@ -153,9 +205,9 @@
         >
           <!-- Avatar -->
           <div class="relative shrink-0">
-            {#if user.avatarUrl}
+            {#if avatarPreview || user.avatarUrl}
               <img
-                src={user.avatarUrl}
+                src={avatarPreview ?? user.avatarUrl}
                 alt="{user.firstName} {user.lastName}"
                 class="size-20 rounded-2xl border border-surface-200 object-cover"
               />
@@ -168,12 +220,29 @@
                 </span>
               </div>
             {/if}
+
+            <!-- Hidden file input -->
+            <input
+              bind:this={fileInput}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              class="hidden"
+              onchange={onFileSelected}
+            />
+
             <button
               type="button"
-              title="Change avatar (coming soon)"
-              class="absolute -right-2 -bottom-2 flex size-7 cursor-not-allowed items-center justify-center rounded-lg border border-surface-200 bg-white text-surface-400 opacity-50 shadow-sm transition-colors hover:text-primary-500"
+              onclick={onAvatarClick}
+              disabled={uploadAvatar.isPending}
+              title="Change profile picture"
+              class="absolute -right-2 -bottom-2 flex size-7 items-center justify-center rounded-lg border border-surface-200 bg-white shadow-sm transition-colors hover:border-primary-300 hover:text-primary-500 disabled:cursor-not-allowed disabled:opacity-60
+              {uploadAvatar.isPending ? 'text-primary-400' : 'text-surface-400'}"
             >
-              <Camera size={13} />
+              {#if uploadAvatar.isPending}
+                <LoaderCircle size={13} class="animate-spin" />
+              {:else}
+                <Camera size={13} />
+              {/if}
             </button>
           </div>
 

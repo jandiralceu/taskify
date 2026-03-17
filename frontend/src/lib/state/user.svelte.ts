@@ -53,6 +53,17 @@ export function createUserQuery(userId: () => string | undefined) {
 
 export const USERS_QUERY_KEY = ['users'] as const
 
+export function uploadAvatarMutation() {
+  const queryClient = useQueryClient()
+
+  return createMutation<{ avatarUrl: string }, Error, File>(() => ({
+    mutationFn: file => userService.uploadAvatar(file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PROFILE_QUERY_KEY })
+    },
+  }))
+}
+
 export function updateProfileMutation() {
   const queryClient = useQueryClient()
 

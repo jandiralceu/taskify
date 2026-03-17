@@ -32,6 +32,11 @@ export const userService = {
     if (params.order) searchParams.set('order', params.order)
     return api.get('users', { searchParams }).json()
   },
+  async uploadAvatar(file: File): Promise<{ avatarUrl: string }> {
+    const formData = new FormData()
+    formData.append('avatar', file)
+    return api.post('users/avatar', { body: formData }).json()
+  },
   async updateProfile(data: UpdateUserRequest): Promise<UserResponse> {
     return api.patch('users/profile', { json: data }).json()
   },

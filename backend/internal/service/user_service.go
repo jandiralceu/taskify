@@ -154,15 +154,20 @@ func (s *userService) UpdateAvatar(ctx context.Context, userID uuid.UUID, file i
 	ext := filepath.Ext(filename)
 	uniqueName := fmt.Sprintf("avatar_%s%s", uuid.New().String(), ext)
 	avatarDir := filepath.Join(s.uploadPath, "avatars")
-	filePath := filepath.Join(avatarDir, uniqueName)
+	diskPath := filepath.Join(avatarDir, uniqueName)
+
+	// publicPath is what gets stored in the DB and returned to clients.
+	// The router serves the uploads directory at /uploads, so a path like
+	// /uploads/avatars/avatar_<uuid>.jpg is directly accessible via the API.
+	publicPath := "/uploads/avatars/" + uniqueName
 
 	// 3. Ensure directory exists
 	if err := os.MkdirAll(avatarDir, os.ModePerm); err != nil {
 		return "", apperrors.ErrStorage
 	}
 
-	// 4. Create file
-	dst, err := os.Create(filePath)
+	// 4. Create file on disk
+	dst, err := os.Create(diskPath)
 	if err != nil {
 		return "", apperrors.ErrStorage
 	}
@@ -172,17 +177,19 @@ func (s *userService) UpdateAvatar(ctx context.Context, userID uuid.UUID, file i
 		return "", apperrors.ErrStorage
 	}
 
-	// 5. Update user in DB
+	// 5. Persist public path in DB
 	oldAvatar := user.AvatarURL
-	if _, err := s.userRepo.UpdateAvatar(ctx, userID, &filePath); err != nil {
-		os.Remove(filePath) // Cleanup
+	if _, err := s.userRepo.UpdateAvatar(ctx, userID, &publicPath); err != nil {
+		os.Remove(diskPath) // Cleanup on DB failure
 		return "", err
 	}
 
-	// 6. Delete old avatar if exists
+	// 6. Delete old avatar file from disk if one existed
 	if oldAvatar != nil {
-		os.Remove(*oldAvatar)
+		// oldAvatar is a public path (/uploads/avatars/...), reconstruct disk path
+		oldDiskPath := filepath.Join(s.uploadPath, "avatars", filepath.Base(*oldAvatar))
+		os.Remove(oldDiskPath)
 	}
 
-	return filePath, nil
+	return publicPath, nil
 }
