@@ -4,6 +4,7 @@
   import { resolve } from '$app/paths'
   import { ArrowLeft, LoaderCircle, Flag, Clock, User } from '@lucide/svelte'
   import { getTaskQuery, updateTaskMutation } from '$lib/state/tasks.svelte'
+  import Button from '$lib/components/Button.svelte'
   import { getUsersQuery } from '$lib/state/user.svelte'
   import { toaster } from '$lib/state/toast.svelte'
   import Input from '$lib/components/Input.svelte'
@@ -413,25 +414,19 @@
 
           <!-- Footer -->
           <div class="flex items-center justify-end gap-3 pt-2">
-            <button
-              type="button"
+            <Button
+              variant="ghost"
               onclick={() => goto(resolve('/'))}
-              class="rounded-xl px-6 py-2.5 text-sm font-medium text-surface-500 transition-all hover:bg-surface-50 hover:text-surface-900"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              disabled={updateTask.isPending}
-              class="flex items-center gap-2 rounded-xl bg-primary-500 px-8 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary-500/20 transition-all hover:bg-primary-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+              loading={updateTask.isPending}
+              loadingText="Saving..."
             >
-              {#if updateTask.isPending}
-                <LoaderCircle size={16} class="animate-spin" />
-                Saving...
-              {:else}
-                Save Changes
-              {/if}
-            </button>
+              Save Changes
+            </Button>
           </div>
         </form>
       </div>

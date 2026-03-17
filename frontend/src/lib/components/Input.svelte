@@ -10,6 +10,9 @@
     placeholder?: string
     label?: string
     required?: boolean
+    disabled?: boolean
+    minlength?: number
+    maxlength?: number
     icon?: Snippet
     error?: string
   }
@@ -22,6 +25,9 @@
     placeholder,
     label,
     required = false,
+    disabled = false,
+    minlength,
+    maxlength,
     icon,
     error,
   }: Props = $props()
@@ -52,14 +58,20 @@
       {id}
       {name}
       {required}
+      {disabled}
       {placeholder}
+      {minlength}
+      {maxlength}
       type={inputType}
       bind:value
-      class="block h-12 w-full rounded-xl border bg-surface-50 px-3.5 text-surface-900 placeholder-surface-600 transition-all focus:ring-2 focus:outline-none sm:text-sm dark:bg-surface-900 dark:text-surface-50 dark:placeholder-surface-400 {icon
-        ? 'pl-10'
-        : 'pl-4'} {type === 'password' ? 'pr-10' : 'pr-4'} {error
-        ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20 dark:border-red-500'
-        : 'border-surface-300 focus:border-primary-500 focus:ring-primary-500/20 dark:border-surface-700'}"
+      class="block h-12 w-full rounded-xl border px-3.5 transition-all focus:ring-2 focus:outline-none sm:text-sm
+        {icon ? 'pl-10' : 'pl-4'}
+        {type === 'password' ? 'pr-10' : 'pr-4'}
+        {disabled
+        ? 'cursor-not-allowed border-surface-200 bg-surface-300 text-surface-600 select-none'
+        : error
+          ? 'border-red-500 bg-surface-50 text-surface-900 placeholder-surface-600 focus:border-red-500 focus:ring-red-500/20 dark:border-red-500 dark:bg-surface-900 dark:text-surface-50 dark:placeholder-surface-400'
+          : 'border-surface-300 bg-surface-50 text-surface-900 placeholder-surface-600 focus:border-primary-500 focus:ring-primary-500/20 dark:border-surface-700 dark:bg-surface-900 dark:text-surface-50 dark:placeholder-surface-400'}"
     />
 
     {#if type === 'password'}

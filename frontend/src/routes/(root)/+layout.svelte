@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { useQueryClient } from '@tanstack/svelte-query'
   import { ListTodo, Users, LogOut } from '@lucide/svelte'
   import { page } from '$app/state'
   import { storage, AUTH_KEYS } from '$lib/utils/storage'
@@ -13,7 +14,6 @@
     PERMISSIONS_QUERY_KEY,
     authState,
   } from '$lib/state/user.svelte'
-  import { useQueryClient } from '@tanstack/svelte-query'
 
   let { children } = $props()
   const queryClient = useQueryClient()
@@ -82,8 +82,8 @@
           href={resolve(item.href)}
           class="rounded-xl p-2.5 transition-all duration-300 {activeRoute ===
           resolve(item.href)
-            ? 'bg-white text-primary-500 shadow-lg'
-            : 'text-white/40 hover:text-white/70'}"
+            ? 'bg-white text-primary-600 shadow-lg'
+            : 'text-white/70 hover:text-white/90'}"
           title={item.label}
         >
           <item.icon size={22} strokeWidth={2.5} />
@@ -120,10 +120,10 @@
         {/if}
       </a>
     </nav>
-
+    <!-- bg-white text-primary-600 shadow-lg -->
     <button
       onclick={handleLogout}
-      class="mt-auto p-4 text-white/40 transition-colors hover:text-rose-400"
+      class="mt-auto p-4 text-white/70 transition-colors hover:text-white/90"
       title="Logout"
     >
       <LogOut size={22} />

@@ -15,6 +15,7 @@
   import { resolve } from '$app/paths'
   import type { TaskResponse } from '$lib/api/types'
   import { priorityConfig } from '$lib/utils/task'
+  import Button from '$lib/components/Button.svelte'
 
   interface Props {
     task: TaskResponse
@@ -282,14 +283,10 @@
           >
             Cancel
           </Dialog.CloseTrigger>
-          <button
-            type="button"
-            onclick={confirmDelete}
-            class="flex items-center gap-2 rounded-xl bg-rose-500 px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-rose-600 active:scale-95"
-          >
+          <Button variant="danger" onclick={confirmDelete}>
             <Trash2 size={15} />
             Delete
-          </button>
+          </Button>
         </div>
       </Dialog.Content>
     </Dialog.Positioner>

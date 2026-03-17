@@ -9,8 +9,6 @@
     KeyRound,
     Trash2,
     TriangleAlert,
-    Eye,
-    EyeOff,
   } from '@lucide/svelte'
   import { Dialog, Portal } from '@skeletonlabs/skeleton-svelte'
   import {
@@ -22,6 +20,7 @@
   } from '$lib/state/user.svelte'
   import { toaster } from '$lib/state/toast.svelte'
   import Input from '$lib/components/Input.svelte'
+  import Button from '$lib/components/Button.svelte'
 
   const profileQuery = createProfileQuery()
   const uploadAvatar = uploadAvatarMutation()
@@ -87,9 +86,6 @@
   let oldPassword = $state('')
   let newPassword = $state('')
   let confirmPassword = $state('')
-  let showOldPassword = $state(false)
-  let showNewPassword = $state(false)
-
   // Delete confirmation
   let isDeleteOpen = $state(false)
   let deleteConfirmText = $state('')
@@ -236,7 +232,9 @@
               disabled={uploadAvatar.isPending}
               title="Change profile picture"
               class="absolute -right-2 -bottom-2 flex size-7 items-center justify-center rounded-lg border border-surface-200 bg-white shadow-sm transition-colors hover:border-primary-300 hover:text-primary-500 disabled:cursor-not-allowed disabled:opacity-60
-              {uploadAvatar.isPending ? 'text-primary-400' : 'text-surface-400'}"
+              {uploadAvatar.isPending
+                ? 'text-primary-400'
+                : 'text-surface-600'}"
             >
               {#if uploadAvatar.isPending}
                 <LoaderCircle size={13} class="animate-spin" />
@@ -247,11 +245,11 @@
           </div>
 
           <div class="min-w-0 flex-1">
-            <p class="truncate text-lg font-semibold text-surface-900">
+            <p class="truncate text-lg font-normal text-surface-900">
               {user.firstName}
               {user.lastName}
             </p>
-            <p class="truncate text-sm text-surface-500">{user.email}</p>
+            <p class="truncate text-sm text-surface-600">{user.email}</p>
             <div class="mt-2 flex items-center gap-2">
               {#if user.role === 'admin'}
                 <span
@@ -266,7 +264,7 @@
                   <User size={11} /> Employee
                 </span>
               {/if}
-              <span class="text-xs text-surface-400"
+              <span class="text-xs text-surface-600"
                 >Member since {formatDate(user.createdAt)}</span
               >
             </div>
@@ -278,9 +276,9 @@
           onsubmit={handleUpdateInfo}
           class="space-y-5 rounded-2xl border border-surface-200 bg-white p-6"
         >
-          <div class="mb-1 flex items-center gap-2">
-            <User size={16} class="text-surface-400" />
-            <h3 class="text-sm font-semibold text-surface-900">
+          <div class="mb-6 flex items-center gap-2">
+            <User size={24} class="text-surface-700" />
+            <h3 class="text-sm font-medium text-surface-800">
               Personal Information
             </h3>
           </div>
@@ -304,47 +302,23 @@
 
           <!-- Read-only fields -->
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div class="space-y-1">
-              <label
-                for="ro-email"
-                class="block text-sm font-medium text-surface-700">Email</label
-              >
-              <input
-                id="ro-email"
-                type="text"
-                value={user.email}
-                disabled
-                class="block h-12 w-full cursor-not-allowed rounded-xl border border-surface-200 bg-surface-100 px-4 text-sm text-surface-400"
-              />
-            </div>
-            <div class="space-y-1">
-              <label
-                for="ro-role"
-                class="block text-sm font-medium text-surface-700">Role</label
-              >
-              <input
-                id="ro-role"
-                type="text"
-                value={user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-                disabled
-                class="block h-12 w-full cursor-not-allowed rounded-xl border border-surface-200 bg-surface-100 px-4 text-sm text-surface-400"
-              />
-            </div>
+            <Input id="ro-email" label="Email" value={user.email} disabled />
+            <Input
+              id="ro-role"
+              label="Role"
+              value={user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+              disabled
+            />
           </div>
 
           <div class="flex justify-end pt-1">
-            <button
+            <Button
               type="submit"
-              disabled={updateProfile.isPending}
-              class="flex items-center gap-2 rounded-xl bg-primary-500 px-8 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary-500/20 transition-all hover:bg-primary-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+              loading={updateProfile.isPending}
+              loadingText="Saving..."
             >
-              {#if updateProfile.isPending}
-                <LoaderCircle size={15} class="animate-spin" />
-                Saving...
-              {:else}
-                Save Changes
-              {/if}
-            </button>
+              Save Changes
+            </Button>
           </div>
         </form>
 
@@ -353,111 +327,54 @@
           onsubmit={handleChangePassword}
           class="space-y-5 rounded-2xl border border-surface-200 bg-white p-6"
         >
-          <div class="mb-1 flex items-center gap-2">
-            <KeyRound size={16} class="text-surface-400" />
-            <h3 class="text-sm font-semibold text-surface-900">
+          <div class="mb-6 flex items-center gap-2">
+            <KeyRound size={24} class="text-surface-700" />
+            <h3 class="text-sm font-medium text-surface-800">
               Change Password
             </h3>
           </div>
 
-          <div class="space-y-1">
-            <label
-              for="oldPassword"
-              class="block text-sm font-medium text-surface-700"
-              >Current Password</label
-            >
-            <div class="relative">
-              <input
-                id="oldPassword"
-                type={showOldPassword ? 'text' : 'password'}
-                placeholder="Current password"
-                bind:value={oldPassword}
-                required
-                class="block h-12 w-full rounded-xl border border-surface-300 bg-surface-50 px-4 pr-10 text-sm text-surface-900 placeholder-surface-500 transition-all focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none"
-              />
-              <button
-                type="button"
-                onclick={() => (showOldPassword = !showOldPassword)}
-                class="absolute inset-y-0 right-0 flex items-center pr-3 text-surface-400 transition-colors hover:text-primary-500"
-                tabindex="-1"
-              >
-                {#if showOldPassword}<Eye size={18} />{:else}<EyeOff
-                    size={18}
-                  />{/if}
-              </button>
-            </div>
-          </div>
+          <Input
+            id="oldPassword"
+            type="password"
+            label="Current Password"
+            placeholder="Current password"
+            bind:value={oldPassword}
+            required
+          />
 
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div class="space-y-1">
-              <label
-                for="newPassword"
-                class="block text-sm font-medium text-surface-700"
-                >New Password</label
-              >
-              <div class="relative">
-                <input
-                  id="newPassword"
-                  type={showNewPassword ? 'text' : 'password'}
-                  placeholder="New password"
-                  bind:value={newPassword}
-                  required
-                  minlength={8}
-                  class="block h-12 w-full rounded-xl border border-surface-300 bg-surface-50 px-4 pr-10 text-sm text-surface-900 placeholder-surface-500 transition-all focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 focus:outline-none"
-                />
-                <button
-                  type="button"
-                  onclick={() => (showNewPassword = !showNewPassword)}
-                  class="absolute inset-y-0 right-0 flex items-center pr-3 text-surface-400 transition-colors hover:text-primary-500"
-                  tabindex="-1"
-                >
-                  {#if showNewPassword}<Eye size={18} />{:else}<EyeOff
-                      size={18}
-                    />{/if}
-                </button>
-              </div>
-            </div>
-
-            <div class="space-y-1">
-              <label
-                for="confirmPassword"
-                class="block text-sm font-medium text-surface-700"
-                >Confirm New Password</label
-              >
-              <input
-                id="confirmPassword"
-                type="password"
-                placeholder="Confirm new password"
-                bind:value={confirmPassword}
-                required
-                class="block h-12 w-full rounded-xl border transition-all
-								{confirmPassword && confirmPassword !== newPassword
-                  ? 'border-rose-400 focus:border-rose-400 focus:ring-rose-400/20'
-                  : 'border-surface-300 focus:border-primary-500 focus:ring-primary-500/20'}
-								bg-surface-50 px-4 text-sm text-surface-900 placeholder-surface-500 focus:ring-2 focus:outline-none"
-              />
-              {#if confirmPassword && confirmPassword !== newPassword}
-                <p class="mt-1 text-xs font-medium text-rose-500">
-                  Passwords do not match
-                </p>
-              {/if}
-            </div>
+            <Input
+              id="newPassword"
+              type="password"
+              label="New Password"
+              placeholder="New password"
+              bind:value={newPassword}
+              required
+              minlength={8}
+            />
+            <Input
+              id="confirmPassword"
+              type="password"
+              label="Confirm New Password"
+              placeholder="Confirm new password"
+              bind:value={confirmPassword}
+              required
+              error={confirmPassword && confirmPassword !== newPassword
+                ? 'Passwords do not match'
+                : undefined}
+            />
           </div>
 
           <div class="flex justify-end pt-1">
-            <button
+            <Button
               type="submit"
-              disabled={changePassword.isPending ||
-                (!!confirmPassword && confirmPassword !== newPassword)}
-              class="flex items-center gap-2 rounded-xl bg-primary-500 px-8 py-2.5 text-sm font-bold text-white shadow-lg shadow-primary-500/20 transition-all hover:bg-primary-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={!!confirmPassword && confirmPassword !== newPassword}
+              loading={changePassword.isPending}
+              loadingText="Updating..."
             >
-              {#if changePassword.isPending}
-                <LoaderCircle size={15} class="animate-spin" />
-                Updating...
-              {:else}
-                Update Password
-              {/if}
-            </button>
+              Update Password
+            </Button>
           </div>
         </form>
 
@@ -539,28 +456,24 @@
           class="block h-11 w-full rounded-xl border border-surface-300 bg-surface-50 px-4 text-sm text-surface-900 placeholder-surface-400 transition-all focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20 focus:outline-none"
         />
 
-        <div class="flex items-center justify-end gap-3 pt-1">
-          <Dialog.CloseTrigger
-            type="button"
-            class="rounded-xl px-5 py-2.5 text-sm font-medium text-surface-500 transition-all hover:bg-surface-50 hover:text-surface-900"
-          >
-            Cancel
-          </Dialog.CloseTrigger>
-          <button
-            type="button"
-            onclick={handleDeleteAccount}
-            disabled={!canConfirmDelete || deleteProfile.isPending}
-            class="flex items-center gap-2 rounded-xl bg-rose-500 px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-rose-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {#if deleteProfile.isPending}
-              <LoaderCircle size={15} class="animate-spin" />
-              Deleting...
-            {:else}
+          <div class="flex items-center justify-end gap-3 pt-1">
+            <Dialog.CloseTrigger
+              type="button"
+              class="rounded-xl px-5 py-2.5 text-sm font-medium text-surface-500 transition-all hover:bg-surface-50 hover:text-surface-900"
+            >
+              Cancel
+            </Dialog.CloseTrigger>
+            <Button
+              variant="danger"
+              onclick={handleDeleteAccount}
+              disabled={!canConfirmDelete}
+              loading={deleteProfile.isPending}
+              loadingText="Deleting..."
+            >
               <Trash2 size={15} />
               Delete My Account
-            {/if}
-          </button>
-        </div>
+            </Button>
+          </div>
       </Dialog.Content>
     </Dialog.Positioner>
   </Portal>

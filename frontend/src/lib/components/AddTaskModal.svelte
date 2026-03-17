@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { X, Flag, Clock, Calendar, LoaderCircle } from '@lucide/svelte'
+  import { X, Flag, Clock, Calendar } from '@lucide/svelte'
   import {
     Dialog,
     DatePicker,
@@ -9,6 +9,7 @@
   import { createTaskMutation } from '$lib/state/tasks.svelte'
   import { toaster } from '$lib/state/toast.svelte'
   import Input from './Input.svelte'
+  import Button from './Button.svelte'
 
   interface Props {
     isOpen: boolean
@@ -326,25 +327,17 @@
           >
             Cancel
           </Dialog.CloseTrigger>
-          <button
-            type="submit"
-            form="create-task-form"
-            disabled={createTask.isPending}
+          <Button
+            loading={createTask.isPending}
+            loadingText="Creating..."
             onclick={e => {
-              // Programmatically submit the form since the button is outside the <form>
               e.preventDefault()
               const form = document.querySelector('form') as HTMLFormElement
               form?.requestSubmit()
             }}
-            class="flex items-center gap-2 rounded-xl bg-primary-500 px-8 py-2.5 font-medium text-white shadow-lg shadow-primary-500/20 transition-all hover:bg-primary-700 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {#if createTask.isPending}
-              <LoaderCircle size={18} class="animate-spin" />
-              Creating...
-            {:else}
-              Create Task
-            {/if}
-          </button>
+            Create Task
+          </Button>
         </div>
       </Dialog.Content>
     </Dialog.Positioner>

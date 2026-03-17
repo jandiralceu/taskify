@@ -16,6 +16,7 @@
   import { resolve } from '$app/paths'
   import { Dialog, Portal } from '@skeletonlabs/skeleton-svelte'
   import { getUsersQuery, deleteUserMutation } from '$lib/state/user.svelte'
+  import Button from '$lib/components/Button.svelte'
   import { toaster } from '$lib/state/toast.svelte'
   import type { UserRole, UserResponse } from '$lib/api/types'
 
@@ -528,20 +529,15 @@
           >
             Cancel
           </Dialog.CloseTrigger>
-          <button
-            type="button"
+          <Button
+            variant="danger"
             onclick={confirmDelete}
-            disabled={deleteUser.isPending}
-            class="flex items-center gap-2 rounded-xl bg-rose-500 px-5 py-2.5 text-sm font-bold text-white transition-all hover:bg-rose-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+            loading={deleteUser.isPending}
+            loadingText="Deleting..."
           >
-            {#if deleteUser.isPending}
-              <LoaderCircle size={15} class="animate-spin" />
-              Deleting...
-            {:else}
-              <Trash2 size={15} />
-              Delete
-            {/if}
-          </button>
+            <Trash2 size={15} />
+            Delete
+          </Button>
         </div>
       </Dialog.Content>
     </Dialog.Positioner>
