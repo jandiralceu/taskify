@@ -8,7 +8,7 @@
     ArrowDown,
     Ban,
     X,
-    FilterX,
+    FunnelX,
   } from '@lucide/svelte'
   import TaskCard from '$lib/components/TaskCard.svelte'
   import TaskDetailDrawer from '$lib/components/TaskDetailDrawer.svelte'
@@ -218,6 +218,10 @@
   }
 </script>
 
+<svelte:head>
+  <title>Tasks - Taskify</title>
+</svelte:head>
+
 <div class="flex min-h-full flex-col">
   <!-- Project Header -->
   <header class="px-16 pt-12 pb-10">
@@ -399,7 +403,7 @@
                       <div
                         class="p-3 bg-surface-100 rounded-full mb-3 text-surface-400"
                       >
-                        <FilterX size={20} />
+                        <FunnelX size={20} />
                       </div>
                       <p class="text-sm font-medium text-surface-600">
                         No matches found

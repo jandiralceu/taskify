@@ -66,7 +66,7 @@
 <div
   class="flex h-screen w-full overflow-hidden bg-[#F7F3F9] font-sans text-surface-900"
 >
-  <!-- Left Sidebar (Nubank Purple) -->
+  <!-- Left Sidebar -->
   <aside
     class="z-30 flex w-[75px] shrink-0 flex-col items-center bg-primary-500 py-6 shadow-2xl"
   >
@@ -113,11 +113,7 @@
         {:else if userInitials}
           <span>{userInitials}</span>
         {:else}
-          <img
-            src="https://api.dicebear.com/7.x/avataaars/svg?seed=user"
-            alt="Profile"
-            class="h-full w-full object-cover opacity-50"
-          />
+          <div class="h-full w-full animate-pulse rounded-full bg-white/20"></div>
         {/if}
       </a>
     </nav>
