@@ -21,6 +21,7 @@
   import AddTaskModal from '$lib/components/AddTaskModal.svelte'
   import UserDetailDrawer from '$lib/components/UserDetailDrawer.svelte'
   import { toaster } from '$lib/state/toast.svelte'
+  import Button from '$lib/components/Button.svelte'
   import type {
     TaskResponse,
     TaskStatus,
@@ -35,6 +36,7 @@
   let debouncedSearch = $state('')
   let filterPriority = $state<TaskPriority | ''>('')
   let filterBlocked = $state(false)
+  let filterArchived = $state(false)
   let sortField = $state('createdAt')
   let sortOrder = $state<'asc' | 'desc'>('desc')
 
@@ -44,6 +46,7 @@
     search: debouncedSearch || undefined,
     priority: (filterPriority as TaskPriority) || undefined,
     isBlocked: filterBlocked || undefined,
+    isArchived: filterArchived,
     sort: sortField,
     order: sortOrder,
   }))
@@ -65,7 +68,7 @@
   let isUserDrawerOpen = $state(false)
 
   const hasActiveFilters = $derived(
-    filterSearch !== '' || filterPriority !== '' || filterBlocked
+    filterSearch !== '' || filterPriority !== '' || filterBlocked || filterArchived
   )
 
   function clearFilters() {
@@ -73,6 +76,7 @@
     debouncedSearch = ''
     filterPriority = ''
     filterBlocked = false
+    filterArchived = false
   }
 
   $effect(() => {
@@ -248,96 +252,129 @@
   </header>
 
   <div
-    class="sticky top-0 z-20 mb-4 space-y-4 border-b border-surface-100/50 bg-[#F7F3F9]/95 px-16 py-5 backdrop-blur-sm transition-all"
+    class="sticky top-0 z-20 mb-4 border-b border-surface-100/50 bg-[#F7F3F9]/95 px-16 py-6 backdrop-blur-sm transition-all"
   >
     <div class="flex items-center justify-between">
-      <h3 class="text-3xl font-light tracking-tight text-surface-900">Tasks</h3>
-      <button
-        onclick={handleAddTask}
-        type="button"
-        class="flex items-center gap-2 rounded-xl bg-primary-500 px-5 py-2 font-medium text-white transition-all hover:bg-primary-700 active:scale-95"
-      >
-        <Plus size={18} />
-        Add Task
-      </button>
+      <div class="flex items-center gap-10">
+        <button
+          onclick={() => (filterArchived = false)}
+          class="group relative transition-all"
+        >
+          <h3
+            class="text-3xl tracking-tight transition-colors {!filterArchived
+              ? 'font-medium text-surface-900'
+              : 'font-light text-surface-400 hover:text-surface-600'}"
+          >
+            Tasks
+          </h3>
+        </button>
+
+        <button
+          onclick={() => (filterArchived = true)}
+          class="group relative transition-all"
+        >
+          <h3
+            class="text-3xl tracking-tight transition-colors {filterArchived
+              ? 'font-medium text-surface-900'
+              : 'font-light text-surface-400 hover:text-surface-600'}"
+          >
+            Archived
+          </h3>
+        </button>
+      </div>
     </div>
 
     <!-- Filter Bar -->
-    <div class="flex flex-wrap items-center gap-3">
-      <!-- Search -->
-      <div class="relative max-w-xs flex-1">
-        <Search
-          size={16}
-          class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-surface-400"
-        />
-        <input
-          type="text"
-          placeholder="Search tasks..."
-          bind:value={filterSearch}
-          class="filter-input w-full py-2 pr-3 pl-9"
-        />
+    <div class="mt-8 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex flex-wrap items-center gap-3">
+        <!-- Search -->
+        <div class="relative w-72">
+          <Search
+            size={16}
+            class="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-surface-400"
+          />
+          <input
+            type="text"
+            placeholder="Search tasks..."
+            bind:value={filterSearch}
+            class="filter-input w-full py-2.5 pr-4 pl-10 h-11"
+          />
+        </div>
+
+        <div class="h-6 w-px bg-surface-200 mx-1"></div>
+
+        <!-- Priority Filter -->
+        <select bind:value={filterPriority} class="filter-input filter-select h-11 px-4 min-w-[150px]">
+          <option value="">All Priorities</option>
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+          <option value="critical">Critical</option>
+        </select>
+
+        <!-- Blocked Toggle -->
+        <button
+          onclick={() => (filterBlocked = !filterBlocked)}
+          type="button"
+          class="inline-flex items-center gap-2 rounded-xl border h-11 px-4 text-sm font-medium transition-all {filterBlocked
+            ? 'border-red-300 bg-red-50 text-red-700 shadow-sm shadow-red-100'
+            : 'border-surface-200 bg-white text-surface-600 hover:border-surface-300'}"
+        >
+          <Ban size={15} />
+          Blocked
+        </button>
+
+        {#if hasActiveFilters}
+          <div class="flex items-center gap-3 ml-2">
+            <span class="text-xs font-medium text-surface-400 tabular-nums">
+              {tasksQuery.data?.length ?? 0} matches
+            </span>
+            <button
+              onclick={clearFilters}
+              type="button"
+              class="inline-flex items-center gap-1 rounded-xl bg-surface-100 px-3 py-1.5 text-xs font-bold text-surface-700 transition-all hover:bg-surface-200"
+            >
+              <X size={12} strokeWidth={3} />
+              RESET
+            </button>
+          </div>
+        {/if}
       </div>
 
-      <!-- Priority Filter -->
-      <select bind:value={filterPriority} class="filter-input filter-select">
-        <option value="">All Priorities</option>
-        <option value="low">Low</option>
-        <option value="medium">Medium</option>
-        <option value="high">High</option>
-        <option value="critical">Critical</option>
-      </select>
+      <div class="flex items-center gap-4">
+        <!-- Sort Field -->
+        <div class="flex items-center rounded-xl border border-surface-200 bg-white overflow-hidden h-11">
+          <select bind:value={sortField} class="h-full border-none bg-transparent px-4 text-sm font-medium text-surface-700 focus:ring-0 outline-none pr-8 cursor-pointer appearance-none bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2364748b%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_0.75rem_center]">
+            <option value="createdAt">Date Created</option>
+            <option value="title">Title</option>
+            <option value="priority">Priority</option>
+            <option value="dueDate">Due Date</option>
+          </select>
+          <div class="h-full w-px bg-surface-100"></div>
+          <!-- Sort Order Toggle -->
+          <button
+            onclick={() => (sortOrder = sortOrder === 'asc' ? 'desc' : 'asc')}
+            type="button"
+            class="h-full px-3 text-surface-500 transition-all hover:bg-surface-50 hover:text-surface-900"
+            title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
+          >
+            {#if sortOrder === 'asc'}
+              <ArrowUp size={16} strokeWidth={2.5} />
+            {:else}
+              <ArrowDown size={16} strokeWidth={2.5} />
+            {/if}
+          </button>
+        </div>
 
-      <!-- Blocked Toggle -->
-      <button
-        onclick={() => (filterBlocked = !filterBlocked)}
-        type="button"
-        class="inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-normal transition-all {filterBlocked
-          ? 'border-red-300 bg-red-50 text-red-700 shadow-sm shadow-red-100'
-          : 'border-surface-200 bg-white text-surface-600 hover:border-surface-300'}"
-      >
-        <Ban size={14} />
-        Blocked
-      </button>
-
-      <!-- Divider -->
-      <div class="h-6 w-px bg-surface-200"></div>
-
-      <!-- Sort Field -->
-      <select bind:value={sortField} class="filter-input filter-select">
-        <option value="createdAt">Sort: Date Created</option>
-        <option value="title">Sort: Title</option>
-        <option value="priority">Sort: Priority</option>
-        <option value="dueDate">Sort: Due Date</option>
-      </select>
-
-      <!-- Sort Order Toggle -->
-      <button
-        onclick={() => (sortOrder = sortOrder === 'asc' ? 'desc' : 'asc')}
-        type="button"
-        class="rounded-xl border border-surface-200 bg-white p-2 text-surface-600 transition-all hover:border-surface-300"
-        title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
-      >
-        {#if sortOrder === 'asc'}
-          <ArrowUp size={16} />
-        {:else}
-          <ArrowDown size={16} />
-        {/if}
-      </button>
-
-      <!-- Clear Filters -->
-      {#if hasActiveFilters}
-        <span class="text-xs text-surface-400 tabular-nums">
-          {tasksQuery.data?.length ?? 0} matches
-        </span>
         <button
-          onclick={clearFilters}
+          onclick={handleAddTask}
           type="button"
-          class="inline-flex items-center gap-1 rounded-xl px-3 py-2 text-sm font-medium text-primary-600 transition-all hover:bg-primary-50 hover:text-primary-800"
+          class="flex items-center gap-2 rounded-xl bg-primary-500 px-6 py-2.5 font-semibold text-white shadow-lg shadow-primary-500/20 transition-all hover:bg-primary-600 hover:shadow-primary-500/30 active:scale-95"
         >
-          <X size={14} />
-          Clear
+          <Plus size={18} strokeWidth={2.5} />
+          Add Task
         </button>
-      {/if}
+      </div>
     </div>
   </div>
 
@@ -418,13 +455,13 @@
 
               <!-- Plus Button only on Pending column -->
               {#if column.id === 'pending'}
-                <button
+                <Button
                   onclick={handleAddTask}
-                  class="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary-500/30 py-3 text-sm font-medium text-primary-500/60 transition-all hover:border-primary-500 hover:bg-primary-500/5 hover:text-primary-500"
+                  variant="button"
                 >
                   <Plus size={16} />
                   Add task
-                </button>
+                </Button>
               {/if}
             </div>
             <!-- Bottom Fade Overlay -->
@@ -480,28 +517,36 @@
 
   /* Filter inputs */
   .filter-input {
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
     background: white;
-    border: 1px solid var(--color-surface-200, #e2e8f0);
+    border: 1px solid #E2E8F0;
     border-radius: 0.75rem;
     outline: none;
-    transition: all 0.15s ease;
-    color: var(--color-surface-700, #334155);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #334155;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   }
   .filter-input::placeholder {
-    color: var(--color-surface-400, #94a3b8);
+    color: #94A3B8;
+    font-weight: 400;
+  }
+  .filter-input:hover {
+    border-color: #CBD5E1;
+    background: #F8FAFC;
   }
   .filter-input:focus {
-    border-color: var(--color-primary-400, #a78bfa);
-    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.15);
+    border-color: #8B5CF6;
+    background: white;
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.12);
   }
   .filter-select {
-    padding: 0.5rem 2rem 0.5rem 0.75rem;
+    padding: 0.5rem 2.25rem 0.5rem 1rem;
     cursor: pointer;
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
-    background-position: right 0.5rem center;
-    background-size: 1rem;
+    background-position: right 0.75rem center;
+    background-size: 0.9rem;
   }
 </style>
