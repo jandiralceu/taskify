@@ -42,8 +42,8 @@ type Task struct {
 	UpdatedAt      time.Time    `gorm:"type:timestamptz;not null;default:now()" json:"updatedAt"`
 
 	// UI Fields (populated via subqueries)
-	NotesCount       int `gorm:"-" json:"notesCount"`
-	AttachmentsCount int `gorm:"-" json:"attachmentsCount"`
+	NotesCount       int `gorm:"->;column:notes_count" json:"notesCount"`
+	AttachmentsCount int `gorm:"->;column:attachments_count" json:"attachmentsCount"`
 
 	// Associations
 	Creator     User             `gorm:"foreignKey:CreatedBy" json:"-"`
@@ -61,7 +61,7 @@ type TaskNote struct {
 	UpdatedAt time.Time `gorm:"type:timestamptz;not null;default:now()" json:"updatedAt"`
 
 	// Associations
-	User User `gorm:"foreignKey:UserID" json:"-"`
+	User User `gorm:"foreignKey:UserID" json:"user,omitempty"`
 }
 
 type TaskAttachment struct {
@@ -76,5 +76,5 @@ type TaskAttachment struct {
 	UpdatedAt time.Time `gorm:"type:timestamptz;not null;default:now()" json:"updatedAt"`
 
 	// Associations
-	User User `gorm:"foreignKey:UserID" json:"-"`
+	User User `gorm:"foreignKey:UserID" json:"user,omitempty"`
 }

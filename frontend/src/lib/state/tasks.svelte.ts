@@ -20,6 +20,8 @@ export function getTasksQuery(paramsGetter: () => GetTasksParams = () => ({})) {
     return {
       queryKey: [...TASKS_QUERY_KEY, params],
       queryFn: () => tasksService.getTasks(params),
+      staleTime: 0,
+      gcTime: 0,
     }
   })
 }
@@ -31,6 +33,8 @@ export function getTaskQuery(idGetter: () => string) {
       queryKey: [...TASKS_QUERY_KEY, id],
       queryFn: () => tasksService.getTask(id),
       enabled: !!id,
+      staleTime: 0,
+      gcTime: 0,
     }
   })
 }

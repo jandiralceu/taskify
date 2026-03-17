@@ -78,6 +78,7 @@ export interface TaskNoteResponse {
   taskId: string
   userId: string
   content: string
+  user?: UserResponse
   createdAt: string
   updatedAt: string
 }
@@ -90,6 +91,7 @@ export interface TaskAttachmentResponse {
   fileSize: number
   mimeType: string
   filePath: string
+  user?: UserResponse
   createdAt: string
 }
 

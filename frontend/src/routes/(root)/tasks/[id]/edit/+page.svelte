@@ -620,7 +620,7 @@
                     <p class="text-xs text-surface-400">{formatFileSize(att.fileSize)}</p>
                   </div>
                   <a
-                    href={att.filePath}
+                    href={resolve(att.filePath)}
                     download={att.fileName}
                     class="shrink-0 rounded-lg p-1.5 text-surface-400 transition-colors hover:bg-surface-100 hover:text-surface-700"
                     title="Download"

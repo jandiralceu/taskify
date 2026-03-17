@@ -159,8 +159,8 @@ func (r *taskRepository) Delete(ctx context.Context, taskID uuid.UUID) error {
 func (r *taskRepository) FindByID(ctx context.Context, taskID uuid.UUID) (*models.Task, error) {
 	var task models.Task
 	if err := r.db.WithContext(ctx).
-		Preload("Notes").
-		Preload("Attachments").
+		Preload("Notes.User").
+		Preload("Attachments.User").
 		Preload("Assignee").
 		First(&task, "id = ?", taskID).Error; err != nil {
 		return nil, mapDatabaseError(err)
