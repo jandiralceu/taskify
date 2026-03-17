@@ -1,6 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
   import { resolve } from '$app/paths'
+  import { resolveAvatarUrl } from '$lib/utils/avatar'
   import {
     LoaderCircle,
     Camera,
@@ -203,7 +204,7 @@
           <div class="relative shrink-0">
             {#if avatarPreview || user.avatarUrl}
               <img
-                src={avatarPreview ?? user.avatarUrl}
+                src={avatarPreview ?? resolveAvatarUrl(user.avatarUrl) ?? ''}
                 alt="{user.firstName} {user.lastName}"
                 class="size-20 rounded-2xl border border-surface-200 object-cover"
               />

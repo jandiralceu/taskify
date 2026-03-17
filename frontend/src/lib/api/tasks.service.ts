@@ -2,6 +2,8 @@ import { api } from './client'
 import type {
   CreateTaskRequest,
   TaskResponse,
+  TaskNoteResponse,
+  TaskAttachmentResponse,
   UpdateTaskRequest,
   TaskStatus,
   TaskPriority,
@@ -44,6 +46,26 @@ class TasksService {
 
   async deleteTask(id: string) {
     return api.delete(`tasks/${id}`).json<void>()
+  }
+
+  // Notes
+  async addNote(taskId: string, content: string) {
+    return api.post(`tasks/${taskId}/notes`, { json: { content } }).json<TaskNoteResponse>()
+  }
+
+  async deleteNote(noteId: string) {
+    return api.delete(`tasks/notes/${noteId}`).json<void>()
+  }
+
+  // Attachments
+  async addAttachment(taskId: string, file: File) {
+    const formData = new FormData()
+    formData.append('file', file)
+    return api.post(`tasks/${taskId}/attachments`, { body: formData }).json<TaskAttachmentResponse>()
+  }
+
+  async deleteAttachment(attachmentId: string) {
+    return api.delete(`tasks/attachments/${attachmentId}`).json<void>()
   }
 }
 

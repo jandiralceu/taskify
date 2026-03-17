@@ -13,6 +13,7 @@
     TriangleAlert,
   } from '@lucide/svelte'
   import { goto } from '$app/navigation'
+  import { resolveAvatarUrl } from '$lib/utils/avatar'
   import { resolve } from '$app/paths'
   import { Dialog, Portal } from '@skeletonlabs/skeleton-svelte'
   import { getUsersQuery, deleteUserMutation } from '$lib/state/user.svelte'
@@ -321,7 +322,7 @@
                     <div class="flex items-center gap-3">
                       {#if user.avatarUrl}
                         <img
-                          src={user.avatarUrl}
+                          src={resolveAvatarUrl(user.avatarUrl) ?? ''}
                           alt="{user.firstName} {user.lastName}"
                           class="size-9 shrink-0 rounded-xl border border-surface-200 object-cover"
                         />

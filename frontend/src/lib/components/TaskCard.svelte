@@ -13,6 +13,7 @@
   import { Popover, Portal, Dialog } from '@skeletonlabs/skeleton-svelte'
   import { goto } from '$app/navigation'
   import { resolve } from '$app/paths'
+  import { resolveAvatarUrl } from '$lib/utils/avatar'
   import type { TaskResponse } from '$lib/api/types'
   import { priorityConfig } from '$lib/utils/task'
   import Button from '$lib/components/Button.svelte'
@@ -185,7 +186,7 @@
           title="{task.assignee.firstName} {task.assignee.lastName}"
         >
           <img
-            src={task.assignee.avatarUrl}
+            src={resolveAvatarUrl(task.assignee.avatarUrl) ?? ''}
             alt={task.assignee.firstName}
             class="size-full object-cover"
           />

@@ -2,6 +2,7 @@
   import { page } from '$app/state'
   import { goto } from '$app/navigation'
   import { resolve } from '$app/paths'
+  import { resolveAvatarUrl } from '$lib/utils/avatar'
   import { ArrowLeft, LoaderCircle, User, ShieldCheck } from '@lucide/svelte'
   import { createUserQuery, updateUserMutation } from '$lib/state/user.svelte'
   import Button from '$lib/components/Button.svelte'
@@ -100,7 +101,7 @@
         >
           {#if user.avatarUrl}
             <img
-              src={user.avatarUrl}
+              src={resolveAvatarUrl(user.avatarUrl) ?? ''}
               alt="{user.firstName} {user.lastName}"
               class="size-14 shrink-0 rounded-xl border border-surface-200 object-cover"
             />

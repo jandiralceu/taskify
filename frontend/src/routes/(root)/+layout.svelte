@@ -4,6 +4,7 @@
   import { page } from '$app/state'
   import { storage, AUTH_KEYS } from '$lib/utils/storage'
   import { goto } from '$app/navigation'
+  import { resolveAvatarUrl } from '$lib/utils/avatar'
   import { resolve } from '$app/paths'
   import logoWhite from '$lib/assets/logo_white.webp'
   import { authService } from '$lib/api/auth.service'
@@ -105,7 +106,7 @@
       >
         {#if profileQuery.data?.avatarUrl}
           <img
-            src={profileQuery.data.avatarUrl}
+            src={resolveAvatarUrl(profileQuery.data.avatarUrl) ?? ''}
             alt="Profile"
             class="h-full w-full object-cover"
           />

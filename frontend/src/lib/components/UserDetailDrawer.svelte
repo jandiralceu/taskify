@@ -10,6 +10,7 @@
     Clock,
   } from '@lucide/svelte'
   import { createUserQuery } from '$lib/state/user.svelte'
+  import { resolveAvatarUrl } from '$lib/utils/avatar'
 
   interface Props {
     userId: string | undefined
@@ -86,7 +87,7 @@
               <div class="relative mb-4">
                 {#if user.avatarUrl}
                   <img
-                    src={user.avatarUrl}
+                    src={resolveAvatarUrl(user.avatarUrl) ?? ''}
                     alt={user.firstName}
                     class="size-32 rounded-3xl border-4 border-white object-cover shadow-xl"
                   />

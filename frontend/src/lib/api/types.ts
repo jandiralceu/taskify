@@ -73,6 +73,26 @@ export interface RefreshTokenResponse {
 export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled'
 export type TaskPriority = 'low' | 'medium' | 'high' | 'critical'
 
+export interface TaskNoteResponse {
+  id: string
+  taskId: string
+  userId: string
+  content: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface TaskAttachmentResponse {
+  id: string
+  taskId: string
+  userId: string
+  fileName: string
+  fileSize: number
+  mimeType: string
+  filePath: string
+  createdAt: string
+}
+
 export interface TaskResponse {
   id: string
   title: string
@@ -90,6 +110,8 @@ export interface TaskResponse {
   isArchived: boolean
   notesCount: number
   attachmentsCount: number
+  notes?: TaskNoteResponse[]
+  attachments?: TaskAttachmentResponse[]
   createdAt: string
   updatedAt: string
 }

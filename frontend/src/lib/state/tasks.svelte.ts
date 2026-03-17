@@ -8,6 +8,8 @@ import type {
   CreateTaskRequest,
   UpdateTaskRequest,
   TaskResponse,
+  TaskNoteResponse,
+  TaskAttachmentResponse,
 } from '$lib/api/types'
 
 export const TASKS_QUERY_KEY = ['tasks']
@@ -78,6 +80,50 @@ export function deleteTaskMutation() {
     mutationFn: id => tasksService.deleteTask(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TASKS_QUERY_KEY })
+    },
+  }))
+}
+
+export function addNoteMutation() {
+  const queryClient = useQueryClient()
+
+  return createMutation<TaskNoteResponse, Error, { taskId: string; content: string }>(() => ({
+    mutationFn: ({ taskId, content }) => tasksService.addNote(taskId, content),
+    onSuccess: (_, { taskId }) => {
+      queryClient.invalidateQueries({ queryKey: [...TASKS_QUERY_KEY, taskId] })
+    },
+  }))
+}
+
+export function deleteNoteMutation() {
+  const queryClient = useQueryClient()
+
+  return createMutation<void, Error, { noteId: string; taskId: string }>(() => ({
+    mutationFn: ({ noteId }) => tasksService.deleteNote(noteId),
+    onSuccess: (_, { taskId }) => {
+      queryClient.invalidateQueries({ queryKey: [...TASKS_QUERY_KEY, taskId] })
+    },
+  }))
+}
+
+export function addAttachmentMutation() {
+  const queryClient = useQueryClient()
+
+  return createMutation<TaskAttachmentResponse, Error, { taskId: string; file: File }>(() => ({
+    mutationFn: ({ taskId, file }) => tasksService.addAttachment(taskId, file),
+    onSuccess: (_, { taskId }) => {
+      queryClient.invalidateQueries({ queryKey: [...TASKS_QUERY_KEY, taskId] })
+    },
+  }))
+}
+
+export function deleteAttachmentMutation() {
+  const queryClient = useQueryClient()
+
+  return createMutation<void, Error, { attachmentId: string; taskId: string }>(() => ({
+    mutationFn: ({ attachmentId }) => tasksService.deleteAttachment(attachmentId),
+    onSuccess: (_, { taskId }) => {
+      queryClient.invalidateQueries({ queryKey: [...TASKS_QUERY_KEY, taskId] })
     },
   }))
 }
