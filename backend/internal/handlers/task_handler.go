@@ -143,15 +143,14 @@ func (h *TaskHandler) DeleteTask(c *gin.Context) {
 }
 
 // ListTasks godoc
-// @Summary      List tasks
-// @Description  Get all tasks with optional filtering.
+// @Summary      List active tasks
+// @Description  Get all active (non-archived) tasks with optional filtering.
 // @Tags         tasks
 // @Accept       json
 // @Produce      json
 // @Param        status      query string  false "Filter by status"
 // @Param        priority    query string  false "Filter by priority"
 // @Param        isBlocked   query boolean false "Filter by blocked status"
-// @Param        isArchived  query boolean false "Filter by archived status"
 // @Param        search      query string  false "Search in title/description"
 // @Param        assignedTo  query string  false "Filter by assigned user ID"
 // @Param        sort        query string  false "Sort field (e.g. createdAt, title)"
@@ -165,6 +164,52 @@ func (h *TaskHandler) ListTasks(c *gin.Context) {
 		RespondWithError(c, ParseValidationError(err))
 		return
 	}
+
+	// Always filter non-archived tasks for this endpoint.
+	archived := false
+	req.IsArchived = &archived
+
+	// Employees can only see tasks assigned to them.
+	if middleware.GetUserRole(c) == string(models.RoleEmployee) {
+		userID := middleware.GetUserID(c)
+		req.AssignedTo = &userID
+	}
+
+	tasks, err := h.taskService.GetAll(c.Request.Context(), req)
+	if err != nil {
+		RespondWithError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusOK, tasks)
+}
+
+// ListArchivedTasks godoc
+// @Summary      List archived tasks
+// @Description  Get all archived tasks with optional filtering.
+// @Tags         tasks
+// @Accept       json
+// @Produce      json
+// @Param        status      query string  false "Filter by status"
+// @Param        priority    query string  false "Filter by priority"
+// @Param        isBlocked   query boolean false "Filter by blocked status"
+// @Param        search      query string  false "Search in title/description"
+// @Param        assignedTo  query string  false "Filter by assigned user ID"
+// @Param        sort        query string  false "Sort field (e.g. createdAt, title)"
+// @Param        order       query string  false "Sort order: asc or desc"
+// @Success      200 {array} models.Task
+// @Security     Bearer
+// @Router       /tasks/archived [get]
+func (h *TaskHandler) ListArchivedTasks(c *gin.Context) {
+	var req dto.GetTaskListRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		RespondWithError(c, ParseValidationError(err))
+		return
+	}
+
+	// Always filter archived tasks for this endpoint.
+	archived := true
+	req.IsArchived = &archived
 
 	// Employees can only see tasks assigned to them.
 	if middleware.GetUserRole(c) == string(models.RoleEmployee) {

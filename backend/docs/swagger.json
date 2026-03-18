@@ -236,53 +236,76 @@
                 }
             }
         },
-        "/roles": {
+        "/tasks": {
             "get": {
                 "security": [
                     {
                         "Bearer": []
                     }
                 ],
-                "description": "Retrieve a list of all roles",
+                "description": "Get all active (non-archived) tasks with optional filtering.",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "roles"
+                    "tasks"
                 ],
-                "summary": "Get all roles",
+                "summary": "List active tasks",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by status",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by priority",
+                        "name": "priority",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filter by blocked status",
+                        "name": "isBlocked",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search in title/description",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by assigned user ID",
+                        "name": "assignedTo",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort field (e.g. createdAt, title)",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort order: asc or desc",
+                        "name": "order",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.Role"
+                                "$ref": "#/definitions/models.Task"
                             }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ProblemDetails"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ProblemDetails"
-                        }
-                    },
-                    "429": {
-                        "description": "Too many requests",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ProblemDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ProblemDetails"
                         }
                     }
                 }
@@ -293,7 +316,7 @@
                         "Bearer": []
                     }
                 ],
-                "description": "Create a new role in the system",
+                "description": "Creates a new task associated with the authenticated user.",
                 "consumes": [
                     "application/json"
                 ],
@@ -301,17 +324,17 @@
                     "application/json"
                 ],
                 "tags": [
-                    "roles"
+                    "tasks"
                 ],
-                "summary": "Create a role",
+                "summary": "Create a new task",
                 "parameters": [
                     {
-                        "description": "Role data",
+                        "description": "Task details",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.CreateRoleRequest"
+                            "$ref": "#/definitions/dto.CreateTaskRequest"
                         }
                     }
                 ],
@@ -319,67 +342,221 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/models.Role"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ProblemDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ProblemDetails"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ProblemDetails"
-                        }
-                    },
-                    "409": {
-                        "description": "Conflict",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ProblemDetails"
-                        }
-                    },
-                    "429": {
-                        "description": "Too many requests",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ProblemDetails"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal error",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ProblemDetails"
+                            "$ref": "#/definitions/models.Task"
                         }
                     }
                 }
             }
         },
-        "/roles/{id}": {
+        "/tasks/archived": {
             "get": {
                 "security": [
                     {
                         "Bearer": []
                     }
                 ],
-                "description": "Retrieve a single role by its unique UUID",
+                "description": "Get all archived tasks with optional filtering.",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "roles"
+                    "tasks"
                 ],
-                "summary": "Get role by ID",
+                "summary": "List archived tasks",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Role ID (UUID)",
+                        "description": "Filter by status",
+                        "name": "status",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by priority",
+                        "name": "priority",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filter by blocked status",
+                        "name": "isBlocked",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search in title/description",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by assigned user ID",
+                        "name": "assignedTo",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort field (e.g. createdAt, title)",
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sort order: asc or desc",
+                        "name": "order",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Task"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/tasks/attachments/{attachmentId}": {
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Permanently removes an attachment and its file from disk. Only the author can delete it.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "Delete an attachment",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Attachment UUID",
+                        "name": "attachmentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            }
+        },
+        "/tasks/notes/{noteId}": {
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Permanently removes a note. Only the author can delete it.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "Delete a task note",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Note UUID",
+                        "name": "noteId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Updates the content of an existing note. Only the author can update it.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "Update a task note",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Note UUID",
+                        "name": "noteId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "New note content",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateTaskNoteRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.TaskNote"
+                        }
+                    }
+                }
+            }
+        },
+        "/tasks/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Retrieves a single task by its unique ID, including notes and attachments.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "Get task by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Task UUID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -389,37 +566,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.Role"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ProblemDetails"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ProblemDetails"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ProblemDetails"
-                        }
-                    },
-                    "404": {
-                        "description": "Not found",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ProblemDetails"
-                        }
-                    },
-                    "429": {
-                        "description": "Too many requests",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ProblemDetails"
+                            "$ref": "#/definitions/models.Task"
                         }
                     }
                 }
@@ -430,18 +577,21 @@
                         "Bearer": []
                     }
                 ],
-                "description": "Remove a role by its unique UUID",
+                "description": "Permanently removes a task.",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "roles"
+                    "tasks"
                 ],
-                "summary": "Delete a role",
+                "summary": "Delete a task",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Role ID (UUID)",
+                        "description": "Task UUID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -449,42 +599,216 @@
                 ],
                 "responses": {
                     "204": {
-                        "description": "No content"
+                        "description": "No Content"
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Updates an existing task's details.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "Update a task",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Task UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     },
-                    "400": {
-                        "description": "Bad request",
+                    {
+                        "description": "Updated task details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.ProblemDetails"
+                            "$ref": "#/definitions/dto.UpdateTaskRequest"
                         }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ProblemDetails"
+                            "$ref": "#/definitions/models.Task"
                         }
-                    },
-                    "403": {
-                        "description": "Forbidden",
+                    }
+                }
+            }
+        },
+        "/tasks/{id}/attachments": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Retrieves all attachments associated with a specific task.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "Get all attachments for a task",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Task UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ProblemDetails"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.TaskAttachment"
+                            }
                         }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Uploads a file and attaches it to the specified task.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "Add an attachment to a task",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Task UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     },
-                    "404": {
-                        "description": "Not found",
+                    {
+                        "type": "file",
+                        "description": "File to upload",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ProblemDetails"
+                            "$ref": "#/definitions/models.TaskAttachment"
                         }
-                    },
-                    "429": {
-                        "description": "Too many requests",
+                    }
+                }
+            }
+        },
+        "/tasks/{id}/notes": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Retrieves all notes associated with a specific task.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "Get all notes for a task",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Task UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/handlers.ProblemDetails"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.TaskNote"
+                            }
                         }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Creates a new note associated with the specified task.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "Add a note to a task",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Task UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     },
-                    "500": {
-                        "description": "Internal error",
+                    {
+                        "description": "Note content",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handlers.ProblemDetails"
+                            "$ref": "#/definitions/dto.CreateTaskNoteRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.TaskNote"
                         }
                     }
                 }
@@ -523,8 +847,14 @@
                     },
                     {
                         "type": "string",
-                        "description": "Filter by name",
-                        "name": "name",
+                        "description": "Filter by first name",
+                        "name": "first_name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by last name",
+                        "name": "last_name",
                         "in": "query"
                     },
                     {
@@ -535,8 +865,8 @@
                     },
                     {
                         "type": "string",
-                        "description": "Filter by role UUID",
-                        "name": "roleId",
+                        "description": "Filter by role (admin, employee)",
+                        "name": "role",
                         "in": "query"
                     }
                 ],
@@ -573,6 +903,58 @@
                     },
                     "500": {
                         "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/avatar": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Uploads a new profile picture for the authenticated user.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Update profile picture",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Avatar image file",
+                        "name": "avatar",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns the avatar path",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProblemDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/handlers.ProblemDetails"
                         }
@@ -646,14 +1028,14 @@
                 }
             }
         },
-        "/users/change-role": {
-            "patch": {
+        "/users/permissions": {
+            "get": {
                 "security": [
                     {
                         "Bearer": []
                     }
                 ],
-                "description": "Updates a user's assigned role. Typically an administrative task.",
+                "description": "Retrieve the role and all associated permissions for the currently authenticated user.",
                 "consumes": [
                     "application/json"
                 ],
@@ -663,26 +1045,47 @@
                 "tags": [
                     "users"
                 ],
-                "summary": "Change user role",
-                "parameters": [
-                    {
-                        "description": "User and Role UUIDs",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.ChangeRoleRequest"
-                        }
-                    }
-                ],
+                "summary": "Get authenticated user permissions",
                 "responses": {
-                    "204": {
-                        "description": "No Content"
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
                     },
-                    "400": {
-                        "description": "Bad Request",
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/handlers.ProblemDetails"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/profile": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Retrieve the profile of the currently authenticated user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get authenticated user profile",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
                         }
                     },
                     "401": {
@@ -691,14 +1094,89 @@
                             "$ref": "#/definitions/handlers.ProblemDetails"
                         }
                     },
-                    "403": {
-                        "description": "Forbidden",
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/handlers.ProblemDetails"
                         }
                     },
-                    "404": {
-                        "description": "Not Found",
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProblemDetails"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Permanently deletes the authenticated user's own account.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Delete own account",
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProblemDetails"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Updates the authenticated user's profile information (first name, last name, isActive).",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Update user profile",
+                "parameters": [
+                    {
+                        "description": "User update data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/handlers.ProblemDetails"
                         }
@@ -851,6 +1329,86 @@
                         }
                     }
                 }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Updates a user's profile information by their unique ID. Admin only.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Update a user by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "User update data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProblemDetails"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProblemDetails"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProblemDetails"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProblemDetails"
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProblemDetails"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/handlers.ProblemDetails"
+                        }
+                    }
+                }
             }
         }
     },
@@ -881,35 +1439,69 @@
                 }
             }
         },
-        "dto.ChangeRoleRequest": {
+        "dto.CreateTaskNoteRequest": {
             "type": "object",
             "required": [
-                "roleId",
-                "userId"
+                "content"
             ],
             "properties": {
-                "roleId": {
-                    "type": "string"
-                },
-                "userId": {
-                    "type": "string"
+                "content": {
+                    "type": "string",
+                    "minLength": 1
                 }
             }
         },
-        "dto.CreateRoleRequest": {
+        "dto.CreateTaskRequest": {
             "type": "object",
             "required": [
-                "description",
-                "name"
+                "title"
             ],
             "properties": {
-                "description": {
-                    "type": "string",
-                    "minLength": 3
+                "assignedTo": {
+                    "type": "string"
                 },
-                "name": {
+                "description": {
+                    "type": "string"
+                },
+                "dueDate": {
+                    "type": "string"
+                },
+                "estimatedHours": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "isBlocked": {
+                    "type": "boolean"
+                },
+                "priority": {
+                    "enum": [
+                        "low",
+                        "medium",
+                        "high",
+                        "critical"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.TaskPriority"
+                        }
+                    ]
+                },
+                "status": {
+                    "enum": [
+                        "pending",
+                        "in_progress",
+                        "completed",
+                        "cancelled"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.TaskStatus"
+                        }
+                    ]
+                },
+                "title": {
                     "type": "string",
-                    "maxLength": 50,
+                    "maxLength": 255,
                     "minLength": 3
                 }
             }
@@ -940,26 +1532,40 @@
             "type": "object",
             "required": [
                 "email",
-                "name",
+                "firstName",
+                "lastName",
                 "password",
-                "roleId"
+                "role"
             ],
             "properties": {
                 "email": {
                     "type": "string",
                     "maxLength": 255
                 },
-                "name": {
+                "firstName": {
                     "type": "string",
                     "maxLength": 100,
-                    "minLength": 3
+                    "minLength": 2
+                },
+                "lastName": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 2
                 },
                 "password": {
                     "type": "string",
                     "minLength": 8
                 },
-                "roleId": {
-                    "type": "string"
+                "role": {
+                    "enum": [
+                        "admin",
+                        "employee"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.Role"
+                        }
+                    ]
                 }
             }
         },
@@ -997,6 +1603,95 @@
             "properties": {
                 "refreshToken": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.UpdateTaskNoteRequest": {
+            "type": "object",
+            "required": [
+                "content"
+            ],
+            "properties": {
+                "content": {
+                    "type": "string",
+                    "minLength": 1
+                }
+            }
+        },
+        "dto.UpdateTaskRequest": {
+            "type": "object",
+            "properties": {
+                "actualHours": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "assignedTo": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "dueDate": {
+                    "type": "string"
+                },
+                "estimatedHours": {
+                    "type": "number",
+                    "minimum": 0
+                },
+                "isArchived": {
+                    "type": "boolean"
+                },
+                "isBlocked": {
+                    "type": "boolean"
+                },
+                "priority": {
+                    "enum": [
+                        "low",
+                        "medium",
+                        "high",
+                        "critical"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.TaskPriority"
+                        }
+                    ]
+                },
+                "status": {
+                    "enum": [
+                        "pending",
+                        "in_progress",
+                        "completed",
+                        "cancelled"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.TaskStatus"
+                        }
+                    ]
+                },
+                "title": {
+                    "type": "string",
+                    "maxLength": 255,
+                    "minLength": 3
+                }
+            }
+        },
+        "dto.UpdateUserRequest": {
+            "type": "object",
+            "properties": {
+                "firstName": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 2
+                },
+                "isActive": {
+                    "type": "boolean"
+                },
+                "lastName": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 2
                 }
             }
         },
@@ -1047,44 +1742,217 @@
             }
         },
         "models.Role": {
+            "type": "string",
+            "enum": [
+                "admin",
+                "employee"
+            ],
+            "x-enum-varnames": [
+                "RoleAdmin",
+                "RoleEmployee"
+            ]
+        },
+        "models.Task": {
             "type": "object",
             "properties": {
-                "created_at": {
+                "actualHours": {
+                    "type": "number"
+                },
+                "assignedTo": {
+                    "type": "string"
+                },
+                "assignee": {
+                    "$ref": "#/definitions/models.User"
+                },
+                "attachments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.TaskAttachment"
+                    }
+                },
+                "attachmentsCount": {
+                    "type": "integer"
+                },
+                "completedAt": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "createdBy": {
                     "type": "string"
                 },
                 "description": {
                     "type": "string"
                 },
+                "dueDate": {
+                    "type": "string"
+                },
+                "estimatedHours": {
+                    "type": "number"
+                },
                 "id": {
                     "type": "string"
                 },
-                "name": {
+                "isArchived": {
+                    "type": "boolean"
+                },
+                "isBlocked": {
+                    "type": "boolean"
+                },
+                "notes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.TaskNote"
+                    }
+                },
+                "notesCount": {
+                    "description": "UI Fields (populated via subqueries)",
+                    "type": "integer"
+                },
+                "priority": {
+                    "$ref": "#/definitions/models.TaskPriority"
+                },
+                "status": {
+                    "$ref": "#/definitions/models.TaskStatus"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updatedAt": {
                     "type": "string"
                 }
             }
         },
+        "models.TaskAttachment": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "fileName": {
+                    "type": "string"
+                },
+                "filePath": {
+                    "type": "string"
+                },
+                "fileSize": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "mimeType": {
+                    "type": "string"
+                },
+                "taskId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "user": {
+                    "description": "Associations",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    ]
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.TaskNote": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "taskId": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                },
+                "user": {
+                    "description": "Associations",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    ]
+                },
+                "userId": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.TaskPriority": {
+            "type": "string",
+            "enum": [
+                "low",
+                "medium",
+                "high",
+                "critical"
+            ],
+            "x-enum-varnames": [
+                "TaskPriorityLow",
+                "TaskPriorityMedium",
+                "TaskPriorityHigh",
+                "TaskPriorityCritical"
+            ]
+        },
+        "models.TaskStatus": {
+            "type": "string",
+            "enum": [
+                "pending",
+                "in_progress",
+                "completed",
+                "cancelled"
+            ],
+            "x-enum-varnames": [
+                "TaskStatusPending",
+                "TaskStatusInProgress",
+                "TaskStatusCompleted",
+                "TaskStatusCancelled"
+            ]
+        },
         "models.User": {
             "type": "object",
             "properties": {
-                "created_at": {
+                "avatarUrl": {
+                    "type": "string"
+                },
+                "createdAt": {
                     "type": "string"
                 },
                 "email": {
                     "type": "string"
                 },
+                "firstName": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },
-                "name": {
+                "isActive": {
+                    "type": "boolean"
+                },
+                "lastName": {
                     "type": "string"
                 },
                 "role": {
                     "$ref": "#/definitions/models.Role"
                 },
-                "role_id": {
-                    "type": "string"
-                },
-                "updated_at": {
+                "updatedAt": {
                     "type": "string"
                 }
             }

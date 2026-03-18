@@ -18,8 +18,20 @@ export function getTasksQuery(paramsGetter: () => GetTasksParams = () => ({})) {
   return createQuery(() => {
     const params = paramsGetter()
     return {
-      queryKey: [...TASKS_QUERY_KEY, params],
+      queryKey: [...TASKS_QUERY_KEY, 'list', params],
       queryFn: () => tasksService.getTasks(params),
+      staleTime: 0,
+      gcTime: 0,
+    }
+  })
+}
+
+export function getArchivedTasksQuery(paramsGetter: () => GetTasksParams = () => ({})) {
+  return createQuery(() => {
+    const params = paramsGetter()
+    return {
+      queryKey: [...TASKS_QUERY_KEY, 'archived', params],
+      queryFn: () => tasksService.getArchivedTasks(params),
       staleTime: 0,
       gcTime: 0,
     }

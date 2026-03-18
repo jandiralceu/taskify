@@ -86,6 +86,7 @@ func Setup(routeConfig *RouteConfig, config *config.Config, jwtManager *pkg.JWTM
 			{
 				tasks.POST("", routeConfig.TaskHandler.CreateTask)
 				tasks.GET("", routeConfig.TaskHandler.ListTasks)
+				tasks.GET("/archived", routeConfig.TaskHandler.ListArchivedTasks)
 				tasks.GET("/:id", routeConfig.TaskHandler.GetTask)
 				tasks.PATCH("/:id", routeConfig.TaskHandler.UpdateTask)
 				tasks.DELETE("/:id", routeConfig.TaskHandler.DeleteTask)

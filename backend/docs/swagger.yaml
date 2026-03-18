@@ -17,28 +17,49 @@ definitions:
     - newPassword
     - oldPassword
     type: object
-  dto.ChangeRoleRequest:
+  dto.CreateTaskNoteRequest:
     properties:
-      roleId:
-        type: string
-      userId:
+      content:
+        minLength: 1
         type: string
     required:
-    - roleId
-    - userId
+    - content
     type: object
-  dto.CreateRoleRequest:
+  dto.CreateTaskRequest:
     properties:
-      description:
-        minLength: 3
+      assignedTo:
         type: string
-      name:
-        maxLength: 50
+      description:
+        type: string
+      dueDate:
+        type: string
+      estimatedHours:
+        minimum: 0
+        type: number
+      isBlocked:
+        type: boolean
+      priority:
+        allOf:
+        - $ref: '#/definitions/models.TaskPriority'
+        enum:
+        - low
+        - medium
+        - high
+        - critical
+      status:
+        allOf:
+        - $ref: '#/definitions/models.TaskStatus'
+        enum:
+        - pending
+        - in_progress
+        - completed
+        - cancelled
+      title:
+        maxLength: 255
         minLength: 3
         type: string
     required:
-    - description
-    - name
+    - title
     type: object
   dto.RefreshTokenRequest:
     properties:
@@ -59,20 +80,29 @@ definitions:
       email:
         maxLength: 255
         type: string
-      name:
+      firstName:
         maxLength: 100
-        minLength: 3
+        minLength: 2
+        type: string
+      lastName:
+        maxLength: 100
+        minLength: 2
         type: string
       password:
         minLength: 8
         type: string
-      roleId:
-        type: string
+      role:
+        allOf:
+        - $ref: '#/definitions/models.Role'
+        enum:
+        - admin
+        - employee
     required:
     - email
-    - name
+    - firstName
+    - lastName
     - password
-    - roleId
+    - role
     type: object
   dto.SignInRequest:
     properties:
@@ -97,6 +127,66 @@ definitions:
         type: string
     required:
     - refreshToken
+    type: object
+  dto.UpdateTaskNoteRequest:
+    properties:
+      content:
+        minLength: 1
+        type: string
+    required:
+    - content
+    type: object
+  dto.UpdateTaskRequest:
+    properties:
+      actualHours:
+        minimum: 0
+        type: number
+      assignedTo:
+        type: string
+      description:
+        type: string
+      dueDate:
+        type: string
+      estimatedHours:
+        minimum: 0
+        type: number
+      isArchived:
+        type: boolean
+      isBlocked:
+        type: boolean
+      priority:
+        allOf:
+        - $ref: '#/definitions/models.TaskPriority'
+        enum:
+        - low
+        - medium
+        - high
+        - critical
+      status:
+        allOf:
+        - $ref: '#/definitions/models.TaskStatus'
+        enum:
+        - pending
+        - in_progress
+        - completed
+        - cancelled
+      title:
+        maxLength: 255
+        minLength: 3
+        type: string
+    type: object
+  dto.UpdateUserRequest:
+    properties:
+      firstName:
+        maxLength: 100
+        minLength: 2
+        type: string
+      isActive:
+        type: boolean
+      lastName:
+        maxLength: 100
+        minLength: 2
+        type: string
     type: object
   dto.UserListResponse:
     properties:
@@ -129,31 +219,148 @@ definitions:
         type: string
     type: object
   models.Role:
+    enum:
+    - admin
+    - employee
+    type: string
+    x-enum-varnames:
+    - RoleAdmin
+    - RoleEmployee
+  models.Task:
     properties:
-      created_at:
+      actualHours:
+        type: number
+      assignedTo:
+        type: string
+      assignee:
+        $ref: '#/definitions/models.User'
+      attachments:
+        items:
+          $ref: '#/definitions/models.TaskAttachment'
+        type: array
+      attachmentsCount:
+        type: integer
+      completedAt:
+        type: string
+      createdAt:
+        type: string
+      createdBy:
         type: string
       description:
         type: string
+      dueDate:
+        type: string
+      estimatedHours:
+        type: number
       id:
         type: string
-      name:
+      isArchived:
+        type: boolean
+      isBlocked:
+        type: boolean
+      notes:
+        items:
+          $ref: '#/definitions/models.TaskNote'
+        type: array
+      notesCount:
+        description: UI Fields (populated via subqueries)
+        type: integer
+      priority:
+        $ref: '#/definitions/models.TaskPriority'
+      status:
+        $ref: '#/definitions/models.TaskStatus'
+      title:
+        type: string
+      updatedAt:
         type: string
     type: object
+  models.TaskAttachment:
+    properties:
+      createdAt:
+        type: string
+      fileName:
+        type: string
+      filePath:
+        type: string
+      fileSize:
+        type: integer
+      id:
+        type: string
+      mimeType:
+        type: string
+      taskId:
+        type: string
+      updatedAt:
+        type: string
+      user:
+        allOf:
+        - $ref: '#/definitions/models.User'
+        description: Associations
+      userId:
+        type: string
+    type: object
+  models.TaskNote:
+    properties:
+      content:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      taskId:
+        type: string
+      updatedAt:
+        type: string
+      user:
+        allOf:
+        - $ref: '#/definitions/models.User'
+        description: Associations
+      userId:
+        type: string
+    type: object
+  models.TaskPriority:
+    enum:
+    - low
+    - medium
+    - high
+    - critical
+    type: string
+    x-enum-varnames:
+    - TaskPriorityLow
+    - TaskPriorityMedium
+    - TaskPriorityHigh
+    - TaskPriorityCritical
+  models.TaskStatus:
+    enum:
+    - pending
+    - in_progress
+    - completed
+    - cancelled
+    type: string
+    x-enum-varnames:
+    - TaskStatusPending
+    - TaskStatusInProgress
+    - TaskStatusCompleted
+    - TaskStatusCancelled
   models.User:
     properties:
-      created_at:
+      avatarUrl:
+        type: string
+      createdAt:
         type: string
       email:
         type: string
+      firstName:
+        type: string
       id:
         type: string
-      name:
+      isActive:
+        type: boolean
+      lastName:
         type: string
       role:
         $ref: '#/definitions/models.Role'
-      role_id:
-        type: string
-      updated_at:
+      updatedAt:
         type: string
     type: object
 host: localhost:8080
@@ -316,9 +523,40 @@ paths:
       summary: User logout
       tags:
       - auth
-  /roles:
+  /tasks:
     get:
-      description: Retrieve a list of all roles
+      consumes:
+      - application/json
+      description: Get all active (non-archived) tasks with optional filtering.
+      parameters:
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      - description: Filter by priority
+        in: query
+        name: priority
+        type: string
+      - description: Filter by blocked status
+        in: query
+        name: isBlocked
+        type: boolean
+      - description: Search in title/description
+        in: query
+        name: search
+        type: string
+      - description: Filter by assigned user ID
+        in: query
+        name: assignedTo
+        type: string
+      - description: Sort field (e.g. createdAt, title)
+        in: query
+        name: sort
+        type: string
+      - description: 'Sort order: asc or desc'
+        in: query
+        name: order
+        type: string
       produces:
       - application/json
       responses:
@@ -326,81 +564,43 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.Role'
+              $ref: '#/definitions/models.Task'
             type: array
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/handlers.ProblemDetails'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/handlers.ProblemDetails'
-        "429":
-          description: Too many requests
-          schema:
-            $ref: '#/definitions/handlers.ProblemDetails'
-        "500":
-          description: Internal error
-          schema:
-            $ref: '#/definitions/handlers.ProblemDetails'
       security:
       - Bearer: []
-      summary: Get all roles
+      summary: List active tasks
       tags:
-      - roles
+      - tasks
     post:
       consumes:
       - application/json
-      description: Create a new role in the system
+      description: Creates a new task associated with the authenticated user.
       parameters:
-      - description: Role data
+      - description: Task details
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/dto.CreateRoleRequest'
+          $ref: '#/definitions/dto.CreateTaskRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/models.Role'
-        "400":
-          description: Bad request
-          schema:
-            $ref: '#/definitions/handlers.ProblemDetails'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/handlers.ProblemDetails'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/handlers.ProblemDetails'
-        "409":
-          description: Conflict
-          schema:
-            $ref: '#/definitions/handlers.ProblemDetails'
-        "429":
-          description: Too many requests
-          schema:
-            $ref: '#/definitions/handlers.ProblemDetails'
-        "500":
-          description: Internal error
-          schema:
-            $ref: '#/definitions/handlers.ProblemDetails'
+            $ref: '#/definitions/models.Task'
       security:
       - Bearer: []
-      summary: Create a role
+      summary: Create a new task
       tags:
-      - roles
-  /roles/{id}:
+      - tasks
+  /tasks/{id}:
     delete:
-      description: Remove a role by its unique UUID
+      consumes:
+      - application/json
+      description: Permanently removes a task.
       parameters:
-      - description: Role ID (UUID)
+      - description: Task UUID
         in: path
         name: id
         required: true
@@ -409,40 +609,18 @@ paths:
       - application/json
       responses:
         "204":
-          description: No content
-        "400":
-          description: Bad request
-          schema:
-            $ref: '#/definitions/handlers.ProblemDetails'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/handlers.ProblemDetails'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/handlers.ProblemDetails'
-        "404":
-          description: Not found
-          schema:
-            $ref: '#/definitions/handlers.ProblemDetails'
-        "429":
-          description: Too many requests
-          schema:
-            $ref: '#/definitions/handlers.ProblemDetails'
-        "500":
-          description: Internal error
-          schema:
-            $ref: '#/definitions/handlers.ProblemDetails'
+          description: No Content
       security:
       - Bearer: []
-      summary: Delete a role
+      summary: Delete a task
       tags:
-      - roles
+      - tasks
     get:
-      description: Retrieve a single role by its unique UUID
+      consumes:
+      - application/json
+      description: Retrieves a single task by its unique ID, including notes and attachments.
       parameters:
-      - description: Role ID (UUID)
+      - description: Task UUID
         in: path
         name: id
         required: true
@@ -453,32 +631,265 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.Role'
-        "400":
-          description: Bad request
-          schema:
-            $ref: '#/definitions/handlers.ProblemDetails'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/handlers.ProblemDetails'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/handlers.ProblemDetails'
-        "404":
-          description: Not found
-          schema:
-            $ref: '#/definitions/handlers.ProblemDetails'
-        "429":
-          description: Too many requests
-          schema:
-            $ref: '#/definitions/handlers.ProblemDetails'
+            $ref: '#/definitions/models.Task'
       security:
       - Bearer: []
-      summary: Get role by ID
+      summary: Get task by ID
       tags:
-      - roles
+      - tasks
+    patch:
+      consumes:
+      - application/json
+      description: Updates an existing task's details.
+      parameters:
+      - description: Task UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Updated task details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Task'
+      security:
+      - Bearer: []
+      summary: Update a task
+      tags:
+      - tasks
+  /tasks/{id}/attachments:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all attachments associated with a specific task.
+      parameters:
+      - description: Task UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.TaskAttachment'
+            type: array
+      security:
+      - Bearer: []
+      summary: Get all attachments for a task
+      tags:
+      - tasks
+    post:
+      consumes:
+      - multipart/form-data
+      description: Uploads a file and attaches it to the specified task.
+      parameters:
+      - description: Task UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: File to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.TaskAttachment'
+      security:
+      - Bearer: []
+      summary: Add an attachment to a task
+      tags:
+      - tasks
+  /tasks/{id}/notes:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all notes associated with a specific task.
+      parameters:
+      - description: Task UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.TaskNote'
+            type: array
+      security:
+      - Bearer: []
+      summary: Get all notes for a task
+      tags:
+      - tasks
+    post:
+      consumes:
+      - application/json
+      description: Creates a new note associated with the specified task.
+      parameters:
+      - description: Task UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Note content
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateTaskNoteRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.TaskNote'
+      security:
+      - Bearer: []
+      summary: Add a note to a task
+      tags:
+      - tasks
+  /tasks/archived:
+    get:
+      consumes:
+      - application/json
+      description: Get all archived tasks with optional filtering.
+      parameters:
+      - description: Filter by status
+        in: query
+        name: status
+        type: string
+      - description: Filter by priority
+        in: query
+        name: priority
+        type: string
+      - description: Filter by blocked status
+        in: query
+        name: isBlocked
+        type: boolean
+      - description: Search in title/description
+        in: query
+        name: search
+        type: string
+      - description: Filter by assigned user ID
+        in: query
+        name: assignedTo
+        type: string
+      - description: Sort field (e.g. createdAt, title)
+        in: query
+        name: sort
+        type: string
+      - description: 'Sort order: asc or desc'
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Task'
+            type: array
+      security:
+      - Bearer: []
+      summary: List archived tasks
+      tags:
+      - tasks
+  /tasks/attachments/{attachmentId}:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently removes an attachment and its file from disk. Only
+        the author can delete it.
+      parameters:
+      - description: Attachment UUID
+        in: path
+        name: attachmentId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      security:
+      - Bearer: []
+      summary: Delete an attachment
+      tags:
+      - tasks
+  /tasks/notes/{noteId}:
+    delete:
+      consumes:
+      - application/json
+      description: Permanently removes a note. Only the author can delete it.
+      parameters:
+      - description: Note UUID
+        in: path
+        name: noteId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+      security:
+      - Bearer: []
+      summary: Delete a task note
+      tags:
+      - tasks
+    patch:
+      consumes:
+      - application/json
+      description: Updates the content of an existing note. Only the author can update
+        it.
+      parameters:
+      - description: Note UUID
+        in: path
+        name: noteId
+        required: true
+        type: string
+      - description: New note content
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateTaskNoteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TaskNote'
+      security:
+      - Bearer: []
+      summary: Update a task note
+      tags:
+      - tasks
   /users:
     get:
       consumes:
@@ -494,17 +905,21 @@ paths:
         in: query
         name: limit
         type: integer
-      - description: Filter by name
+      - description: Filter by first name
         in: query
-        name: name
+        name: first_name
+        type: string
+      - description: Filter by last name
+        in: query
+        name: last_name
         type: string
       - description: Filter by email
         in: query
         name: email
         type: string
-      - description: Filter by role UUID
+      - description: Filter by role (admin, employee)
         in: query
-        name: roleId
+        name: role
         type: string
       produces:
       - application/json
@@ -625,6 +1040,92 @@ paths:
       summary: Get user by ID
       tags:
       - users
+    patch:
+      consumes:
+      - application/json
+      description: Updates a user's profile information by their unique ID. Admin
+        only.
+      parameters:
+      - description: User UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: User update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ProblemDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ProblemDetails'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/handlers.ProblemDetails'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ProblemDetails'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/handlers.ProblemDetails'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ProblemDetails'
+      security:
+      - Bearer: []
+      summary: Update a user by ID
+      tags:
+      - users
+  /users/avatar:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Uploads a new profile picture for the authenticated user.
+      parameters:
+      - description: Avatar image file
+        in: formData
+        name: avatar
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns the avatar path
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handlers.ProblemDetails'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ProblemDetails'
+      security:
+      - Bearer: []
+      summary: Update profile picture
+      tags:
+      - users
   /users/change-password:
     patch:
       consumes:
@@ -668,37 +1169,99 @@ paths:
       summary: Change own password
       tags:
       - users
-  /users/change-role:
-    patch:
+  /users/permissions:
+    get:
       consumes:
       - application/json
-      description: Updates a user's assigned role. Typically an administrative task.
-      parameters:
-      - description: User and Role UUIDs
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/dto.ChangeRoleRequest'
+      description: Retrieve the role and all associated permissions for the currently
+        authenticated user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handlers.ProblemDetails'
+      security:
+      - Bearer: []
+      summary: Get authenticated user permissions
+      tags:
+      - users
+  /users/profile:
+    delete:
+      description: Permanently deletes the authenticated user's own account.
       produces:
       - application/json
       responses:
         "204":
           description: No Content
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/handlers.ProblemDetails'
         "401":
           description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.ProblemDetails'
-        "403":
-          description: Forbidden
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ProblemDetails'
+      security:
+      - Bearer: []
+      summary: Delete own account
+      tags:
+      - users
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the profile of the currently authenticated user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "401":
+          description: Unauthorized
           schema:
             $ref: '#/definitions/handlers.ProblemDetails'
         "404":
           description: Not Found
+          schema:
+            $ref: '#/definitions/handlers.ProblemDetails'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handlers.ProblemDetails'
+      security:
+      - Bearer: []
+      summary: Get authenticated user profile
+      tags:
+      - users
+    patch:
+      consumes:
+      - application/json
+      description: Updates the authenticated user's profile information (first name,
+        last name, isActive).
+      parameters:
+      - description: User update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Bad Request
           schema:
             $ref: '#/definitions/handlers.ProblemDetails'
         "429":
@@ -711,7 +1274,7 @@ paths:
             $ref: '#/definitions/handlers.ProblemDetails'
       security:
       - Bearer: []
-      summary: Change user role
+      summary: Update user profile
       tags:
       - users
 securityDefinitions:

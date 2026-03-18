@@ -9,6 +9,7 @@
     loading?: boolean
     loadingText?: string
     onclick?: (e: MouseEvent) => void
+    title?: string
     class?: string
     children: Snippet
   }
@@ -20,6 +21,7 @@
     loading = false,
     loadingText = 'Loading...',
     onclick,
+    title,
     class: className = '',
     children,
   }: Props = $props()
@@ -39,6 +41,7 @@
   {type}
   disabled={disabled || loading}
   {onclick}
+  {title}
   class="{base} {variants[variant]} {className}"
 >
   {#if loading}

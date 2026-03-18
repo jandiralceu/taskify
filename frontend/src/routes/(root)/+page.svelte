@@ -8,18 +8,19 @@
     ArrowDown,
     Ban,
     X,
-    FunnelX,
   } from '@lucide/svelte'
   import TaskCard from '$lib/components/TaskCard.svelte'
   import TaskDetailDrawer from '$lib/components/TaskDetailDrawer.svelte'
   import { createProfileQuery } from '$lib/state/user.svelte'
   import {
     getTasksQuery,
+    getArchivedTasksQuery,
     updateTaskMutation,
     deleteTaskMutation,
   } from '$lib/state/tasks.svelte'
   import AddTaskModal from '$lib/components/AddTaskModal.svelte'
   import UserDetailDrawer from '$lib/components/UserDetailDrawer.svelte'
+  import ArchivedTaskTable from '$lib/components/ArchivedTaskTable.svelte'
   import { toaster } from '$lib/state/toast.svelte'
   import Button from '$lib/components/Button.svelte'
   import type {
@@ -42,14 +43,20 @@
 
   const profileQuery = createProfileQuery()
 
-  const tasksQuery = getTasksQuery(() => ({
+  const commonParams = () => ({
     search: debouncedSearch || undefined,
     priority: (filterPriority as TaskPriority) || undefined,
     isBlocked: filterBlocked || undefined,
-    isArchived: filterArchived,
     sort: sortField,
     order: sortOrder,
-  }))
+  })
+
+  const activeTasksQuery = getTasksQuery(commonParams)
+  const archivedTasksQuery = getArchivedTasksQuery(commonParams)
+
+  const tasksQuery = $derived(
+    filterArchived ? archivedTasksQuery : activeTasksQuery
+  )
 
   const updateTask = updateTaskMutation()
   const deleteTask = deleteTaskMutation()
@@ -68,7 +75,10 @@
   let isUserDrawerOpen = $state(false)
 
   const hasActiveFilters = $derived(
-    filterSearch !== '' || filterPriority !== '' || filterBlocked || filterArchived
+    filterSearch !== '' ||
+      filterPriority !== '' ||
+      filterBlocked ||
+      filterArchived
   )
 
   function clearFilters() {
@@ -262,7 +272,7 @@
         >
           <h3
             class="text-3xl tracking-tight transition-colors {!filterArchived
-              ? 'font-medium text-surface-900'
+              ? 'font-normal text-surface-900'
               : 'font-light text-surface-400 hover:text-surface-600'}"
           >
             Tasks
@@ -275,7 +285,7 @@
         >
           <h3
             class="text-3xl tracking-tight transition-colors {filterArchived
-              ? 'font-medium text-surface-900'
+              ? 'font-normal text-surface-900'
               : 'font-light text-surface-400 hover:text-surface-600'}"
           >
             Archived
@@ -297,14 +307,17 @@
             type="text"
             placeholder="Search tasks..."
             bind:value={filterSearch}
-            class="filter-input w-full py-2.5 pr-4 pl-10 h-11"
+            class="filter-input h-11 w-full py-2.5 pr-4 pl-10"
           />
         </div>
 
-        <div class="h-6 w-px bg-surface-200 mx-1"></div>
+        <div class="mx-1 h-6 w-px bg-surface-200"></div>
 
         <!-- Priority Filter -->
-        <select bind:value={filterPriority} class="filter-input filter-select h-11 px-4 min-w-[150px]">
+        <select
+          bind:value={filterPriority}
+          class="filter-input filter-select h-11 min-w-[150px] px-4"
+        >
           <option value="">All Priorities</option>
           <option value="low">Low</option>
           <option value="medium">Medium</option>
@@ -316,7 +329,7 @@
         <button
           onclick={() => (filterBlocked = !filterBlocked)}
           type="button"
-          class="inline-flex items-center gap-2 rounded-xl border h-11 px-4 text-sm font-medium transition-all {filterBlocked
+          class="inline-flex h-11 items-center gap-2 rounded-xl border px-4 text-sm font-medium transition-all {filterBlocked
             ? 'border-red-300 bg-red-50 text-red-700 shadow-sm shadow-red-100'
             : 'border-surface-200 bg-white text-surface-600 hover:border-surface-300'}"
         >
@@ -325,7 +338,7 @@
         </button>
 
         {#if hasActiveFilters}
-          <div class="flex items-center gap-3 ml-2">
+          <div class="ml-2 flex items-center gap-3">
             <span class="text-xs font-medium text-surface-400 tabular-nums">
               {tasksQuery.data?.length ?? 0} matches
             </span>
@@ -343,8 +356,13 @@
 
       <div class="flex items-center gap-4">
         <!-- Sort Field -->
-        <div class="flex items-center rounded-xl border border-surface-200 bg-white overflow-hidden h-11">
-          <select bind:value={sortField} class="h-full border-none bg-transparent px-4 text-sm font-medium text-surface-700 focus:ring-0 outline-none pr-8 cursor-pointer appearance-none bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2364748b%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[position:right_0.75rem_center]">
+        <div
+          class="flex h-11 items-center overflow-hidden rounded-xl border border-surface-200 bg-white"
+        >
+          <select
+            bind:value={sortField}
+            class="h-full cursor-pointer appearance-none border-none bg-transparent bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2216%22%20height%3D%2216%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%2364748b%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m6%209%206%206%206-6%22%2F%3E%3C%2Fsvg%3E')] bg-[position:right_0.75rem_center] bg-no-repeat px-4 pr-8 text-sm font-medium text-surface-700 outline-none focus:ring-0"
+          >
             <option value="createdAt">Date Created</option>
             <option value="title">Title</option>
             <option value="priority">Priority</option>
@@ -378,101 +396,106 @@
     </div>
   </div>
 
-  <!-- Board Content -->
-  <div class="custom-scrollbar-h flex-1 overflow-x-auto overflow-y-hidden">
-    <div class="inline-flex h-[calc(100vh-100px)] pr-16 pb-8 pl-11">
-      {#each columns as column (column.id)}
-        <div
-          class="flex w-[340px] shrink-0 flex-col gap-6 border-r border-slate-300/50 px-5 last:border-r-0"
-        >
-          <!-- Column Header -->
-          <div class="flex items-center justify-between">
-            <h3 class="text-sm font-medium text-surface-900">{column.title}</h3>
-            <button
-              class="text-surface-300 transition-colors hover:text-surface-500"
-            >
-              <Ellipsis size={18} />
-            </button>
-          </div>
-
-          <!-- Cards Area (drop zone) -->
-          <div class="relative flex min-h-0 flex-1 flex-col">
-            <div
-              class="custom-scrollbar flex-1 space-y-4 overflow-y-auto rounded-xl pr-2 pb-16 transition-colors {dragOverColumn ===
-              column.id
-                ? 'bg-primary-500/5 ring-2 ring-primary-500/20'
-                : ''}"
-              ondragover={e => onDragOver(e, column.id)}
-              ondragleave={e => onDragLeave(e, column.id)}
-              ondrop={e => onDrop(e, column.id)}
-              role="list"
-            >
-              {#if tasksQuery.isPending}
-                <div
-                  class="flex flex-col items-center justify-center py-12 text-surface-400"
-                >
-                  <LoaderCircle size={24} class="mb-2 animate-spin" />
-                  <span class="text-xs font-medium">Loading tasks...</span>
-                </div>
-              {:else if tasksQuery.isError}
-                <div
-                  class="rounded-xl bg-red-50 p-4 text-center text-xs font-medium text-red-600"
-                >
-                  Failed to load tasks
-                </div>
-              {:else if tasksQuery.data}
-                {#each tasksQuery.data.filter(t => t.status === column.id) as task (task.id)}
-                  <TaskCard
-                    {task}
-                    isDragging={draggingTaskId === task.id}
-                    onDragStart={e => onDragStart(e, task.id)}
-                    {onDragEnd}
-                    onDelete={handleDeleteTask}
-                    onToggleBlock={handleToggleBlock}
-                    onViewDetails={handleViewDetails}
-                    onViewUser={handleViewUser}
-                  />
-                {:else}
-                  {#if hasActiveFilters}
-                    <div
-                      class="flex flex-col items-center justify-center py-12 px-4 text-center bg-white/50 rounded-2xl border-2 border-dashed border-surface-200 animate-in fade-in zoom-in duration-300"
-                    >
-                      <div
-                        class="p-3 bg-surface-100 rounded-full mb-3 text-surface-400"
-                      >
-                        <FunnelX size={20} />
-                      </div>
-                      <p class="text-sm font-medium text-surface-600">
-                        No matches found
-                      </p>
-                      <p class="text-xs text-surface-400 mt-1">
-                        Refine your search parameters
-                      </p>
-                    </div>
-                  {/if}
-                {/each}
-              {/if}
-
-              <!-- Plus Button only on Pending column -->
-              {#if column.id === 'pending'}
-                <Button
-                  onclick={handleAddTask}
-                  variant="button"
-                >
-                  <Plus size={16} />
-                  Add task
-                </Button>
-              {/if}
+  <!-- Main Content -->
+  {#if !filterArchived}
+    <!-- Board View (Kanban) -->
+    <div class="custom-scrollbar-h flex-1 overflow-x-auto overflow-y-hidden">
+      <div class="inline-flex h-[calc(100vh-100px)] pr-16 pb-8 pl-11">
+        {#each columns as column (column.id)}
+          <div
+            class="flex w-[340px] shrink-0 flex-col gap-6 border-r border-slate-300/50 px-5 last:border-r-0"
+          >
+            <!-- Column Header -->
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-medium text-surface-900">
+                {column.title}
+              </h3>
+              <button
+                class="text-surface-300 transition-colors hover:text-surface-500"
+              >
+                <Ellipsis size={18} />
+              </button>
             </div>
-            <!-- Bottom Fade Overlay -->
-            <div
-              class="pointer-events-none absolute right-0 bottom-0 left-0 z-10 h-12 rounded-b-xl bg-gradient-to-t from-[#F7F3F9] to-transparent"
-            ></div>
+
+            <!-- Cards Area (drop zone) -->
+            <div class="relative flex min-h-0 flex-1 flex-col">
+              <div
+                class="custom-scrollbar flex-1 space-y-4 overflow-y-auto rounded-xl pr-2 pb-16 transition-colors {dragOverColumn ===
+                column.id
+                  ? 'bg-primary-500/5 ring-2 ring-primary-500/20'
+                  : ''}"
+                ondragover={e => onDragOver(e, column.id)}
+                ondragleave={e => onDragLeave(e, column.id)}
+                ondrop={e => onDrop(e, column.id)}
+                role="list"
+              >
+                {#if tasksQuery.isPending}
+                  {#each Array(3) as _, i (i)}
+                    <div
+                      class="h-32 w-full animate-pulse rounded-2xl bg-surface-50"
+                    ></div>
+                  {/each}
+                {:else if tasksQuery.data}
+                  {#each tasksQuery.data.filter(t => t.status === column.id) as task (task.id)}
+                    <TaskCard
+                      {task}
+                      isDragging={draggingTaskId === task.id}
+                      onDragStart={e => onDragStart(e, task.id)}
+                      {onDragEnd}
+                      onDelete={handleDeleteTask}
+                      onToggleBlock={handleToggleBlock}
+                      onViewDetails={handleViewDetails}
+                      onViewUser={handleViewUser}
+                    />
+                  {/each}
+                {/if}
+
+                <!-- Plus Button only on Pending column -->
+                {#if column.id === 'pending'}
+                  <button
+                    onclick={handleAddTask}
+                    class="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary-500/30 py-3 text-sm font-medium text-primary-500/60 transition-all hover:border-primary-500 hover:bg-primary-500/5 hover:text-primary-500"
+                  >
+                    <Plus size={16} />
+                    Add task
+                  </button>
+                {/if}
+              </div>
+              <!-- Bottom Fade Overlay -->
+              <div
+                class="pointer-events-none absolute bottom-0 left-0 h-16 w-full bg-gradient-to-t from-[#F7F3F9] to-transparent"
+              ></div>
+            </div>
           </div>
-        </div>
-      {/each}
+        {/each}
+      </div>
     </div>
-  </div>
+  {:else}
+    <!-- Archived Table View -->
+    <div class="flex-1 overflow-y-auto px-16 pt-4 pb-12">
+      {#if tasksQuery.isPending}
+        <div class="flex h-64 items-center justify-center">
+          <LoaderCircle class="animate-spin text-primary-500" size={32} />
+        </div>
+      {:else if tasksQuery.isError}
+        <div class="rounded-xl bg-rose-50 p-8 text-center">
+          <p class="text-sm font-medium text-rose-600">
+            Failed to load archived tasks.
+          </p>
+          <Button
+            variant="ghost"
+            onclick={() => tasksQuery.refetch()}
+            class="mt-2">Try Again</Button
+          >
+        </div>
+      {:else if tasksQuery.data}
+        <ArchivedTaskTable
+          tasks={tasksQuery.data}
+          onViewDetails={handleViewDetails}
+        />
+      {/if}
+    </div>
+  {/if}
 </div>
 
 <AddTaskModal isOpen={isModalOpen} onClose={() => (isModalOpen = false)} />
@@ -520,7 +543,7 @@
     font-size: 0.8125rem;
     font-weight: 500;
     background: white;
-    border: 1px solid #E2E8F0;
+    border: 1px solid #e2e8f0;
     border-radius: 0.75rem;
     outline: none;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -528,15 +551,15 @@
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   }
   .filter-input::placeholder {
-    color: #94A3B8;
+    color: #94a3b8;
     font-weight: 400;
   }
   .filter-input:hover {
-    border-color: #CBD5E1;
-    background: #F8FAFC;
+    border-color: #cbd5e1;
+    background: #f8fafc;
   }
   .filter-input:focus {
-    border-color: #8B5CF6;
+    border-color: #8b5cf6;
     background: white;
     box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.12);
   }

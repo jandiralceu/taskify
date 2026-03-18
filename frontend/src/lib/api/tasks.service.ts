@@ -20,6 +20,16 @@ export interface GetTasksParams {
 
 class TasksService {
   async getTasks(params: GetTasksParams = {}) {
+    const searchParams = this.buildSearchParams(params)
+    return api.get('tasks', { searchParams }).json<TaskResponse[]>()
+  }
+
+  async getArchivedTasks(params: GetTasksParams = {}) {
+    const searchParams = this.buildSearchParams(params)
+    return api.get('tasks/archived', { searchParams }).json<TaskResponse[]>()
+  }
+
+  private buildSearchParams(params: GetTasksParams) {
     const searchParams = new URLSearchParams()
     if (params.status) searchParams.set('status', params.status)
     if (params.priority) searchParams.set('priority', params.priority)
@@ -28,8 +38,7 @@ class TasksService {
     if (params.order) searchParams.set('order', params.order)
     if (params.isBlocked !== undefined)
       searchParams.set('isBlocked', String(params.isBlocked))
-
-    return api.get('tasks', { searchParams }).json<TaskResponse[]>()
+    return searchParams
   }
 
   async getTask(id: string) {
