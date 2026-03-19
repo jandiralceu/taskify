@@ -1,8 +1,8 @@
 package main
 
-// @title Inventory API
+// @title Taskify API
 // @version 1.0
-// @description REST API for an Inventory Management System built with Go and Gin.
+// @description REST API for a Task Management System built with Go and Gin.
 
 // @contact.name Jandir A. Cutabiala
 // @contact.url https://github.com/jandiralceu/taskify

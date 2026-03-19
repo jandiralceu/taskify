@@ -92,11 +92,10 @@ definitions:
         minLength: 8
         type: string
       role:
-        allOf:
-        - $ref: '#/definitions/models.Role'
         enum:
         - admin
         - employee
+        type: string
     required:
     - email
     - firstName
@@ -187,6 +186,11 @@ definitions:
         maxLength: 100
         minLength: 2
         type: string
+      role:
+        enum:
+        - admin
+        - employee
+        type: string
     type: object
   dto.UserListResponse:
     properties:
@@ -218,14 +222,38 @@ definitions:
       type:
         type: string
     type: object
-  models.Role:
-    enum:
-    - admin
-    - employee
-    type: string
-    x-enum-varnames:
-    - RoleAdmin
-    - RoleEmployee
+  models.Permission:
+    properties:
+      action:
+        type: string
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      resource:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  models.RoleModel:
+    properties:
+      createdAt:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      permissions:
+        items:
+          $ref: '#/definitions/models.Permission'
+        type: array
+      updatedAt:
+        type: string
+    type: object
   models.Task:
     properties:
       actualHours:
@@ -359,7 +387,12 @@ definitions:
       lastName:
         type: string
       role:
-        $ref: '#/definitions/models.Role'
+        description: Virtual field for role specification on creation
+        type: string
+      roles:
+        items:
+          $ref: '#/definitions/models.RoleModel'
+        type: array
       updatedAt:
         type: string
     type: object
@@ -368,11 +401,11 @@ info:
   contact:
     name: Jandir A. Cutabiala
     url: https://github.com/jandiralceu/taskify
-  description: REST API for an Inventory Management System built with Go and Gin.
+  description: REST API for a Task Management System built with Go and Gin.
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
-  title: Inventory API
+  title: Taskify API
   version: "1.0"
 paths:
   /auth/refresh:
@@ -529,11 +562,11 @@ paths:
       - application/json
       description: Get all active (non-archived) tasks with optional filtering.
       parameters:
-      - description: Filter by status
+      - description: Filter by status (pending, in_progress, completed, cancelled)
         in: query
         name: status
         type: string
-      - description: Filter by priority
+      - description: Filter by priority (low, medium, high, critical)
         in: query
         name: priority
         type: string
@@ -776,11 +809,11 @@ paths:
       - application/json
       description: Get all archived tasks with optional filtering.
       parameters:
-      - description: Filter by status
+      - description: Filter by status (pending, in_progress, completed, cancelled)
         in: query
         name: status
         type: string
-      - description: Filter by priority
+      - description: Filter by priority (low, medium, high, critical)
         in: query
         name: priority
         type: string
@@ -1167,29 +1200,6 @@ paths:
       security:
       - Bearer: []
       summary: Change own password
-      tags:
-      - users
-  /users/permissions:
-    get:
-      consumes:
-      - application/json
-      description: Retrieve the role and all associated permissions for the currently
-        authenticated user.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/handlers.ProblemDetails'
-      security:
-      - Bearer: []
-      summary: Get authenticated user permissions
       tags:
       - users
   /users/profile:

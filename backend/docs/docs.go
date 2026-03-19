@@ -263,13 +263,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Filter by status",
+                        "description": "Filter by status (pending, in_progress, completed, cancelled)",
                         "name": "status",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Filter by priority",
+                        "description": "Filter by priority (low, medium, high, critical)",
                         "name": "priority",
                         "in": "query"
                     },
@@ -375,13 +375,13 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Filter by status",
+                        "description": "Filter by status (pending, in_progress, completed, cancelled)",
                         "name": "status",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Filter by priority",
+                        "description": "Filter by priority (low, medium, high, critical)",
                         "name": "priority",
                         "in": "query"
                     },
@@ -1034,41 +1034,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/permissions": {
-            "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "Retrieve the role and all associated permissions for the currently authenticated user.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Get authenticated user permissions",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/handlers.ProblemDetails"
-                        }
-                    }
-                }
-            }
-        },
         "/users/profile": {
             "get": {
                 "security": [
@@ -1563,14 +1528,10 @@ const docTemplate = `{
                     "minLength": 8
                 },
                 "role": {
+                    "type": "string",
                     "enum": [
                         "admin",
                         "employee"
-                    ],
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/models.Role"
-                        }
                     ]
                 }
             }
@@ -1698,6 +1659,13 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 100,
                     "minLength": 2
+                },
+                "role": {
+                    "type": "string",
+                    "enum": [
+                        "admin",
+                        "employee"
+                    ]
                 }
             }
         },
@@ -1747,16 +1715,54 @@ const docTemplate = `{
                 }
             }
         },
-        "models.Role": {
-            "type": "string",
-            "enum": [
-                "admin",
-                "employee"
-            ],
-            "x-enum-varnames": [
-                "RoleAdmin",
-                "RoleEmployee"
-            ]
+        "models.Permission": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "resource": {
+                    "type": "string"
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.RoleModel": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Permission"
+                    }
+                },
+                "updatedAt": {
+                    "type": "string"
+                }
+            }
         },
         "models.Task": {
             "type": "object",
@@ -1956,7 +1962,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "role": {
-                    "$ref": "#/definitions/models.Role"
+                    "description": "Virtual field for role specification on creation",
+                    "type": "string"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.RoleModel"
+                    }
                 },
                 "updatedAt": {
                     "type": "string"
@@ -1980,8 +1993,8 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:8080",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
-	Title:            "Inventory API",
-	Description:      "REST API for an Inventory Management System built with Go and Gin.",
+	Title:            "Taskify API",
+	Description:      "REST API for a Task Management System built with Go and Gin.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

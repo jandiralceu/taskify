@@ -147,8 +147,8 @@ func (h *TaskHandler) DeleteTask(c *gin.Context) {
 // @Tags         tasks
 // @Accept       json
 // @Produce      json
-// @Param        status      query string  false "Filter by status"
-// @Param        priority    query string  false "Filter by priority"
+// @Param        status      query string  false "Filter by status (pending, in_progress, completed, cancelled)"
+// @Param        priority    query string  false "Filter by priority (low, medium, high, critical)"
 // @Param        isBlocked   query boolean false "Filter by blocked status"
 // @Param        search      query string  false "Search in title/description"
 // @Param        assignedTo  query string  false "Filter by assigned user ID"
@@ -189,8 +189,8 @@ func (h *TaskHandler) ListTasks(c *gin.Context) {
 // @Tags         tasks
 // @Accept       json
 // @Produce      json
-// @Param        status      query string  false "Filter by status"
-// @Param        priority    query string  false "Filter by priority"
+// @Param        status      query string  false "Filter by status (pending, in_progress, completed, cancelled)"
+// @Param        priority    query string  false "Filter by priority (low, medium, high, critical)"
 // @Param        isBlocked   query boolean false "Filter by blocked status"
 // @Param        search      query string  false "Search in title/description"
 // @Param        assignedTo  query string  false "Filter by assigned user ID"
