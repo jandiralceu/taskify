@@ -29,6 +29,14 @@ test: ## Run all tests across both backend and frontend
 generate-keys: ## Generate RSA key pair for JWT (proxied to backend)
 	@cd backend && make generate-keys
 
+db-dump: ## Create a data-only dump of the database to deployment/seed.sql
+	@echo "Dumping database data..."
+	@docker exec -e PGPASSWORD=nk6eloPZ1FQk8Ku1 taskify-postgres pg_dump -U jandiralceu -d taskify --data-only --column-inserts --no-owner --no-privileges > deployment/seed.sql
+
+db-restore: ## Restore the database data from deployment/seed.sql
+	@echo "Restoring database data..."
+	@docker exec -i -e PGPASSWORD=nk6eloPZ1FQk8Ku1 taskify-postgres psql -U jandiralceu -d taskify < deployment/seed.sql
+
 help: ## Display all available commands
 	@echo "Available commands:"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
