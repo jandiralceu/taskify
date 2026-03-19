@@ -14,7 +14,7 @@ type UserResponse struct {
 	FirstName string      `json:"firstName"`
 	LastName  string      `json:"lastName"`
 	Email     string      `json:"email"`
-	Role      models.Role `json:"role"`
+	Role      string `json:"role"`
 	CreatedAt time.Time   `json:"createdAt"`
 }
 
@@ -25,7 +25,7 @@ func MapUserToResponse(u models.User) UserResponse {
 		FirstName: u.FirstName,
 		LastName:  u.LastName,
 		Email:     u.Email,
-		Role:      u.Role,
+		Role:      "employee",
 		CreatedAt: u.CreatedAt,
 	}
 }
@@ -40,7 +40,6 @@ func BenchmarkMappingLargeList(b *testing.B) {
 			FirstName: "Jermaine",
 			LastName:  "Cole",
 			Email:     "jcole@fakeemail.com",
-			Role:      models.RoleEmployee,
 			CreatedAt: time.Now(),
 		}
 	}

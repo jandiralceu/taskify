@@ -14,16 +14,17 @@ type CreateUserRequest struct {
 	LastName  string      `json:"lastName" binding:"required,min=2,max=100"`
 	Email     string      `json:"email" binding:"required,email,max=255"`
 	Password  string      `json:"password" binding:"required,min=8"`
-	Role      models.Role `json:"role" binding:"required,oneof=admin employee"`
+	Role      string `json:"role" binding:"required,oneof=admin employee"`
 }
 
 type GetUserListRequest struct {
 	PaginationRequest
-	FirstName string      `form:"firstName" binding:"omitempty"`
-	LastName  string      `form:"lastName" binding:"omitempty"`
-	Email     string      `form:"email" binding:"omitempty,email"`
-	Role      models.Role `form:"role" binding:"omitempty,oneof=admin employee"`
+	FirstName string `form:"firstName" binding:"omitempty"`
+	LastName  string `form:"lastName" binding:"omitempty"`
+	Email     string `form:"email" binding:"omitempty,email"`
+	Role      string `form:"role" binding:"omitempty,oneof=admin employee"`
 }
+
 
 type UserListResponse PaginatedResponse[models.User]
 

@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"github.com/casbin/casbin/v3"
+	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/gin-gonic/gin"
 	"github.com/jandiralceu/taskify/internal/config"
 	"github.com/jandiralceu/taskify/internal/database"
@@ -92,17 +93,29 @@ func main() {
 
 	hasher := pkg.NewArgon2PasswordHasher()
 
-	// Initialize Casbin Enforcer for RBAC.
-	enforcer, err := casbin.NewEnforcer("model.conf", "policy.csv")
+	// Initialize Casbin Enforcer with GORM adapter for persistent RBAC.
+	adapter, err := gormadapter.NewAdapterByDB(db)
+	if err != nil {
+		slog.Error("Failed to initialize Casbin adapter", "error", err)
+		os.Exit(1)
+	}
+
+	enforcer, err := casbin.NewEnforcer("model.conf", adapter)
 	if err != nil {
 		slog.Error("Failed to initialize Casbin enforcer", "error", err)
 		os.Exit(1)
 	}
 
+	// Load policies from the database.
+	if err := enforcer.LoadPolicy(); err != nil {
+		slog.Error("Failed to load Casbin policies", "error", err)
+	}
+
 	userRepository := repository.NewUserRepository(db)
 	taskRepository := repository.NewTaskRepository(db)
+	roleRepository := repository.NewRoleRepository(db)
 
-	userService := service.NewUserService(userRepository, hasher, cfg.UploadPath, cacheManager)
+	userService := service.NewUserService(userRepository, roleRepository, hasher, cfg.UploadPath, cacheManager)
 	taskService := service.NewTaskService(taskRepository, cfg.UploadPath)
 
 
