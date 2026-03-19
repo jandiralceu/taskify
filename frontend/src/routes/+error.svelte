@@ -9,11 +9,11 @@
   <div class="space-y-2">
     <h1 class="text-9xl font-black text-gray-200">{page.status}</h1>
     <p class="text-2xl font-semibold tracking-tight text-gray-800">
-      Oops! Algo deu errado.
+      Oops! Something went wrong.
     </p>
     <p class="max-w-md text-lg leading-relaxed text-gray-500">
       {page.error?.message ||
-        'Ocorreu um erro inesperado. Por favor, tente novamente mais tarde.'}
+        'An unexpected error occurred. Please try again later.'}
     </p>
   </div>
 
@@ -22,7 +22,7 @@
       href={resolve('/')}
       class="inline-flex h-12 items-center justify-center rounded-lg bg-indigo-600 px-8 font-semibold text-white shadow-lg shadow-indigo-200 transition-all hover:scale-105 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 focus:outline-none active:scale-95"
     >
-      Voltar para o Início
+      Back to Home
     </a>
   </div>
 </div>

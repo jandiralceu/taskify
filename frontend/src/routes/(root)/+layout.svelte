@@ -31,7 +31,7 @@
     storage.remove(AUTH_KEYS.ACCESS_TOKEN)
     storage.remove(AUTH_KEYS.REFRESH_TOKEN)
 
-    // Limpa o estado reativo e o cache
+    // Clear auth state and cache
     authState.token = null
     queryClient.removeQueries({ queryKey: PROFILE_QUERY_KEY })
 
@@ -108,7 +108,9 @@
         {:else if userInitials}
           <span>{userInitials}</span>
         {:else}
-          <div class="h-full w-full animate-pulse rounded-full bg-white/20"></div>
+          <div
+            class="h-full w-full animate-pulse rounded-full bg-white/20"
+          ></div>
         {/if}
       </a>
     </nav>

@@ -17,8 +17,7 @@ import type {
 export const PROFILE_QUERY_KEY = ['profile'] as const
 export const PERMISSIONS_QUERY_KEY = ['permissions'] as const
 
-// Criamos um estado reativo para o token
-// Criamos um estado reativo para o token e suas claims decodificadas
+// Create reactive state for the token and its decoded claims
 export const authState = $state({
   token: storage.get(AUTH_KEYS.ACCESS_TOKEN),
   get decoded() {
@@ -36,7 +35,7 @@ export function createProfileQuery() {
   return createQuery(() => ({
     queryKey: PROFILE_QUERY_KEY,
     queryFn: () => userService.getProfile(),
-    // Agora o TanStack Query "vigia" o authState.token
+    // TanStack Query "watches" authState.token as a dependency
     enabled: !!authState.token,
     staleTime: 1000 * 60 * 10,
     retry: 1,

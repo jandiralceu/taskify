@@ -324,6 +324,3 @@ func TestUpdateAvatarServiceError(t *testing.T) {
 
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }
-
-// =====================
-// GetPermissions Tests

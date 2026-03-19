@@ -1,4 +1,10 @@
-// Package repository provides the data access layer for the application.
-// It abstracts database operations behind interfaces and translates
-// database-specific errors into domain errors using [mapDatabaseError].
+/*
+Package repository manages the persistence and retrieval of data from the PostgreSQL database.
+
+Repositories are abstraction layers over the GORM-DB connection, focusing on:
+  - CRUD operations (Create, Read, Update, Delete) on core entities.
+  - SQL query construction with parameterization (SQL injection protection).
+  - Advanced filtering, searching, and pagination logic.
+  - Preloading and joining associations (e.g., loading Roles for Users).
+*/
 package repository

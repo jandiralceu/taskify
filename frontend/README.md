@@ -1,42 +1,41 @@
-# sv
+# Taskify Dashboard (Frontend)
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+The Taskify frontend is a cutting-edge web application built using **Svelte 5** and its innovative **Runes** API. It provides a highly responsive, modern, and interactive interface for managing tasks, users, and teams.
 
-## Creating a project
+## 🌟 Key Technologies
 
-If you're seeing this, you've probably already done this step. Congrats!
+- **Svelte 5 (Runes)**: Next-generation reactive UI development.
+- **TypeScript**: Robust types for components and API integration.
+- **TanStack Svelte Query**: Advanced server-state management with caching and optimistic updates.
+- **Vite**: Rapid-fast development and build pipeline.
+- **Custom CSS**: Premium, handcrafted styles for a unique and high-end aesthetic.
 
-```sh
-# create a new project
-npx sv create my-app
-```
+## 🚀 Key Features
 
-To recreate this project with the same configuration:
+- **Dynamic Kanban Board**: Interactive task movement with live status updates.
+- **Secure Authentication**: Integrated sign-in, sign-up, and automated token rotation.
+- **Task Collaboration**: Create and review comments, attachments, and blockers.
+- **User Management**: Profile customization (including avatar uploads) and user role administration.
+- **Responsive Design**: Silky-smooth adaptation to desktop and mobile screens.
 
-```sh
-# recreate this project
-npx sv@0.12.5 create --template minimal --types ts --add prettier eslint vitest="usages:unit,component" playwright tailwindcss="plugins:typography" devtools-json mcp="ide:other+setup:remote" --install npm frontend
-```
+## 🛠️ Getting Started
 
-## Developing
+1. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
+2. **Setup Environment**:
+   Ensure you have configured the backend URL (usually `http://localhost:8080/api/v1`).
+3. **Run Dev Server**:
+   ```bash
+   npm run dev
+   ```
+4. **Build for Production**:
+   ```bash
+   npm run build
+   ```
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## 🧪 Testing
 
-```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+- **Unit/Component Tests**: `npm run test:unit` for isolated business logic and component testing via Vitest.
+- **End-to-End Tests**: `npm run test:e2e` for complete browser-based workflow validation (Playwright).
