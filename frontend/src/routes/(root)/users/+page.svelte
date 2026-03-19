@@ -7,7 +7,7 @@
     X,
     ShieldCheck,
     User,
-    FilterX,
+    FunnelX,
     Pencil,
     Trash2,
     TriangleAlert,
@@ -210,7 +210,7 @@
         onclick={clearFilters}
         class="flex h-10 items-center gap-1.5 rounded-xl border border-surface-300 bg-white px-3 text-sm text-surface-500 transition-all hover:bg-surface-50 hover:text-surface-900"
       >
-        <FilterX size={15} />
+        <FunnelX size={15} />
         Clear
       </button>
     {/if}
