@@ -23,13 +23,14 @@ export default defineConfig({
     projects: [
       {
         extends: './vite.config.ts',
-        test: {
+          test: {
           name: 'client',
           browser: {
             enabled: true,
             provider: playwright(),
             instances: [{ browser: 'chromium', headless: true }],
           },
+          setupFiles: ['./src/vitest-setup.ts'],
           include: ['src/**/*.svelte.{test,spec}.{js,ts}'],
           exclude: ['src/lib/server/**'],
         },
