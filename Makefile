@@ -1,4 +1,4 @@
-.PHONY: docker-up docker-up-all docker-stop docker-down help
+.PHONY: docker-up docker-up-all docker-stop docker-down help lint test
 
 COMPOSE_FILE = deployment/compose.yaml
 
@@ -13,6 +13,18 @@ docker-stop: ## Stop docker containers without removing them
 
 docker-down: ## Stop and remove docker containers
 	docker compose -f $(COMPOSE_FILE) --profile all down
+
+lint: ## Run linter across both backend and frontend
+	@echo "Linting backend..."
+	@cd backend && make lint
+	@echo "Linting frontend..."
+	@cd frontend && npm run lint
+
+test: ## Run all tests across both backend and frontend
+	@echo "Testing backend..."
+	@cd backend && make test
+	@echo "Testing frontend..."
+	@cd frontend && npm run test:unit -- --run
 
 help: ## Display all available commands
 	@echo "Available commands:"

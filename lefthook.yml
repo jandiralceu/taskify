@@ -1,0 +1,53 @@
+# Lefthook Configuration for Taskify Project
+# Standardizes commit messages, linting, and testing across the monorepo
+
+commit-msg:
+  commands:
+    conventional-commit-lint:
+      run: |
+        commit_msg=$(cat {1})
+        # Regex for Conventional Commits (feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert, ref, wip)
+        pattern="^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert|ref|wip)(\(.+\))?!?: .+"
+        if [[ ! "$commit_msg" =~ $pattern ]]; then
+          echo "❌ Error: Invalid commit message format."
+          echo "Please use Conventional Commits standard. Examples:"
+          echo "  feat(auth): add login functionality"
+          echo "  fix: resolve memory leak"
+          echo "  docs: update readme"
+          exit 1
+        fi
+
+pre-commit:
+  parallel: true
+  commands:
+    # --- Frontend hooks ---
+    frontend-lint:
+      root: 'frontend/'
+      glob: 'src/**/*.{ts,js,svelte}'
+      run: npx eslint {staged_files}
+    
+    frontend-format:
+      root: 'frontend/'
+      glob: 'src/**/*.{ts,js,svelte,css,html,json}'
+      run: npx prettier --write {staged_files} && git add {staged_files}
+
+    # --- Backend hooks ---
+    backend-lint:
+      root: 'backend/'
+      glob: '**/*.go'
+      run: golangci-lint run --build-tags integration
+      
+    backend-test:
+      root: 'backend/'
+      glob: '**/*.go'
+      run: go test ./... -short -v
+
+pre-push:
+  commands:
+    full-test-backend:
+      root: 'backend/'
+      run: make test
+    
+    full-test-frontend:
+      root: 'frontend/'
+      run: npm run test:unit -- --run
