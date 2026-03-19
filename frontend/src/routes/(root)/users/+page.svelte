@@ -355,21 +355,37 @@
 
                   <!-- Role -->
                   <td class="px-6 py-4">
-                    {#if user.role === 'admin'}
-                      <span
-                        class="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-700"
-                      >
-                        <ShieldCheck size={11} />
-                        Admin
-                      </span>
-                    {:else}
-                      <span
-                        class="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2.5 py-1 text-[11px] font-semibold text-sky-700"
-                      >
-                        <User size={11} />
-                        Employee
-                      </span>
-                    {/if}
+                    <div class="flex flex-wrap gap-1">
+                      {#if user.roles && user.roles.length > 0}
+                        {#each user.roles as role (role.id)}
+                          <span
+                            class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold
+                            {role.name === 'admin' ? 'bg-violet-50 text-violet-700' : 'bg-sky-50 text-sky-700'}"
+                          >
+                            {#if role.name === 'admin'}
+                              <ShieldCheck size={11} />
+                            {:else}
+                              <User size={11} />
+                            {/if}
+                            {role.name.charAt(0).toUpperCase() + role.name.slice(1)}
+                          </span>
+                        {/each}
+                      {:else if user.role === 'admin'}
+                        <span
+                          class="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2.5 py-1 text-[11px] font-semibold text-violet-700"
+                        >
+                          <ShieldCheck size={11} />
+                          Admin
+                        </span>
+                      {:else}
+                        <span
+                          class="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2.5 py-1 text-[11px] font-semibold text-sky-700"
+                        >
+                          <User size={11} />
+                          Employee
+                        </span>
+                      {/if}
+                    </div>
                   </td>
 
                   <!-- Status -->

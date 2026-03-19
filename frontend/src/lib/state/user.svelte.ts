@@ -6,6 +6,7 @@ import {
 import { userService } from '$lib/api/user.service'
 import { storage, AUTH_KEYS } from '$lib/utils/storage'
 import { TASKS_QUERY_KEY } from '$lib/state/tasks.svelte'
+import { decodeToken, type DecodedToken } from '$lib/utils/jwt'
 import type {
   GetUsersParams,
   UpdateUserRequest,
@@ -17,8 +18,18 @@ export const PROFILE_QUERY_KEY = ['profile'] as const
 export const PERMISSIONS_QUERY_KEY = ['permissions'] as const
 
 // Criamos um estado reativo para o token
+// Criamos um estado reativo para o token e suas claims decodificadas
 export const authState = $state({
   token: storage.get(AUTH_KEYS.ACCESS_TOKEN),
+  get decoded() {
+    return decodeToken<DecodedToken>(this.token)
+  },
+  get role() {
+    return this.decoded?.role || ''
+  },
+  get permissions() {
+    return this.decoded?.permissions || []
+  }
 })
 
 export function createProfileQuery() {
@@ -32,15 +43,6 @@ export function createProfileQuery() {
   }))
 }
 
-export function createPermissionsQuery() {
-  return createQuery(() => ({
-    queryKey: PERMISSIONS_QUERY_KEY,
-    queryFn: () => userService.getPermissions(),
-    enabled: !!authState.token,
-    staleTime: 1000 * 60 * 10,
-    retry: 1,
-  }))
-}
 export function createUserQuery(userId: () => string | undefined) {
   return createQuery(() => ({
     queryKey: ['user', userId()],

@@ -6,20 +6,18 @@
   import { goto } from '$app/navigation'
   import { resolveAvatarUrl } from '$lib/utils/avatar'
   import { resolve } from '$app/paths'
+  import { isAdmin } from '$lib/utils/permissions'
   import logoWhite from '$lib/assets/logo_white.webp'
   import { authService } from '$lib/api/auth.service'
   import {
     createProfileQuery,
-    createPermissionsQuery,
     PROFILE_QUERY_KEY,
-    PERMISSIONS_QUERY_KEY,
     authState,
   } from '$lib/state/user.svelte'
 
   let { children } = $props()
   const queryClient = useQueryClient()
   const profileQuery = createProfileQuery()
-  const permissionsQuery = createPermissionsQuery()
 
   async function handleLogout() {
     const refreshToken = storage.get(AUTH_KEYS.REFRESH_TOKEN)
@@ -35,10 +33,7 @@
 
     // Limpa o estado reativo e o cache
     authState.token = null
-    queryClient.setQueryData(PROFILE_QUERY_KEY, null)
     queryClient.removeQueries({ queryKey: PROFILE_QUERY_KEY })
-    queryClient.setQueryData(PERMISSIONS_QUERY_KEY, null)
-    queryClient.removeQueries({ queryKey: PERMISSIONS_QUERY_KEY })
 
     goto(resolve('/signin'))
   }
@@ -49,8 +44,8 @@
   ] as const
 
   let navItems = $derived.by(() => {
-    const isAdmin = permissionsQuery.data?.permissions.admin_area ?? false
-    return baseNavItems.filter(item => !item.adminOnly || isAdmin)
+    const isLoggedAdmin = isAdmin(authState.role, authState.permissions)
+    return baseNavItems.filter(item => !item.adminOnly || isLoggedAdmin)
   })
 
   let activeRoute = $derived(page.url.pathname)

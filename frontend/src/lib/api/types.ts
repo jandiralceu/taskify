@@ -1,5 +1,11 @@
 export type UserRole = 'admin' | 'employee'
 
+export interface RoleResponse {
+  id: string
+  name: string
+  description: string
+}
+
 export interface CreateUserRequest {
   firstName: string
   lastName: string
@@ -14,9 +20,11 @@ export interface UserResponse {
   lastName: string
   email: string
   role: UserRole
+  roles?: RoleResponse[]
   isActive: boolean
   avatarUrl?: string
   createdAt: string
+  updatedAt: string
 }
 
 export interface PaginatedResponse<T> {
@@ -38,14 +46,6 @@ export interface GetUsersParams {
   order?: 'asc' | 'desc'
 }
 
-export interface PermissionsResponse {
-  role: UserRole
-  permissions: {
-    tasks: string[]
-    users: string[]
-    admin_area: boolean
-  }
-}
 
 export interface SignInRequest {
   email: string

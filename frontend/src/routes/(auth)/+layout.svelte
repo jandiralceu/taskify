@@ -1,5 +1,5 @@
 <script lang="ts">
-  import authBg from '$lib/assets/auth_bg.jpg'
+  import authBg from '$lib/assets/auth.jpeg'
   let { children } = $props()
 </script>
 
