@@ -26,6 +26,9 @@ test: ## Run all tests across both backend and frontend
 	@echo "Testing frontend..."
 	@cd frontend && npm run test:unit -- --run
 
+generate-keys: ## Generate RSA key pair for JWT (proxied to backend)
+	@cd backend && make generate-keys
+
 help: ## Display all available commands
 	@echo "Available commands:"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
