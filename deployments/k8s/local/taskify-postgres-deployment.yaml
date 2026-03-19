@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: taskify-postgres
+  namespace: taskify
+  labels:
+    app: taskify-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: taskify-postgres
+  template:
+    metadata:
+      labels:
+        app: taskify-postgres
+    spec:
+      containers:
+        - name: taskify-postgres
+          image: postgres:17.0
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: taskuser
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: taskify-api-secret
+                  key: DB_PASSWORD
+            - name: POSTGRES_DB
+              value: taskify
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "taskuser", "-d", "taskify"]
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "taskuser", "-d", "taskify"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
