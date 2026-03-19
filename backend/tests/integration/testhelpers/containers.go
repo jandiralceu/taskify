@@ -36,7 +36,7 @@ func SetupPostgres(ctx context.Context, migrationsDir string) (*PostgresContaine
 	dbPassword := "test"
 
 	// Collect migration files in order.
-	migrationFiles, err := filepath.Glob(filepath.Join(migrationsDir, "*.sql"))
+	migrationFiles, err := filepath.Glob(filepath.Join(migrationsDir, "*.up.sql"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to find migration files: %w", err)
 	}

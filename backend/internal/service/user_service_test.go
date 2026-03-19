@@ -40,33 +40,65 @@ func (m *MockRoleRepository) AssignRoleToUser(ctx context.Context, userID uuid.U
 	return args.Error(0)
 }
 
+func (m *MockRoleRepository) ClearUserRoles(ctx context.Context, userID uuid.UUID) error {
+	args := m.Called(ctx, userID)
+	return args.Error(0)
+}
+
 func TestCreateUser(t *testing.T) {
-	mockRepo := new(MockUserRepository)
-	mockRoleRepo := new(MockRoleRepository)
-	mockHasher := new(MockPasswordHasher)
-	svc := NewUserService(mockRepo, mockRoleRepo, mockHasher, "/tmp", nil)
+	t.Run("DefaultRole", func(t *testing.T) {
+		mockRepo := new(MockUserRepository)
+		mockRoleRepo := new(MockRoleRepository)
+		mockHasher := new(MockPasswordHasher)
+		svc := NewUserService(mockRepo, mockRoleRepo, mockHasher, "/tmp", nil)
 
-	ctx := context.Background()
-	user := &models.User{
-		FirstName:    "Test",
-		LastName:     "User",
-		Email:        "test@example.com",
-		PasswordHash: "plain-password",
-	}
+		ctx := context.Background()
+		user := &models.User{
+			FirstName:    "Test",
+			LastName:     "User",
+			Email:        "test@example.com",
+			PasswordHash: "plain-password",
+		}
 
-	mockHasher.On("Hash", "plain-password").Return("hashed-password", nil)
-	mockRoleRepo.On("FindByName", ctx, "employee").Return(&models.RoleModel{Name: "employee"}, nil)
-	mockRepo.On("Create", ctx, user).Return(nil)
+		mockHasher.On("Hash", "plain-password").Return("hashed-password", nil)
+		mockRoleRepo.On("FindByName", ctx, "employee").Return(&models.RoleModel{Name: "employee"}, nil)
+		mockRepo.On("Create", ctx, user).Return(nil)
 
-	err := svc.Create(ctx, user)
+		err := svc.Create(ctx, user)
 
-	assert.NoError(t, err)
-	assert.Equal(t, "hashed-password", user.PasswordHash)
-	assert.Len(t, user.Roles, 1)
-	assert.Equal(t, "employee", user.Roles[0].Name)
-	mockHasher.AssertExpectations(t)
-	mockRepo.AssertExpectations(t)
-	mockRoleRepo.AssertExpectations(t)
+		assert.NoError(t, err)
+		assert.Equal(t, "hashed-password", user.PasswordHash)
+		assert.Len(t, user.Roles, 1)
+		assert.Equal(t, "employee", user.Roles[0].Name)
+		mockHasher.AssertExpectations(t)
+		mockRepo.AssertExpectations(t)
+		mockRoleRepo.AssertExpectations(t)
+	})
+
+	t.Run("SpecificRole", func(t *testing.T) {
+		mockRepo := new(MockUserRepository)
+		mockRoleRepo := new(MockRoleRepository)
+		mockHasher := new(MockPasswordHasher)
+		svc := NewUserService(mockRepo, mockRoleRepo, mockHasher, "/tmp", nil)
+
+		ctx := context.Background()
+		user := &models.User{
+			FirstName:    "Admin",
+			LastName:     "User",
+			Email:        "admin@example.com",
+			PasswordHash: "secret",
+			Role:         "admin",
+		}
+
+		mockHasher.On("Hash", "secret").Return("hashed-secret", nil)
+		mockRoleRepo.On("FindByName", ctx, "admin").Return(&models.RoleModel{Name: "admin"}, nil)
+		mockRepo.On("Create", ctx, user).Return(nil)
+
+		err := svc.Create(ctx, user)
+
+		assert.NoError(t, err)
+		assert.Equal(t, "admin", user.Roles[0].Name)
+	})
 }
 
 func TestFindAllUsers(t *testing.T) {
@@ -180,24 +212,56 @@ func TestChangePassword(t *testing.T) {
 }
 
 func TestUpdateUser(t *testing.T) {
-	mockRepo := new(MockUserRepository)
-	mockHasher := new(MockPasswordHasher)
-	svc := NewUserService(mockRepo, new(MockRoleRepository), mockHasher, "/tmp", nil)
+	t.Run("BasicProfile", func(t *testing.T) {
+		mockRepo := new(MockUserRepository)
+		mockRoleRepo := new(MockRoleRepository)
+		mockHasher := new(MockPasswordHasher)
+		svc := NewUserService(mockRepo, mockRoleRepo, mockHasher, "/tmp", nil)
 
-	ctx := context.Background()
-	userID := uuid.New()
-	newName := "Updated"
-	req := dto.UpdateUserRequest{
-		FirstName: &newName,
-	}
+		ctx := context.Background()
+		userID := uuid.New()
+		newName := "Updated"
+		req := dto.UpdateUserRequest{
+			FirstName: &newName,
+		}
 
-	expectedUser := &models.User{ID: userID, FirstName: newName}
-	mockRepo.On("Update", ctx, userID, mock.AnythingOfType("repository.UpdateUserParams")).
-		Return(expectedUser, nil)
+		expectedUser := &models.User{ID: userID, FirstName: newName}
+		mockRepo.On("Update", ctx, userID, mock.AnythingOfType("repository.UpdateUserParams")).
+			Return(expectedUser, nil)
 
-	res, err := svc.Update(ctx, userID, req)
+		res, err := svc.Update(ctx, userID, req)
 
-	assert.NoError(t, err)
-	assert.Equal(t, newName, res.FirstName)
-	mockRepo.AssertExpectations(t)
+		assert.NoError(t, err)
+		assert.Equal(t, newName, res.FirstName)
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("WithRoleChange", func(t *testing.T) {
+		mockRepo := new(MockUserRepository)
+		mockRoleRepo := new(MockRoleRepository)
+		svc := NewUserService(mockRepo, mockRoleRepo, nil, "/tmp", nil)
+
+		ctx := context.Background()
+		userID := uuid.New()
+		newRole := "admin"
+		req := dto.UpdateUserRequest{
+			Role: &newRole,
+		}
+
+		roleID := uuid.New()
+		mockRoleRepo.On("FindByName", ctx, "admin").Return(&models.RoleModel{ID: roleID, Name: "admin"}, nil)
+		mockRoleRepo.On("ClearUserRoles", ctx, userID).Return(nil)
+		mockRoleRepo.On("AssignRoleToUser", ctx, userID, roleID).Return(nil)
+
+		expectedUser := &models.User{ID: userID, Roles: []models.RoleModel{}}
+		mockRepo.On("Update", ctx, userID, mock.AnythingOfType("repository.UpdateUserParams")).
+			Return(expectedUser, nil)
+
+		res, err := svc.Update(ctx, userID, req)
+
+		assert.NoError(t, err)
+		assert.Equal(t, "admin", res.Role)
+		assert.Len(t, res.Roles, 1)
+		mockRoleRepo.AssertExpectations(t)
+	})
 }

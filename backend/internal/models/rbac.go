@@ -11,7 +11,7 @@ type RoleModel struct {
 	ID          uuid.UUID    `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
 	Name        string       `gorm:"type:varchar(50);unique;not null" json:"name"`
 	Description string       `gorm:"type:text" json:"description"`
-	Permissions []Permission `gorm:"many2many:role_permissions;" json:"permissions,omitempty"`
+	Permissions []Permission `gorm:"many2many:role_permissions;foreignKey:ID;joinForeignKey:RoleID;References:ID;JoinReferences:PermissionID" json:"permissions,omitempty"`
 	CreatedAt   time.Time    `gorm:"type:timestamptz;not null;default:now()" json:"createdAt"`
 	UpdatedAt   time.Time    `gorm:"type:timestamptz;not null;default:now()" json:"updatedAt"`
 }

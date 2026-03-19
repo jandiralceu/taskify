@@ -133,6 +133,7 @@ export interface UpdateUserRequest {
   firstName?: string
   lastName?: string
   isActive?: boolean
+  role?: UserRole
 }
 
 export interface ChangePasswordRequest {

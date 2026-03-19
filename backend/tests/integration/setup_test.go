@@ -166,7 +166,7 @@ func setupAppCustom(t *testing.T, modifyConfig func(*config.Config)) (*httptest.
 func signUpUser(t *testing.T, baseURL, firstName, lastName, email, password, role string) {
 	t.Helper()
 
-	body := fmt.Sprintf(`{"first_name":"%s","last_name":"%s","email":"%s","password":"%s","role":"%s"}`, firstName, lastName, email, password, role)
+	body := fmt.Sprintf(`{"firstName":"%s","lastName":"%s","email":"%s","password":"%s","role":"%s"}`, firstName, lastName, email, password, role)
 	resp, err := http.Post(baseURL+"/api/v1/auth/register", "application/json", strings.NewReader(body))
 	require.NoError(t, err)
 	defer func() { _ = resp.Body.Close() }()

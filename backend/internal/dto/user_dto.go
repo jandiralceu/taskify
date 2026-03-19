@@ -32,4 +32,5 @@ type UpdateUserRequest struct {
 	FirstName *string `json:"firstName" binding:"omitempty,min=2,max=100"`
 	LastName  *string `json:"lastName" binding:"omitempty,min=2,max=100"`
 	IsActive  *bool   `json:"isActive" binding:"omitempty"`
+	Role      *string `json:"role" binding:"omitempty,oneof=admin employee"`
 }

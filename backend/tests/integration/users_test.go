@@ -30,7 +30,7 @@ func TestUserManagementIntegration(t *testing.T) {
 		// Create a second user to search for
 		signUpUser(t, baseURL, "Searchable", "User", "search@example.com", "Pass123!", "employee")
 
-		resp := authedRequest(t, "GET", baseURL+"/api/v1/users?first_name=Searchable", adminToken, nil)
+		resp := authedRequest(t, "GET", baseURL+"/api/v1/users?firstName=Searchable", adminToken, nil)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 		var listResp dto.UserListResponse
@@ -55,6 +55,28 @@ func TestUserManagementIntegration(t *testing.T) {
 		// Verify login with new password
 		newToken, _ := signInUser(t, baseURL, userEmail, "new-pass-456")
 		assert.NotEmpty(t, newToken)
+	})
+
+	t.Run("Admin can update user roles", func(t *testing.T) {
+		userEmail := "torolechange@example.com"
+		signUpUser(t, baseURL, "Promote", "Me", userEmail, "Pass123!", "employee")
+
+		var user models.User
+		db.Preload("Roles").Where("email = ?", userEmail).First(&user)
+		assert.Equal(t, "employee", user.Roles[0].Name)
+
+		adminRole := "admin"
+		updateReq := dto.UpdateUserRequest{
+			Role: &adminRole,
+		}
+
+		resp := authedRequest(t, "PATCH", fmt.Sprintf("%s/api/v1/users/%s", baseURL, user.ID), adminToken, updateReq)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var updatedUser models.User
+		db.Preload("Roles").Where("id = ?", user.ID).First(&updatedUser)
+		assert.Len(t, updatedUser.Roles, 1)
+		assert.Equal(t, "admin", updatedUser.Roles[0].Name)
 	})
 
 	t.Run("Admin can delete users", func(t *testing.T) {

@@ -5,6 +5,7 @@
   import { resolveAvatarUrl } from '$lib/utils/avatar'
   import { ArrowLeft, LoaderCircle, User, ShieldCheck } from '@lucide/svelte'
   import { createUserQuery, updateUserMutation } from '$lib/state/user.svelte'
+  import type { UserRole } from '$lib/api/types'
   import Button from '$lib/components/Button.svelte'
   import { toaster } from '$lib/state/toast.svelte'
   import Input from '$lib/components/Input.svelte'
@@ -17,12 +18,14 @@
   let firstName = $state('')
   let lastName = $state('')
   let isActive = $state(true)
+  let role = $state<UserRole>('employee')
 
   $effect(() => {
     if (userQuery.data) {
       firstName = userQuery.data.firstName
       lastName = userQuery.data.lastName
       isActive = userQuery.data.isActive
+      role = userQuery.data.role
     }
   })
 
@@ -32,7 +35,7 @@
     try {
       await updateUser.mutateAsync({
         id: userId,
-        data: { firstName, lastName, isActive },
+        data: { firstName, lastName, isActive, role },
       })
 
       toaster.success({
@@ -164,6 +167,39 @@
             />
           </div>
 
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <!-- Role select -->
+            <div class="space-y-1">
+              <label
+                for="role"
+                class="block text-sm font-medium text-surface-700">Role</label
+              >
+              <select
+                id="role"
+                bind:value={role}
+                class="block h-12 w-full cursor-pointer appearance-none rounded-xl border border-surface-200 bg-white px-4 text-sm text-surface-900 transition-all focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10 focus:outline-none"
+              >
+                <option value="admin">Admin</option>
+                <option value="employee">Employee</option>
+              </select>
+            </div>
+
+            <!-- Email (Read-only as it's the identifier) -->
+            <div class="space-y-1">
+              <label
+                for="ro-email"
+                class="block text-sm font-medium text-surface-700">Email</label
+              >
+              <input
+                id="ro-email"
+                type="text"
+                value={user.email}
+                disabled
+                class="block h-12 w-full cursor-not-allowed rounded-xl border border-surface-200 bg-surface-100 px-4 text-sm text-surface-500"
+              />
+            </div>
+          </div>
+
           <!-- isActive toggle -->
           <div
             class="flex items-center justify-between rounded-xl border border-surface-200 bg-surface-50 p-4"
@@ -195,40 +231,10 @@
           <hr class="border-surface-100" />
 
           <h3 class="mb-1 text-sm font-semibold text-surface-900">
-            Read-only Information
+            Metadata
           </h3>
 
           <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <!-- Email readonly -->
-            <div class="space-y-1">
-              <label
-                for="ro-email"
-                class="block text-sm font-medium text-surface-700">Email</label
-              >
-              <input
-                id="ro-email"
-                type="text"
-                value={user.email}
-                disabled
-                class="block h-12 w-full cursor-not-allowed rounded-xl border border-surface-200 bg-surface-100 px-4 text-sm text-surface-500"
-              />
-            </div>
-
-            <!-- Role readonly -->
-            <div class="space-y-1">
-              <label
-                for="ro-role"
-                class="block text-sm font-medium text-surface-700">Role</label
-              >
-              <input
-                id="ro-role"
-                type="text"
-                value={user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-                disabled
-                class="block h-12 w-full cursor-not-allowed rounded-xl border border-surface-200 bg-surface-100 px-4 text-sm text-surface-500"
-              />
-            </div>
-
             <!-- Joined readonly -->
             <div class="space-y-1">
               <label

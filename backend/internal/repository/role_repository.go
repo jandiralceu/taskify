@@ -14,6 +14,7 @@ type RoleRepository interface {
 	GetPermissionsByRole(ctx context.Context, roleName string) ([]models.Permission, error)
 	GetUserRoles(ctx context.Context, userID uuid.UUID) ([]models.RoleModel, error)
 	AssignRoleToUser(ctx context.Context, userID uuid.UUID, roleID uuid.UUID) error
+	ClearUserRoles(ctx context.Context, userID uuid.UUID) error
 }
 
 type roleRepository struct {
@@ -54,6 +55,14 @@ func (r *roleRepository) AssignRoleToUser(ctx context.Context, userID uuid.UUID,
 	// Using a raw query or GORM Association to insert into user_roles
 	sql := "INSERT INTO user_roles (user_id, role_id) VALUES (?, ?) ON CONFLICT DO NOTHING"
 	if err := r.db.WithContext(ctx).Exec(sql, userID, roleID).Error; err != nil {
+		return mapDatabaseError(err)
+	}
+	return nil
+}
+
+func (r *roleRepository) ClearUserRoles(ctx context.Context, userID uuid.UUID) error {
+	sql := "DELETE FROM user_roles WHERE user_id = ?"
+	if err := r.db.WithContext(ctx).Exec(sql, userID).Error; err != nil {
 		return mapDatabaseError(err)
 	}
 	return nil

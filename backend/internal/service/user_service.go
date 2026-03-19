@@ -64,17 +64,17 @@ func (s *userService) Create(ctx context.Context, user *models.User) error {
 	}
 	user.PasswordHash = hashedPassword
 
-	// Assign specified or default role 'employee' if no roles assigned
-	if len(user.Roles) == 0 {
-		roleName := "employee"
-		if user.Role != "" {
-			roleName = user.Role
-		}
-		role, err := s.roleRepo.FindByName(ctx, roleName)
-		if err == nil && role != nil {
-			user.Roles = append(user.Roles, *role)
-		}
+	// Ensure exactly one role is assigned
+	roleName := "employee"
+	if user.Role != "" {
+		roleName = user.Role
 	}
+	role, err := s.roleRepo.FindByName(ctx, roleName)
+	if err != nil {
+		return err
+	}
+	user.Roles = []models.RoleModel{*role}
+	user.Role = role.Name
 
 	if err := s.userRepo.Create(ctx, user); err != nil {
 		return err
@@ -157,6 +157,21 @@ func (s *userService) Update(ctx context.Context, userID uuid.UUID, req dto.Upda
 	user, err := s.userRepo.Update(ctx, userID, params)
 	if err != nil {
 		return nil, err
+	}
+
+	if req.Role != nil {
+		role, err := s.roleRepo.FindByName(ctx, *req.Role)
+		if err != nil {
+			return nil, err
+		}
+		if err := s.roleRepo.ClearUserRoles(ctx, userID); err != nil {
+			return nil, err
+		}
+		if err := s.roleRepo.AssignRoleToUser(ctx, userID, role.ID); err != nil {
+			return nil, err
+		}
+		// Refresh user roles in the returned object
+		user.Roles = []models.RoleModel{*role}
 	}
 
 	if len(user.Roles) > 0 {
