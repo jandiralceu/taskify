@@ -205,7 +205,7 @@ func (s *taskService) AddAttachment(ctx context.Context, taskID, userID uuid.UUI
 	if err != nil {
 		return nil, apperrors.ErrStorage
 	}
-	defer dst.Close()
+	defer func() { _ = dst.Close() }()
 
 	if _, err := io.Copy(dst, file); err != nil {
 		return nil, apperrors.ErrStorage
@@ -226,7 +226,7 @@ func (s *taskService) AddAttachment(ctx context.Context, taskID, userID uuid.UUI
 
 	if err := s.taskRepo.CreateAttachment(ctx, attachment); err != nil {
 		// Rollback: delete file if DB fails
-		os.Remove(diskPath)
+		_ = os.Remove(diskPath)
 		return nil, err
 	}
 

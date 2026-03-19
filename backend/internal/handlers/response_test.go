@@ -75,7 +75,7 @@ func TestRespondWithError(t *testing.T) {
 		r.ServeHTTP(w, req)
 
 		var resp ProblemDetails
-		json.Unmarshal(w.Body.Bytes(), &resp)
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
 
 		assert.Equal(t, traceID, resp.TraceID)
 	})
@@ -93,7 +93,7 @@ func TestRespondWithError(t *testing.T) {
 		assert.Equal(t, http.StatusNotFound, w.Code)
 
 		var resp ProblemDetails
-		json.Unmarshal(w.Body.Bytes(), &resp)
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
 
 		assert.Equal(t, "Resource Not Found", resp.Title)
 		assert.Equal(t, "https://api.example.com/errors/not-found", resp.Type)
@@ -112,7 +112,7 @@ func TestRespondWithError(t *testing.T) {
 		assert.Equal(t, http.StatusConflict, w.Code)
 
 		var resp ProblemDetails
-		json.Unmarshal(w.Body.Bytes(), &resp)
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
 
 		assert.Equal(t, "Conflict", resp.Title)
 	})
@@ -130,7 +130,7 @@ func TestRespondWithError(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
 		var resp ProblemDetails
-		json.Unmarshal(w.Body.Bytes(), &resp)
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
 
 		assert.Equal(t, "Bad Request", resp.Title)
 	})
@@ -161,7 +161,7 @@ func TestRespondWithError(t *testing.T) {
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
 
 		var resp ProblemDetails
-		json.Unmarshal(w.Body.Bytes(), &resp)
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
 
 		assert.Equal(t, "Unauthorized", resp.Title)
 	})
@@ -179,7 +179,7 @@ func TestRespondWithError(t *testing.T) {
 		assert.Equal(t, http.StatusForbidden, w.Code)
 
 		var resp ProblemDetails
-		json.Unmarshal(w.Body.Bytes(), &resp)
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
 
 		assert.Equal(t, "Forbidden", resp.Title)
 	})
@@ -200,7 +200,7 @@ func TestRespondWithError(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 
 		var resp ProblemDetails
-		json.Unmarshal(w.Body.Bytes(), &resp)
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
 
 		assert.Equal(t, "Validation Failed", resp.Title)
 		assert.Len(t, resp.InvalidParams, 2)
@@ -223,7 +223,7 @@ func TestRespondWithError(t *testing.T) {
 		assert.Equal(t, http.StatusInternalServerError, w.Code)
 
 		var resp ProblemDetails
-		json.Unmarshal(w.Body.Bytes(), &resp)
+		_ = json.Unmarshal(w.Body.Bytes(), &resp)
 
 		assert.Equal(t, "An unexpected error occurred. Please try again later.", resp.Detail)
 		assert.Equal(t, "Internal Server Error", resp.Title)

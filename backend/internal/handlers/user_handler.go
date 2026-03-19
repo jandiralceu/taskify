@@ -283,7 +283,7 @@ func (h *UserHandler) UpdateAvatar(c *gin.Context) {
 		RespondWithError(c, fmt.Errorf("%w: %v", apperrors.ErrInvalidInput, err))
 		return
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	userID := middleware.GetUserID(c)
 	if userID == uuid.Nil {

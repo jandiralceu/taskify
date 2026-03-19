@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/casbin/casbin/v3"
+	gormadapter "github.com/casbin/gorm-adapter/v3"
 	"github.com/gin-gonic/gin"
 	"github.com/jandiralceu/taskify/internal/config"
 	"github.com/jandiralceu/taskify/internal/database"
@@ -116,15 +117,21 @@ func setupAppCustom(t *testing.T, modifyConfig func(*config.Config)) (*httptest.
 
 	hasher := pkg.NewArgon2PasswordHasher()
 
-	userRepository := repository.NewUserRepository(db)
-	userService := service.NewUserService(userRepository, hasher, cfg.UploadPath, cacheManager)
-	authHandler := handlers.NewAuthHandler(userService, jwtManager, cacheManager, hasher)
-	userHandler := handlers.NewUserHandler(userService, nil)
+	// Initialize Casbin Enforcer with GORM adapter for persistent RBAC during tests.
+	adapter, err := gormadapter.NewAdapterByDB(db)
+	require.NoError(t, err, "Failed to initialize Casbin adapter")
 
-	// Initialize Casbin Enforcer for RBAC.
-	// We need to point to the files in the project root.
-	enforcer, err := casbin.NewEnforcer("../../model.conf", "../../policy.csv")
+	enforcer, err := casbin.NewEnforcer("../../model.conf", adapter)
 	require.NoError(t, err, "Failed to initialize Casbin enforcer")
+
+	// Load policies from the database (seeded by migrations in testhelpers.SetupPostgres)
+	require.NoError(t, enforcer.LoadPolicy(), "Failed to load Casbin policies")
+
+	userRepository := repository.NewUserRepository(db)
+	roleRepository := repository.NewRoleRepository(db)
+	userService := service.NewUserService(userRepository, roleRepository, hasher, cfg.UploadPath, cacheManager)
+	authHandler := handlers.NewAuthHandler(userService, jwtManager, cacheManager, hasher)
+	userHandler := handlers.NewUserHandler(userService, enforcer)
 
 	routeConfig := &routes.RouteConfig{
 		AuthHandler: authHandler,
@@ -144,12 +151,12 @@ func setupAppCustom(t *testing.T, modifyConfig func(*config.Config)) (*httptest.
 
 	cleanup := func() {
 		ts.Close()
-		cacheManager.Close()
-		sqlDB.Close()
+		_ = cacheManager.Close()
+		_ = sqlDB.Close()
 		// Termination might take time, use a separate context
 		termCtx := context.Background()
-		pgContainer.Terminate(termCtx)
-		redisContainer.Terminate(termCtx)
+		_ = pgContainer.Terminate(termCtx)
+		_ = redisContainer.Terminate(termCtx)
 	}
 
 	return ts, db, cleanup
@@ -162,7 +169,7 @@ func signUpUser(t *testing.T, baseURL, firstName, lastName, email, password, rol
 	body := fmt.Sprintf(`{"first_name":"%s","last_name":"%s","email":"%s","password":"%s","role":"%s"}`, firstName, lastName, email, password, role)
 	resp, err := http.Post(baseURL+"/api/v1/auth/register", "application/json", strings.NewReader(body))
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	require.Equal(t, http.StatusNoContent, resp.StatusCode, "Register should return 204")
 }
@@ -174,11 +181,11 @@ func signInUser(t *testing.T, baseURL, email, password string) (string, string) 
 	body := fmt.Sprintf(`{"email":"%s","password":"%s"}`, email, password)
 	resp, err := http.Post(baseURL+"/api/v1/auth/signin", "application/json", strings.NewReader(body))
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		var errResp map[string]any
-		json.NewDecoder(resp.Body).Decode(&errResp)
+		_ = json.NewDecoder(resp.Body).Decode(&errResp)
 		t.Fatalf("SignIn failed with status %d: %v", resp.StatusCode, errResp)
 	}
 
@@ -218,12 +225,3 @@ func authedRequest(t *testing.T, method, url, token string, bodyData any) *http.
 	return resp
 }
 
-// seedInitialData seeds the roles into the test database.
-func seedInitialData(t *testing.T, baseURL string) {
-	// In the real app we use a seeder script.
-	// For integration tests, we can use the repository directly if we had access to it,
-	// but setupApp hides it. However, we can call the Role creation endpoint if we had an admin.
-	// But wait, the seeder script uses GORM directly.
-	// For simplicity in integration tests, we'll assume the DB is migration-ready.
-	// If we want the roles, we should seed them.
-}

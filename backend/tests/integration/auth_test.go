@@ -34,7 +34,7 @@ func TestAuthFlowAndRBAC(t *testing.T) {
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 		var refreshResult map[string]string
-		json.NewDecoder(resp.Body).Decode(&refreshResult)
+		_ = json.NewDecoder(resp.Body).Decode(&refreshResult)
 		newAccessToken := refreshResult["accessToken"]
 		newRefreshToken := refreshResult["refreshToken"]
 		assert.NotEmpty(t, newAccessToken)

@@ -32,7 +32,7 @@ WORKDIR /app
 
 COPY --from=builder /app/server .
 COPY --from=builder /app/model.conf .
-COPY --from=builder /app/policy.csv .
+
 
 # Create uploads directory and set permissions
 RUN mkdir -p /app/uploads && \

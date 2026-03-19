@@ -15,7 +15,7 @@ import (
 
 func TestTaskRepositoryUpdateSuccess(t *testing.T) {
 	gormDB, mock, db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewTaskRepository(gormDB)
 	taskID := uuid.New()
@@ -53,7 +53,7 @@ func TestTaskRepositoryUpdateSuccess(t *testing.T) {
 
 func TestTaskRepositoryUpdateNotFound(t *testing.T) {
 	gormDB, mock, db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewTaskRepository(gormDB)
 	taskID := uuid.New()

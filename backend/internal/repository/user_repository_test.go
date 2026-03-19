@@ -23,7 +23,7 @@ import (
 
 func TestUserRepositoryCreateSuccess(t *testing.T) {
 	gormDB, mock, db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewUserRepository(gormDB)
 
@@ -52,7 +52,7 @@ func TestUserRepositoryCreateSuccess(t *testing.T) {
 
 func TestUserRepositoryCreateError(t *testing.T) {
 	gormDB, mock, db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewUserRepository(gormDB)
 
@@ -81,7 +81,7 @@ func TestUserRepositoryCreateError(t *testing.T) {
 
 func TestUserRepositoryFindByIDSuccess(t *testing.T) {
 	gormDB, mock, db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewUserRepository(gormDB)
 
@@ -109,7 +109,7 @@ func TestUserRepositoryFindByIDSuccess(t *testing.T) {
 
 func TestUserRepositoryFindByIDNotFound(t *testing.T) {
 	gormDB, mock, db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewUserRepository(gormDB)
 
@@ -133,7 +133,7 @@ func TestUserRepositoryFindByIDNotFound(t *testing.T) {
 
 func TestUserRepositoryFindByEmailSuccess(t *testing.T) {
 	gormDB, mock, db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewUserRepository(gormDB)
 
@@ -160,7 +160,7 @@ func TestUserRepositoryFindByEmailSuccess(t *testing.T) {
 
 func TestUserRepositoryFindByEmailNotFound(t *testing.T) {
 	gormDB, mock, db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewUserRepository(gormDB)
 
@@ -182,7 +182,7 @@ func TestUserRepositoryFindByEmailNotFound(t *testing.T) {
 
 func TestUserRepositoryDeleteSuccess(t *testing.T) {
 	gormDB, mock, db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewUserRepository(gormDB)
 
@@ -202,7 +202,7 @@ func TestUserRepositoryDeleteSuccess(t *testing.T) {
 
 func TestUserRepositoryDeleteNotFound(t *testing.T) {
 	gormDB, mock, db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewUserRepository(gormDB)
 
@@ -227,7 +227,7 @@ func TestUserRepositoryDeleteNotFound(t *testing.T) {
 
 func TestUserRepositoryFindAllSuccess(t *testing.T) {
 	gormDB, mock, db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewUserRepository(gormDB)
 
@@ -279,7 +279,7 @@ func TestUserRepositoryFindAllSuccess(t *testing.T) {
 
 func TestUserRepositoryFindAllEmpty(t *testing.T) {
 	gormDB, mock, db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewUserRepository(gormDB)
 
@@ -314,7 +314,7 @@ func TestUserRepositoryFindAllEmpty(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, users, 0)
 	assert.Equal(t, int64(0), total)
-	mock.ExpectationsWereMet()
+	_ = mock.ExpectationsWereMet()
 }
 
 // =====================
@@ -323,7 +323,7 @@ func TestUserRepositoryFindAllEmpty(t *testing.T) {
 
 func TestUserRepositoryUpdateSuccess(t *testing.T) {
 	gormDB, mock, db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewUserRepository(gormDB)
 	ctx := context.Background()
@@ -358,7 +358,7 @@ func TestUserRepositoryUpdateSuccess(t *testing.T) {
 
 func TestUserRepositoryUpdateNotFound(t *testing.T) {
 	gormDB, mock, db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewUserRepository(gormDB)
 	ctx := context.Background()
@@ -385,7 +385,7 @@ func TestUserRepositoryUpdateNotFound(t *testing.T) {
 
 func TestUserRepositoryUpdateAvatarSuccess(t *testing.T) {
 	gormDB, mock, db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewUserRepository(gormDB)
 	ctx := context.Background()
@@ -416,7 +416,7 @@ func TestUserRepositoryUpdateAvatarSuccess(t *testing.T) {
 
 func TestUserRepositoryUpdateAvatarNotFound(t *testing.T) {
 	gormDB, mock, db := setupTestDB(t)
-	defer db.Close()
+	defer func() { _ = db.Close() }()
 
 	repo := NewUserRepository(gormDB)
 	ctx := context.Background()
@@ -443,7 +443,7 @@ func TestUserRepositoryUpdateAvatarNotFound(t *testing.T) {
 
 func TestUserRepositoryChangePasswordSuccess(t *testing.T) {
 	db, mock, sqlDB := setupTestDB(t)
-	defer sqlDB.Close()
+	defer func() { _ = sqlDB.Close() }()
 
 	repo := NewUserRepository(db)
 	ctx := context.Background()
@@ -458,12 +458,12 @@ func TestUserRepositoryChangePasswordSuccess(t *testing.T) {
 
 	err := repo.ChangePassword(ctx, userID, newHash)
 	assert.NoError(t, err)
-	mock.ExpectationsWereMet()
+	_ = mock.ExpectationsWereMet()
 }
 
 func TestUserRepositoryChangePasswordNotFound(t *testing.T) {
 	db, mock, sqlDB := setupTestDB(t)
-	defer sqlDB.Close()
+	defer func() { _ = sqlDB.Close() }()
 
 	repo := NewUserRepository(db)
 	ctx := context.Background()
@@ -478,5 +478,5 @@ func TestUserRepositoryChangePasswordNotFound(t *testing.T) {
 	err := repo.ChangePassword(ctx, userID, "hash")
 	assert.Error(t, err)
 	assert.True(t, errors.Is(err, apperrors.ErrNotFound))
-	mock.ExpectationsWereMet()
+	_ = mock.ExpectationsWereMet()
 }

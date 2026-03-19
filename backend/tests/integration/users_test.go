@@ -34,7 +34,7 @@ func TestUserManagementIntegration(t *testing.T) {
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 		var listResp dto.UserListResponse
-		json.NewDecoder(resp.Body).Decode(&listResp)
+		_ = json.NewDecoder(resp.Body).Decode(&listResp)
 		assert.NotEmpty(t, listResp.Data)
 		assert.Equal(t, "Searchable", listResp.Data[0].FirstName)
 	})

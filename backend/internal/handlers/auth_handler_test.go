@@ -309,7 +309,7 @@ func TestRegister_Conflict_EmailExists(t *testing.T) {
 	assert.Equal(t, http.StatusConflict, w.Code)
 
 	var resp ProblemDetails
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 
 	assert.Equal(t, "Conflict", resp.Title)
 	assert.Equal(t, "resource conflict: email already in use", resp.Detail)
@@ -339,7 +339,7 @@ func TestRegister_InternalServerError(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 
 	var resp ProblemDetails
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 
 	assert.Equal(t, "Internal Server Error", resp.Title)
 	assert.Equal(t, "An unexpected error occurred. Please try again later.", resp.Detail)
@@ -425,7 +425,7 @@ func TestSignIn_Unauthorized_UserNotFound(t *testing.T) {
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
 
 	var resp ProblemDetails
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 
 	assert.Equal(t, "Unauthorized", resp.Title)
 	assert.Equal(t, "unauthorized: invalid email or password", resp.Detail)
@@ -458,7 +458,7 @@ func TestSignIn_Unauthorized_WrongPassword(t *testing.T) {
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
 
 	var resp ProblemDetails
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 
 	assert.Equal(t, "Unauthorized", resp.Title)
 	assert.Equal(t, "unauthorized: invalid email or password", resp.Detail)
@@ -551,7 +551,7 @@ func TestSignOut_Unauthorized_InvalidToken(t *testing.T) {
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
 
 	var resp ProblemDetails
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 
 	assert.Equal(t, "Unauthorized", resp.Title)
 	assert.Equal(t, "unauthorized: invalid or expired refresh token", resp.Detail)
@@ -644,7 +644,7 @@ func TestRefreshToken_Unauthorized_InvalidToken(t *testing.T) {
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
 
 	var resp ProblemDetails
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 
 	assert.Equal(t, "Unauthorized", resp.Title)
 	assert.Equal(t, "unauthorized: invalid or expired refresh token", resp.Detail)
@@ -692,7 +692,7 @@ func TestRefreshToken_Unauthorized_TokenNotInCache(t *testing.T) {
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
 
 	var resp ProblemDetails
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 
 	assert.Equal(t, "unauthorized: refresh token not found or already used", resp.Detail)
 }
@@ -722,7 +722,7 @@ func TestRefreshToken_Unauthorized_UserNotFound(t *testing.T) {
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
 
 	var resp ProblemDetails
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 
 	assert.Equal(t, "unauthorized: user no longer exists", resp.Detail)
 	mockService.AssertExpectations(t)
@@ -758,7 +758,7 @@ func TestRefreshToken_InternalServerError_FailedToSaveNewToken(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 
 	var resp ProblemDetails
-	json.Unmarshal(w.Body.Bytes(), &resp)
+	_ = json.Unmarshal(w.Body.Bytes(), &resp)
 
 	assert.Equal(t, "Internal Server Error", resp.Title)
 	assert.Equal(t, "An unexpected error occurred. Please try again later.", resp.Detail)

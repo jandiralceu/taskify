@@ -54,10 +54,14 @@ func setupCasbinRouter(enforcer *casbin.Enforcer) *gin.Engine {
 func TestCasbinMiddleware(t *testing.T) {
 	rootPath := getRootPath()
 	modelPath := filepath.Join(rootPath, "model.conf")
-	policyPath := filepath.Join(rootPath, "policy.csv")
-
-	enforcer, err := casbin.NewEnforcer(modelPath, policyPath)
+	enforcer, err := casbin.NewEnforcer(modelPath)
 	require.NoError(t, err)
+
+	// Seed policies manually for unit testing.
+	_, _ = enforcer.AddPolicy("admin", "/api/v1/*", "*")
+	_, _ = enforcer.AddPolicy("employee", "/api/v1/users/change-password", "PATCH")
+	// The other rules are not strictly needed for the existing test cases,
+	// but we've added the ones tested.
 
 	router := setupCasbinRouter(enforcer)
 

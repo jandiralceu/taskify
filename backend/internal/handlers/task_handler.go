@@ -373,7 +373,7 @@ func (h *TaskHandler) AddAttachment(c *gin.Context) {
 		RespondWithError(c, apperrors.ErrInvalidInput)
 		return
 	}
-	defer file.Close()
+	defer func() { _ = file.Close() }()
 
 	userID := middleware.GetUserID(c)
 	attachment, err := h.taskService.AddAttachment(c.Request.Context(), taskID, userID, file, header.Filename, header.Size, header.Header.Get("Content-Type"))

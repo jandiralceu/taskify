@@ -227,7 +227,7 @@ func TestTaskServiceDeleteNote(t *testing.T) {
 func TestTaskServiceAddAttachment(t *testing.T) {
 	mockRepo := new(MockTaskRepository)
 	tempDir, _ := os.MkdirTemp("", "taskify-uploads")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 	
 	svc := NewTaskService(mockRepo, tempDir)
 	ctx := context.Background()
@@ -261,7 +261,7 @@ func TestTaskServiceAddAttachment(t *testing.T) {
 func TestTaskServiceDeleteAttachment(t *testing.T) {
 	mockRepo := new(MockTaskRepository)
 	tempDir, _ := os.MkdirTemp("", "taskify-uploads")
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	svc := NewTaskService(mockRepo, tempDir)
 	ctx := context.Background()
@@ -271,11 +271,11 @@ func TestTaskServiceDeleteAttachment(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		// Create a dummy file in the 'attachments' subfolder
 		attachmentDir := filepath.Join(tempDir, "attachments")
-		os.MkdirAll(attachmentDir, 0755)
+		_ = os.MkdirAll(attachmentDir, 0755)
 		
 		fileName := "to_delete.txt"
 		diskPath := filepath.Join(attachmentDir, fileName)
-		os.WriteFile(diskPath, []byte("test"), 0644)
+		_ = os.WriteFile(diskPath, []byte("test"), 0644)
 
 		attachment := &models.TaskAttachment{
 			ID:       attachmentID,

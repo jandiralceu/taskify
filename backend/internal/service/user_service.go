@@ -217,7 +217,7 @@ func (s *userService) UpdateAvatar(ctx context.Context, userID uuid.UUID, file i
 	if err != nil {
 		return "", apperrors.ErrStorage
 	}
-	defer dst.Close()
+	defer func() { _ = dst.Close() }()
 
 	if _, err := io.Copy(dst, file); err != nil {
 		return "", apperrors.ErrStorage
@@ -226,7 +226,7 @@ func (s *userService) UpdateAvatar(ctx context.Context, userID uuid.UUID, file i
 	// 5. Persist public path in DB
 	oldAvatar := user.AvatarURL
 	if _, err := s.userRepo.UpdateAvatar(ctx, userID, &publicPath); err != nil {
-		os.Remove(diskPath) // Cleanup on DB failure
+		_ = os.Remove(diskPath) // Cleanup on DB failure
 		return "", err
 	}
 
@@ -234,7 +234,7 @@ func (s *userService) UpdateAvatar(ctx context.Context, userID uuid.UUID, file i
 	if oldAvatar != nil {
 		// oldAvatar is a public path (/uploads/avatars/...), reconstruct disk path
 		oldDiskPath := filepath.Join(s.uploadPath, "avatars", filepath.Base(*oldAvatar))
-		os.Remove(oldDiskPath)
+		_ = os.Remove(oldDiskPath)
 	}
 
 	return publicPath, nil

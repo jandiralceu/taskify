@@ -134,7 +134,7 @@ func TestCreateTask_Success(t *testing.T) {
 
 	assert.Equal(t, http.StatusCreated, w.Code)
 	var actualTask models.Task
-	json.Unmarshal(w.Body.Bytes(), &actualTask)
+	_ = json.Unmarshal(w.Body.Bytes(), &actualTask)
 	assert.Equal(t, resTask.ID, actualTask.ID)
 	mockService.AssertExpectations(t)
 }
