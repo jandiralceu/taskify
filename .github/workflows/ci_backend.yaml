@@ -4,8 +4,8 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'backend/**'
-      - '.github/workflows/ci_backend.yaml'
+      - "backend/**"
+      - ".github/workflows/ci_backend.yaml"
 
 defaults:
   run:
