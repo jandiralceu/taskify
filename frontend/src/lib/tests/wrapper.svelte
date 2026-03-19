@@ -13,8 +13,14 @@
 
 <QueryClientProvider client={queryClient}>
   {#if typeof children === 'function'}
-    {@render children()}
-  {:else}
-    <svelte:component this={children} />
+    {#if children.name === 'children' || children.length === 0}
+      {@render children()}
+    {:else}
+      {@const Component = children}
+      <Component />
+    {/if}
+  {:else if children}
+    {@const Component = children}
+    <Component />
   {/if}
 </QueryClientProvider>
