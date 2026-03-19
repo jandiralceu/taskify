@@ -114,14 +114,26 @@ func (h *AuthHandler) SignIn(c *gin.Context) {
 		return
 	}
 
-	// Generate access and refresh tokens.
-	accessToken, err := h.jwtManager.GenerateToken(user.ID, string(user.Role), accessTokenExpiration, pkg.Access)
+	// Determine primary role from preloaded Roles 
+	primaryRole := "employee"
+	if len(user.Roles) > 0 {
+		primaryRole = user.Roles[0].Name
+	}
+
+	permissions, err := h.userService.GetUserPermissions(c.Request.Context(), user.ID)
+
+	if err != nil {
+		permissions = []string{}
+	}
+
+	// Generate access and refresh tokens using the correct role and permissions.
+	accessToken, err := h.jwtManager.GenerateToken(user.ID, primaryRole, permissions, accessTokenExpiration, pkg.Access)
 	if err != nil {
 		RespondWithError(c, fmt.Errorf("%w: failed to generate access token", apperrors.ErrInternal))
 		return
 	}
 
-	refreshToken, err := h.jwtManager.GenerateToken(user.ID, string(user.Role), refreshTokenExpiration, pkg.Refresh)
+	refreshToken, err := h.jwtManager.GenerateToken(user.ID, primaryRole, permissions, refreshTokenExpiration, pkg.Refresh)
 	if err != nil {
 		RespondWithError(c, fmt.Errorf("%w: failed to generate refresh token", apperrors.ErrInternal))
 		return
@@ -212,13 +224,25 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	accessToken, err := h.jwtManager.GenerateToken(claims.UserID, string(user.Role), accessTokenExpiration, pkg.Access)
+	// Fetch user permissions for the new JWTs
+	permissions, err := h.userService.GetUserPermissions(c.Request.Context(), user.ID)
+	if err != nil {
+		permissions = []string{}
+	}
+
+	// Determine primary role from preloaded Roles 
+	primaryRole := "employee"
+	if len(user.Roles) > 0 {
+		primaryRole = user.Roles[0].Name
+	}
+
+	accessToken, err := h.jwtManager.GenerateToken(claims.UserID, primaryRole, permissions, accessTokenExpiration, pkg.Access)
 	if err != nil {
 		RespondWithError(c, fmt.Errorf("%w: failed to generate access token", apperrors.ErrInternal))
 		return
 	}
 
-	refreshToken, err := h.jwtManager.GenerateToken(claims.UserID, string(user.Role), refreshTokenExpiration, pkg.Refresh)
+	refreshToken, err := h.jwtManager.GenerateToken(claims.UserID, primaryRole, permissions, refreshTokenExpiration, pkg.Refresh)
 	if err != nil {
 		RespondWithError(c, fmt.Errorf("%w: failed to generate refresh token", apperrors.ErrInternal))
 		return

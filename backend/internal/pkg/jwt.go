@@ -37,9 +37,10 @@ const (
 
 // UserClaims represents the data stored in the JWT claims.
 type UserClaims struct {
-	UserID uuid.UUID
-	Role   string
-	Type   TokenType
+	UserID      uuid.UUID
+	Role        string
+	Permissions []string
+	Type        TokenType
 }
 
 // NewJWTManager creates a new JWTManager by parsing PEM-encoded RSA keys.
@@ -62,15 +63,16 @@ func NewJWTManager(privateKeyPEM, publicKeyPEM string) (*JWTManager, error) {
 }
 
 // GenerateToken creates a signed JWT containing the user ID in the 'sub' claim.
-// It also includes standard 'iat' (issued at), 'exp' (expiration), type, and 'jti' (token ID) claims.
-func (j *JWTManager) GenerateToken(userID uuid.UUID, role string, expiration time.Duration, tokenType TokenType) (string, error) {
+// It also includes standard 'iat' (issued at), 'exp' (expiration), type, role, permissions and 'jti' (token ID) claims.
+func (j *JWTManager) GenerateToken(userID uuid.UUID, role string, permissions []string, expiration time.Duration, tokenType TokenType) (string, error) {
 	claims := jwt.MapClaims{
-		"sub":  userID.String(),
-		"role": role,
-		"type": string(tokenType),
-		"iat":  time.Now().Unix(),
-		"exp":  time.Now().Add(expiration).Unix(),
-		"jti":  uuid.NewString(),
+		"sub":         userID.String(),
+		"role":        role,
+		"permissions": permissions,
+		"type":        string(tokenType),
+		"iat":         time.Now().Unix(),
+		"exp":         time.Now().Add(expiration).Unix(),
+		"jti":         uuid.NewString(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
@@ -116,15 +118,25 @@ func (j *JWTManager) ValidateToken(tokenString string) (*UserClaims, error) {
 		return nil, ErrInvalidClaims
 	}
 
+	var permissions []string
+	if perms, ok := claims["permissions"].([]any); ok {
+		for _, p := range perms {
+			if s, ok := p.(string); ok {
+				permissions = append(permissions, s)
+			}
+		}
+	}
+
 	tokenType, ok := claims["type"].(string)
 	if !ok {
 		return nil, ErrInvalidClaims
 	}
 
 	return &UserClaims{
-		UserID: userID,
-		Role:   role,
-		Type:   TokenType(tokenType),
+		UserID:      userID,
+		Role:        role,
+		Permissions: permissions,
+		Type:        TokenType(tokenType),
 	}, nil
 }
 

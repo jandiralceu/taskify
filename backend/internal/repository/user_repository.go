@@ -34,9 +34,10 @@ type UserListFilter struct {
 	FirstName  string
 	LastName   string
 	Email      string
-	Role       models.Role
+	Role       string
 	Pagination PaginationParams
 }
+
 
 type UpdateUserParams struct {
 	FirstName *string
@@ -78,7 +79,7 @@ func (r *userRepository) Update(ctx context.Context, userID uuid.UUID, params Up
 		return nil, apperrors.ErrNotFound
 	}
 
-	if err := r.db.WithContext(ctx).First(&user, userIDQuery, userID).Error; err != nil {
+	if err := r.db.WithContext(ctx).Preload("Roles").First(&user, userIDQuery, userID).Error; err != nil {
 		return nil, mapDatabaseError(err)
 	}
 
@@ -96,7 +97,7 @@ func (r *userRepository) UpdateAvatar(ctx context.Context, userID uuid.UUID, ava
 		return nil, apperrors.ErrNotFound
 	}
 
-	if err := r.db.WithContext(ctx).First(&user, userIDQuery, userID).Error; err != nil {
+	if err := r.db.WithContext(ctx).Preload("Roles").First(&user, userIDQuery, userID).Error; err != nil {
 		return nil, mapDatabaseError(err)
 	}
 
@@ -116,7 +117,7 @@ func (r *userRepository) Delete(ctx context.Context, userID uuid.UUID) error {
 
 func (r *userRepository) FindByID(ctx context.Context, userID uuid.UUID) (*models.User, error) {
 	var user models.User
-	if err := r.db.WithContext(ctx).First(&user, userIDQuery, userID).Error; err != nil {
+	if err := r.db.WithContext(ctx).Preload("Roles").First(&user, userIDQuery, userID).Error; err != nil {
 		return nil, mapDatabaseError(err)
 	}
 	return &user, nil
@@ -124,7 +125,7 @@ func (r *userRepository) FindByID(ctx context.Context, userID uuid.UUID) (*model
 
 func (r *userRepository) FindByEmail(ctx context.Context, email string) (*models.User, error) {
 	var user models.User
-	if err := r.db.WithContext(ctx).Where("email = ?", email).First(&user).Error; err != nil {
+	if err := r.db.WithContext(ctx).Preload("Roles").Where("email = ?", email).First(&user).Error; err != nil {
 		return nil, mapDatabaseError(err)
 	}
 	return &user, nil
@@ -146,7 +147,10 @@ func (r *userRepository) FindAll(ctx context.Context, filter UserListFilter) ([]
 		query = query.Where("email ILIKE ?", "%"+sanitizeLike(filter.Email)+"%")
 	}
 	if filter.Role != "" {
-		query = query.Where("role = ?", filter.Role)
+		// Filter by role name in the joined roles table
+		query = query.Joins("JOIN user_roles ON user_roles.user_id = users.id").
+			Joins("JOIN roles ON roles.id = user_roles.role_id").
+			Where("roles.name = ?", filter.Role)
 	}
 
 	if err := query.Count(&total).Error; err != nil {
@@ -157,6 +161,7 @@ func (r *userRepository) FindAll(ctx context.Context, filter UserListFilter) ([]
 		Order(filter.Pagination.GetOrderBy()).
 		Offset(filter.Pagination.GetOffset()).
 		Limit(filter.Pagination.Limit).
+		Preload("Roles").
 		Find(&users).Error
 
 	if err != nil {

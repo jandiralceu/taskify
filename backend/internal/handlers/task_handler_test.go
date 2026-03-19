@@ -303,8 +303,10 @@ func TestListTasks_EmployeeScopedToOwnTasks(t *testing.T) {
 	handler := NewTaskHandler(mockService)
 
 	userID := uuid.New()
+	archived := false
 	expectedReq := dto.GetTaskListRequest{
 		AssignedTo: &userID,
+		IsArchived: &archived,
 	}
 
 	res := []models.Task{{ID: uuid.New(), Title: "My Task", AssignedTo: &userID}}
@@ -314,7 +316,7 @@ func TestListTasks_EmployeeScopedToOwnTasks(t *testing.T) {
 	router := setupRouter()
 	router.GET("/tasks", func(c *gin.Context) {
 		c.Set(middleware.UserIDKey, userID)
-		c.Set(middleware.UserRoleKey, string(models.RoleEmployee))
+		c.Set(middleware.UserRoleKey, string("employee"))
 		handler.ListTasks(c)
 	})
 
@@ -340,7 +342,7 @@ func TestListTasks_AdminSeesAllTasks(t *testing.T) {
 	router := setupRouter()
 	router.GET("/tasks", func(c *gin.Context) {
 		c.Set(middleware.UserIDKey, userID)
-		c.Set(middleware.UserRoleKey, string(models.RoleAdmin))
+		c.Set(middleware.UserRoleKey, string("admin"))
 		handler.ListTasks(c)
 	})
 

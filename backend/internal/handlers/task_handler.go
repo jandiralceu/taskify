@@ -8,7 +8,6 @@ import (
 	"github.com/jandiralceu/taskify/internal/apperrors"
 	"github.com/jandiralceu/taskify/internal/dto"
 	"github.com/jandiralceu/taskify/internal/middleware"
-	"github.com/jandiralceu/taskify/internal/models"
 	"github.com/jandiralceu/taskify/internal/service"
 )
 
@@ -170,7 +169,7 @@ func (h *TaskHandler) ListTasks(c *gin.Context) {
 	req.IsArchived = &archived
 
 	// Employees can only see tasks assigned to them.
-	if middleware.GetUserRole(c) == string(models.RoleEmployee) {
+	if middleware.GetUserRole(c) == "employee" {
 		userID := middleware.GetUserID(c)
 		req.AssignedTo = &userID
 	}
@@ -212,7 +211,7 @@ func (h *TaskHandler) ListArchivedTasks(c *gin.Context) {
 	req.IsArchived = &archived
 
 	// Employees can only see tasks assigned to them.
-	if middleware.GetUserRole(c) == string(models.RoleEmployee) {
+	if middleware.GetUserRole(c) == "employee" {
 		userID := middleware.GetUserID(c)
 		req.AssignedTo = &userID
 	}

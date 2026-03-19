@@ -83,6 +83,14 @@ func (m *MockUserService) UpdateAvatar(ctx context.Context, userID uuid.UUID, fi
 	return args.String(0), args.Error(1)
 }
 
+func (m *MockUserService) GetUserPermissions(ctx context.Context, userID uuid.UUID) ([]string, error) {
+	args := m.Called(ctx, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]string), args.Error(1)
+}
+
 // --- Mock PasswordHasher ---
 
 type MockPasswordHasher struct {
@@ -357,9 +365,9 @@ func TestSignIn_Success(t *testing.T) {
 			LastName:     "Doe",
 			Email:        "john@example.com",
 			PasswordHash: hashedPassword,
-			Role:         models.RoleAdmin,
 		}, nil)
 
+	mockService.On("GetUserPermissions", mock.Anything, userID).Return([]string{"task:read"}, nil)
 	mockCache.On("Set", mock.Anything, mock.Anything, "active", mock.Anything).Return(nil)
 
 	router := setupRouter()
@@ -469,8 +477,9 @@ func TestSignIn_InternalServerError_CacheFailure(t *testing.T) {
 			ID:           userID,
 			Email:        "john@example.com",
 			PasswordHash: hashedPassword,
-			Role:         models.RoleAdmin,
 		}, nil)
+
+	mockService.On("GetUserPermissions", mock.Anything, userID).Return([]string{}, nil)
 
 	mockCache.On("Set", mock.Anything, mock.Anything, "active", mock.Anything).
 		Return(errors.New("redis failure"))
@@ -496,7 +505,7 @@ func TestSignOut_Success(t *testing.T) {
 	handler, _, mockCache, _, jwtManager := setupAuthHandlerWithMockHasher(t)
 
 	userID := uuid.New()
-	validRefreshToken, _ := jwtManager.GenerateToken(userID, "admin", refreshTokenExpiration, pkg.Refresh)
+	validRefreshToken, _ := jwtManager.GenerateToken(userID, "admin", []string{}, refreshTokenExpiration, pkg.Refresh)
 	refreshKey := fmt.Sprintf("refresh_token:%s:%s", userID.String(), validRefreshToken)
 
 	mockCache.On("Delete", mock.Anything, refreshKey).Return(nil)
@@ -553,7 +562,7 @@ func TestSignOut_Unauthorized_WrongTokenType(t *testing.T) {
 
 	userID := uuid.New()
 	// Generate an ACCESS token instead of REFRESH
-	accessToken, _ := jwtManager.GenerateToken(userID, "admin", 15*time.Minute, pkg.Access)
+	accessToken, _ := jwtManager.GenerateToken(userID, "admin", []string{}, 15*time.Minute, pkg.Access)
 
 	router := setupRouter()
 	router.POST("/auth/signout", handler.SignOut)
@@ -576,11 +585,13 @@ func TestRefreshToken_Success(t *testing.T) {
 
 	userID := uuid.New()
 
-	validRefreshToken, err := jwtManager.GenerateToken(userID, "admin", refreshTokenExpiration, pkg.Refresh)
+	validRefreshToken, err := jwtManager.GenerateToken(userID, "admin", []string{}, refreshTokenExpiration, pkg.Refresh)
 	assert.NoError(t, err)
 
 	mockService.On("FindByID", mock.Anything, userID).
-		Return(&models.User{ID: userID, FirstName: "John", LastName: "Doe", Role: models.RoleAdmin}, nil)
+		Return(&models.User{ID: userID, FirstName: "John", LastName: "Doe"}, nil)
+
+	mockService.On("GetUserPermissions", mock.Anything, userID).Return([]string{}, nil)
 
 	mockCache.On("Get", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	mockCache.On("Delete", mock.Anything, mock.Anything).Return(nil)
@@ -644,7 +655,7 @@ func TestRefreshToken_Unauthorized_WrongTokenType(t *testing.T) {
 
 	userID := uuid.New()
 	// Generate an ACCESS token instead of REFRESH
-	accessToken, _ := jwtManager.GenerateToken(userID, "admin", 15*time.Minute, pkg.Access)
+	accessToken, _ := jwtManager.GenerateToken(userID, "admin", []string{}, 15*time.Minute, pkg.Access)
 
 	router := setupRouter()
 	router.POST("/auth/refresh", handler.RefreshToken)
@@ -663,7 +674,7 @@ func TestRefreshToken_Unauthorized_TokenNotInCache(t *testing.T) {
 
 	userID := uuid.New()
 
-	validRefreshToken, err := jwtManager.GenerateToken(userID, "admin", refreshTokenExpiration, pkg.Refresh)
+	validRefreshToken, err := jwtManager.GenerateToken(userID, "admin", []string{}, refreshTokenExpiration, pkg.Refresh)
 	assert.NoError(t, err)
 
 	mockCache.On("Get", mock.Anything, mock.Anything, mock.Anything).
@@ -691,7 +702,7 @@ func TestRefreshToken_Unauthorized_UserNotFound(t *testing.T) {
 
 	userID := uuid.New()
 
-	validRefreshToken, err := jwtManager.GenerateToken(userID, "admin", refreshTokenExpiration, pkg.Refresh)
+	validRefreshToken, err := jwtManager.GenerateToken(userID, "admin", []string{}, refreshTokenExpiration, pkg.Refresh)
 	assert.NoError(t, err)
 
 	mockService.On("FindByID", mock.Anything, userID).
@@ -722,11 +733,13 @@ func TestRefreshToken_InternalServerError_FailedToSaveNewToken(t *testing.T) {
 
 	userID := uuid.New()
 
-	validRefreshToken, err := jwtManager.GenerateToken(userID, "admin", refreshTokenExpiration, pkg.Refresh)
+	validRefreshToken, err := jwtManager.GenerateToken(userID, "admin", []string{}, refreshTokenExpiration, pkg.Refresh)
 	assert.NoError(t, err)
 
 	mockService.On("FindByID", mock.Anything, userID).
-		Return(&models.User{ID: userID, FirstName: "John", LastName: "Doe", Role: models.RoleAdmin}, nil)
+		Return(&models.User{ID: userID, FirstName: "John", LastName: "Doe"}, nil)
+
+	mockService.On("GetUserPermissions", mock.Anything, userID).Return([]string{}, nil)
 
 	mockCache.On("Get", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 	mockCache.On("Delete", mock.Anything, mock.Anything).Return(nil)

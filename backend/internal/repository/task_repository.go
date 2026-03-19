@@ -206,24 +206,31 @@ func (r *taskRepository) FindAll(ctx context.Context, filter TaskListFilter) ([]
 
 	orderBy := "created_at DESC"
 	if filter.Sort != "" {
-		// Map frontend field names to database columns
+		// Map frontend field names to database columns (Whitelist)
 		columnMap := map[string]string{
 			"createdAt": "created_at",
 			"title":     "title",
 			"priority":  "priority",
 			"dueDate":   "due_date",
+			"status":    "status",
 		}
 
 		dbColumn, ok := columnMap[filter.Sort]
 		if !ok {
-			// Fallback to the provided string if not in map, 
-			// though it's better to be strict for security.
-			dbColumn = filter.Sort 
+			// Fallback to the default column (Vulnerability Fixed)
+			dbColumn = "created_at"
 		}
 
-		order := filter.Order
-		if order == "" {
-			order = "desc"
+		order := "DESC"
+		if filter.Order != "" {
+			switch filter.Order {
+			case "asc", "ASC":
+				order = "ASC"
+			case "desc", "DESC":
+				order = "DESC"
+			default:
+				order = "DESC"
+			}
 		}
 		orderBy = dbColumn + " " + order
 	}

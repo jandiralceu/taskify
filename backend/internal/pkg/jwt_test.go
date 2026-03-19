@@ -77,7 +77,8 @@ func TestJWTManager_GenerateAndValidateToken_Success(t *testing.T) {
 	expiration := time.Minute * 15
 
 	role := "admin"
-	token, err := manager.GenerateToken(userID, role, expiration, Access)
+	permissions := []string{"task:read", "task:write"}
+	token, err := manager.GenerateToken(userID, role, permissions, expiration, Access)
 
 	require.NoError(t, err)
 	assert.NotEmpty(t, token)
@@ -86,6 +87,7 @@ func TestJWTManager_GenerateAndValidateToken_Success(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, userID, claims.UserID)
 	assert.Equal(t, role, claims.Role)
+	assert.ElementsMatch(t, permissions, claims.Permissions)
 	assert.Equal(t, Access, claims.Type)
 }
 
@@ -97,7 +99,7 @@ func TestJWTManager_ValidateToken_Expired(t *testing.T) {
 	userID := uuid.New()
 	expiration := -time.Minute * 15 // Set an expiration in the past
 
-	token, err := manager.GenerateToken(userID, "admin", expiration, Access)
+	token, err := manager.GenerateToken(userID, "admin", []string{}, expiration, Access)
 	require.NoError(t, err)
 
 	claims, err := manager.ValidateToken(token)
@@ -116,7 +118,7 @@ func TestJWTManager_ValidateToken_InvalidSignature(t *testing.T) {
 	require.NoError(t, err)
 
 	userID := uuid.New()
-	tokenFrom1, err := manager1.GenerateToken(userID, "admin", time.Hour, Access)
+	tokenFrom1, err := manager1.GenerateToken(userID, "admin", []string{}, time.Hour, Access)
 	require.NoError(t, err)
 
 	// Validating token signed by Key 1 using Key 2, should fail signature validation
@@ -132,7 +134,7 @@ func BenchmarkGenerateToken(b *testing.B) {
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_, _ = manager.GenerateToken(userID, "admin", time.Hour, Access)
+		_, _ = manager.GenerateToken(userID, "admin", []string{}, time.Hour, Access)
 	}
 }
 
@@ -140,7 +142,7 @@ func BenchmarkValidateToken(b *testing.B) {
 	privPEM, pubPEM := generateMemRSAKeysBenchmark(b)
 	manager, _ := NewJWTManager(privPEM, pubPEM)
 	userID := uuid.New()
-	token, _ := manager.GenerateToken(userID, "admin", time.Hour, Access)
+	token, _ := manager.GenerateToken(userID, "admin", []string{}, time.Hour, Access)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

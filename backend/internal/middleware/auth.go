@@ -16,6 +16,8 @@ const (
 	UserIDKey = "userID"
 	// UserRoleKey is the key used to store the authenticated user role in the Gin context.
 	UserRoleKey = "userRole"
+	// UserPermissionsKey is the key used to store the authenticated user permissions in the Gin context.
+	UserPermissionsKey = "userPermissions"
 )
 
 // ProblemDetails represents a standard error response following RFC 7807.
@@ -63,9 +65,10 @@ func AuthMiddleware(jwtManager *pkg.JWTManager) gin.HandlerFunc {
 			return
 		}
 
-		// Store the user ID and role in the context for downstream handlers.
+		// Store the user ID, role and permissions in the context for downstream handlers.
 		c.Set(UserIDKey, claims.UserID)
 		c.Set(UserRoleKey, claims.Role)
+		c.Set(UserPermissionsKey, claims.Permissions)
 		c.Next()
 	}
 }
@@ -98,4 +101,18 @@ func GetUserRole(c *gin.Context) string {
 	}
 
 	return role
+}
+// GetUserPermissions extracts the authenticated user permissions from the Gin context.
+func GetUserPermissions(c *gin.Context) []string {
+	val, exists := c.Get(UserPermissionsKey)
+	if !exists {
+		return []string{}
+	}
+
+	permissions, ok := val.([]string)
+	if !ok {
+		return []string{}
+	}
+
+	return permissions
 }

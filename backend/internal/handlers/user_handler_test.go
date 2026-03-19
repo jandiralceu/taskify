@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/casbin/casbin/v3"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/jandiralceu/taskify/internal/apperrors"
@@ -27,8 +26,8 @@ func TestFindAllUsersSuccess(t *testing.T) {
 	handler := NewUserHandler(mockService, nil)
 
 	users := []models.User{
-		{ID: uuid.New(), FirstName: "User", LastName: "1", Email: "user1@example.com", Role: models.RoleEmployee},
-		{ID: uuid.New(), FirstName: "User", LastName: "2", Email: "user2@example.com", Role: models.RoleEmployee},
+		{ID: uuid.New(), FirstName: "User", LastName: "1", Email: "user1@example.com"},
+		{ID: uuid.New(), FirstName: "User", LastName: "2", Email: "user2@example.com"},
 	}
 
 	response := dto.PaginatedResponse[models.User]{
@@ -83,7 +82,7 @@ func TestFindUserByIDSuccess(t *testing.T) {
 	handler := NewUserHandler(mockService, nil)
 
 	userID := uuid.New()
-	user := &models.User{ID: userID, FirstName: "John", LastName: "Doe", Email: "john@example.com", Role: models.RoleAdmin}
+	user := &models.User{ID: userID, FirstName: "John", LastName: "Doe", Email: "john@example.com"}
 
 	mockService.On("FindByID", mock.Anything, userID).Return(user, nil)
 
@@ -328,36 +327,3 @@ func TestUpdateAvatarServiceError(t *testing.T) {
 
 // =====================
 // GetPermissions Tests
-// =====================
-
-func TestGetPermissionsSuccess(t *testing.T) {
-	mockService := new(MockUserService)
-	// Create a real enforcer with dummy data for testing
-	// In a more complex setup, we might want to mock the enforcer, but for now, nil won't work if called.
-	// Since GetPermissions uses h.enforcer, we need a real one or a mock.
-	enforcer, _ := casbin.NewEnforcer("../../model.conf", "../../policy.csv")
-
-	handler := NewUserHandler(mockService, enforcer)
-
-	router := setupRouter()
-	router.GET("/users/permissions", func(c *gin.Context) {
-		c.Set(middleware.UserRoleKey, "employee")
-		handler.GetPermissions(c)
-	})
-
-	w := performRequest(router, "GET", "/users/permissions", nil)
-
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	var resp map[string]interface{}
-	err := json.Unmarshal(w.Body.Bytes(), &resp)
-	assert.NoError(t, err)
-
-	assert.Equal(t, "employee", resp["role"])
-	assert.NotNil(t, resp["permissions"])
-
-	permissions := resp["permissions"].(map[string]interface{})
-	assert.Contains(t, permissions, "tasks")
-	assert.Contains(t, permissions, "users")
-	assert.Equal(t, false, permissions["admin_area"])
-}

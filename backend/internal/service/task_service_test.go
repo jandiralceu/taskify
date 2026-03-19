@@ -249,8 +249,9 @@ func TestTaskServiceAddAttachment(t *testing.T) {
 		assert.NotNil(t, attachment)
 		assert.True(t, strings.HasSuffix(attachment.FileName, filename))
 		
-		// Check file exists
-		_, err = os.Stat(attachment.FilePath)
+		// Check file exists on disk
+		diskPath := filepath.Join(tempDir, "attachments", filepath.Base(attachment.FilePath))
+		_, err = os.Stat(diskPath)
 		assert.NoError(t, err)
 		
 		mockRepo.AssertExpectations(t)
@@ -268,14 +269,18 @@ func TestTaskServiceDeleteAttachment(t *testing.T) {
 	userID := uuid.New()
 
 	t.Run("Success", func(t *testing.T) {
-		// Create a dummy file
-		filePath := filepath.Join(tempDir, "to_delete.txt")
-		os.WriteFile(filePath, []byte("test"), 0644)
+		// Create a dummy file in the 'attachments' subfolder
+		attachmentDir := filepath.Join(tempDir, "attachments")
+		os.MkdirAll(attachmentDir, 0755)
+		
+		fileName := "to_delete.txt"
+		diskPath := filepath.Join(attachmentDir, fileName)
+		os.WriteFile(diskPath, []byte("test"), 0644)
 
 		attachment := &models.TaskAttachment{
 			ID:       attachmentID,
 			UserID:   userID,
-			FilePath: filePath,
+			FilePath: "/uploads/attachments/" + fileName,
 		}
 
 		mockRepo.On("FindAttachmentByID", ctx, attachmentID).Return(attachment, nil).Once()
@@ -285,7 +290,7 @@ func TestTaskServiceDeleteAttachment(t *testing.T) {
 
 		assert.NoError(t, err)
 		// Check file is gone
-		_, err = os.Stat(filePath)
+		_, err = os.Stat(diskPath)
 		assert.True(t, os.IsNotExist(err))
 		
 		mockRepo.AssertExpectations(t)

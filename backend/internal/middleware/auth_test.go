@@ -122,7 +122,7 @@ func TestAuthMiddleware(t *testing.T) {
 	t.Run("Valid Token", func(t *testing.T) {
 		userID := uuid.New()
 		role := "admin"
-		token, err := jwtManager.GenerateToken(userID, role, 15*time.Minute, pkg.Access)
+		token, err := jwtManager.GenerateToken(userID, role, []string{"task:read"}, 15*time.Minute, pkg.Access)
 		require.NoError(t, err)
 
 		req, _ := http.NewRequest(http.MethodGet, "/protected", nil)
@@ -138,7 +138,7 @@ func TestAuthMiddleware(t *testing.T) {
 	t.Run("Refresh Token as Access Token", func(t *testing.T) {
 		userID := uuid.New()
 		role := "admin"
-		token, err := jwtManager.GenerateToken(userID, role, 15*time.Minute, pkg.Refresh)
+		token, err := jwtManager.GenerateToken(userID, role, []string{"task:read"}, 15*time.Minute, pkg.Refresh)
 		require.NoError(t, err)
 
 		req, _ := http.NewRequest(http.MethodGet, "/protected", nil)

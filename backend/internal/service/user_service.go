@@ -33,6 +33,8 @@ type UserService interface {
 	Update(ctx context.Context, userID uuid.UUID, req dto.UpdateUserRequest) (*models.User, error)
 	// UpdateAvatar uploads a profile picture and returns the URL/path.
 	UpdateAvatar(ctx context.Context, userID uuid.UUID, file io.Reader, filename string) (string, error)
+	// GetUserPermissions retrieves all permissions for a user across all their roles.
+	GetUserPermissions(ctx context.Context, userID uuid.UUID) ([]string, error)
 }
 
 // refreshTokenCacheKeyPrefix is the Redis key prefix used for refresh tokens.
@@ -41,6 +43,7 @@ const refreshTokenCacheKeyPrefix = "refresh_token:"
 
 type userService struct {
 	userRepo   repository.UserRepository
+	roleRepo   repository.RoleRepository
 	hasher     pkg.PasswordHasher
 	uploadPath string
 	cache      pkg.CacheManager
@@ -49,8 +52,8 @@ type userService struct {
 var _ UserService = (*userService)(nil)
 
 // NewUserService initializes a UserService with its required repository and hasher dependencies.
-func NewUserService(userRepo repository.UserRepository, hasher pkg.PasswordHasher, uploadPath string, cache pkg.CacheManager) UserService {
-	return &userService{userRepo: userRepo, hasher: hasher, uploadPath: uploadPath, cache: cache}
+func NewUserService(userRepo repository.UserRepository, roleRepo repository.RoleRepository, hasher pkg.PasswordHasher, uploadPath string, cache pkg.CacheManager) UserService {
+	return &userService{userRepo: userRepo, roleRepo: roleRepo, hasher: hasher, uploadPath: uploadPath, cache: cache}
 }
 
 // Create performs password hashing using the injected hasher before persisting the user through the repository.
@@ -61,7 +64,26 @@ func (s *userService) Create(ctx context.Context, user *models.User) error {
 	}
 	user.PasswordHash = hashedPassword
 
-	return s.userRepo.Create(ctx, user)
+	// Assign specified or default role 'employee' if no roles assigned
+	if len(user.Roles) == 0 {
+		roleName := "employee"
+		if user.Role != "" {
+			roleName = user.Role
+		}
+		role, err := s.roleRepo.FindByName(ctx, roleName)
+		if err == nil && role != nil {
+			user.Roles = append(user.Roles, *role)
+		}
+	}
+
+	if err := s.userRepo.Create(ctx, user); err != nil {
+		return err
+	}
+
+	if len(user.Roles) > 0 {
+		user.Role = user.Roles[0].Name
+	}
+	return nil
 }
 
 // FindAll delegates the retrieval of the user list to the repository.
@@ -84,12 +106,27 @@ func (s *userService) FindAll(ctx context.Context, req dto.GetUserListRequest) (
 		return nil, err
 	}
 
+	for i := range users {
+		if len(users[i].Roles) > 0 {
+			users[i].Role = users[i].Roles[0].Name
+		}
+	}
+
 	return dto.NewPaginatedResponse(users, total, filter.Pagination.Page, filter.Pagination.Limit), nil
 }
 
 // FindByID retrieves a user by their primary key from the repository.
 func (s *userService) FindByID(ctx context.Context, userID uuid.UUID) (*models.User, error) {
-	return s.userRepo.FindByID(ctx, userID)
+	user, err := s.userRepo.FindByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(user.Roles) > 0 {
+		user.Role = user.Roles[0].Name
+	}
+
+	return user, nil
 }
 
 // FindByEmail retrieves a user by their email address for authentication or identification purposes.
@@ -117,7 +154,16 @@ func (s *userService) Update(ctx context.Context, userID uuid.UUID, req dto.Upda
 		IsActive:  req.IsActive,
 	}
 
-	return s.userRepo.Update(ctx, userID, params)
+	user, err := s.userRepo.Update(ctx, userID, params)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(user.Roles) > 0 {
+		user.Role = user.Roles[0].Name
+	}
+
+	return user, nil
 }
 
 func (s *userService) ChangePassword(ctx context.Context, userID uuid.UUID, req dto.ChangePasswordRequest) error {
@@ -192,4 +238,34 @@ func (s *userService) UpdateAvatar(ctx context.Context, userID uuid.UUID, file i
 	}
 
 	return publicPath, nil
+}
+
+func (s *userService) GetUserPermissions(ctx context.Context, userID uuid.UUID) ([]string, error) {
+	roles, err := s.roleRepo.GetUserRoles(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var permissions []string
+	permMap := make(map[string]bool)
+
+	for _, role := range roles {
+		perms, err := s.roleRepo.GetPermissionsByRole(ctx, role.Name)
+		if err != nil {
+			continue
+		}
+		for _, p := range perms {
+			permStr := fmt.Sprintf("%s:%s", p.Resource, p.Action)
+			if !permMap[permStr] {
+				permMap[permStr] = true
+				permissions = append(permissions, permStr)
+			}
+		}
+	}
+
+	if permissions == nil {
+		return []string{}, nil
+	}
+
+	return permissions, nil
 }
